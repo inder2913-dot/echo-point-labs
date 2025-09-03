@@ -352,7 +352,23 @@ export default function Recommendations() {
     console.log('Calculated compliance rate:', complianceRate)
     console.log('Device statuses:', devices.map(d => ({ id: d.id, status: d.status })))
     
-    const criticalIssues = devices.filter(d => d.status === 'critical').length
+    // Calculate critical issues - include devices with security vulnerabilities as critical
+    const criticalIssues = devices.filter(d => {
+      // Original critical status
+      if (d.status === 'critical') return true
+      
+      // Security vulnerabilities should be considered critical
+      const hasSecurityIssue = d.issues?.some((issue: string) => 
+        issue.toLowerCase().includes('security') || 
+        issue.toLowerCase().includes('vulnerability') ||
+        issue.toLowerCase().includes('patch')
+      ) || false
+      
+      // Outdated OS (Windows 10) should be considered critical security risk
+      const isOutdatedOS = (d.deviceos || d.device?.os || '').toLowerCase().includes('windows 10')
+      
+      return hasSecurityIssue || isOutdatedOS
+    }).length
     const upgradeNeeded = devices.filter(d => d.status === 'needs-upgrade').length
     const avgScore = totalDevices > 0 
       ? Math.round(devices.reduce((sum, d) => sum + (d.score || 0), 0) / totalDevices)
