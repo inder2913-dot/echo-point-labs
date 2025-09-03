@@ -14,6 +14,89 @@ export type Database = {
   }
   public: {
     Tables: {
+      custom_industries: {
+        Row: {
+          created_at: string
+          description: string | null
+          id: string
+          name: string
+          starter_template: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name: string
+          starter_template?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          description?: string | null
+          id?: string
+          name?: string
+          starter_template?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      custom_industry_profiles: {
+        Row: {
+          created_at: string
+          custom_industry_id: string
+          department: string
+          hardware_cpu: string
+          hardware_graphics: string
+          hardware_graphics_capacity: string | null
+          hardware_ram: string
+          hardware_storage: string
+          id: string
+          level: string
+          role: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          custom_industry_id: string
+          department: string
+          hardware_cpu?: string
+          hardware_graphics?: string
+          hardware_graphics_capacity?: string | null
+          hardware_ram?: string
+          hardware_storage?: string
+          id?: string
+          level: string
+          role: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          custom_industry_id?: string
+          department?: string
+          hardware_cpu?: string
+          hardware_graphics?: string
+          hardware_graphics_capacity?: string | null
+          hardware_ram?: string
+          hardware_storage?: string
+          id?: string
+          level?: string
+          role?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "custom_industry_profiles_custom_industry_id_fkey"
+            columns: ["custom_industry_id"]
+            isOneToOne: false
+            referencedRelation: "custom_industries"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       project_data: {
         Row: {
           created_at: string
