@@ -89,6 +89,96 @@ const INDUSTRY_PROFILES = {
         specialRequirements: "Headset support, CRM system access"
       },
       color: "bg-yellow-100 text-yellow-800"
+    },
+    {
+      id: "department-manager",
+      name: "Department Manager",
+      description: "Department heads overseeing specific retail areas",
+      criteria: ["Department Manager", "Section Manager", "Area Manager"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "Medium",
+        specialRequirements: "Mobile reporting, analytics software"
+      },
+      color: "bg-indigo-100 text-indigo-800"
+    },
+    {
+      id: "visual-merchandiser",
+      name: "Visual Merchandiser",
+      description: "Design and layout specialists for store displays",
+      criteria: ["Visual Merchandiser", "Display Coordinator", "Design Specialist"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "High",
+        specialRequirements: "Graphics software, design tools"
+      },
+      color: "bg-pink-100 text-pink-800"
+    },
+    {
+      id: "loss-prevention",
+      name: "Loss Prevention",
+      description: "Security and loss prevention specialists",
+      criteria: ["Loss Prevention", "Security Officer", "Asset Protection"],
+      baseline: {
+        deviceType: "Laptop or Tablet",
+        minRam: "8GB",
+        minCpu: "Intel i3 / AMD Ryzen 3",
+        minStorage: "256GB SSD",
+        mobility: "High",
+        specialRequirements: "Security software, mobile monitoring"
+      },
+      color: "bg-red-100 text-red-800"
+    },
+    {
+      id: "buyer-merchandiser",
+      name: "Buyer/Merchandiser",
+      description: "Product buyers and merchandising professionals",
+      criteria: ["Buyer", "Merchandiser", "Product Manager", "Procurement"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "Medium",
+        specialRequirements: "Analytics software, vendor portals"
+      },
+      color: "bg-orange-100 text-orange-800"
+    },
+    {
+      id: "cashier",
+      name: "Cashier",
+      description: "Point-of-sale operators and checkout staff",
+      criteria: ["Cashier", "Checkout Operator", "POS Operator"],
+      baseline: {
+        deviceType: "Desktop or Tablet",
+        minRam: "4GB",
+        minCpu: "Intel i3 / AMD Ryzen 3",
+        minStorage: "128GB SSD",
+        mobility: "Low",
+        specialRequirements: "POS system integration, receipt printers"
+      },
+      color: "bg-teal-100 text-teal-800"
+    },
+    {
+      id: "district-manager",
+      name: "District Manager",
+      description: "Multi-store management and oversight",
+      criteria: ["District Manager", "Regional Manager", "Area Director"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "32GB",
+        minCpu: "Intel i7 / AMD Ryzen 7",
+        minStorage: "1TB SSD",
+        mobility: "High",
+        specialRequirements: "Advanced analytics, VPN access, mobile office"
+      },
+      color: "bg-violet-100 text-violet-800"
     }
   ],
   manufacturing: [
