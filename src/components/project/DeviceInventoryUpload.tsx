@@ -92,12 +92,63 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
     setIsUploading(true)
     setUploadStatus("idle")
 
-    // Simulate file processing
-    setTimeout(() => {
-      setUploadedDevices(SAMPLE_DEVICE_DATA)
+    try {
+      const text = await file.text()
+      const lines = text.split('\n').filter(line => line.trim())
+      
+      if (lines.length < 2) {
+        setUploadStatus("error")
+        setIsUploading(false)
+        return
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+      const data = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''))
+        const device: any = {}
+        
+        headers.forEach((header, index) => {
+          const value = values[index] || ''
+          const headerLower = header.toLowerCase()
+          
+          // Map common header variations to standard keys
+          if (headerLower.includes('device') && headerLower.includes('id')) {
+            device.deviceId = value
+          } else if (headerLower.includes('user') && headerLower.includes('id')) {
+            device.userId = value
+          } else if (headerLower.includes('user') && headerLower.includes('name')) {
+            device.userName = value
+          } else if (headerLower.includes('type')) {
+            device.deviceType = value
+          } else if (headerLower.includes('model')) {
+            device.model = value
+          } else if (headerLower.includes('cpu') || headerLower.includes('processor')) {
+            device.cpu = value
+          } else if (headerLower.includes('ram') || headerLower.includes('memory')) {
+            device.ram = value
+          } else if (headerLower.includes('storage') || headerLower.includes('disk') || headerLower.includes('hdd') || headerLower.includes('ssd')) {
+            device.storage = value
+          } else if (headerLower.includes('os') || headerLower.includes('operating')) {
+            device.os = value
+          } else if (headerLower.includes('age')) {
+            device.age = value
+          } else {
+            // Use the header name as-is for unmapped fields
+            device[header.toLowerCase().replace(/\s+/g, '_')] = value
+          }
+        })
+        
+        return device
+      }).filter(dev => dev.deviceId) // Only include rows with a device ID
+
+      setUploadedDevices(data)
       setUploadStatus("success")
+    } catch (error) {
+      console.error('Error parsing CSV:', error)
+      setUploadStatus("error")
+    } finally {
       setIsUploading(false)
-    }, 2000)
+    }
   }
 
   const handleContinue = () => {

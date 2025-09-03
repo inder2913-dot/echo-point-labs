@@ -67,13 +67,51 @@ export function EmployeeDataUpload({ onComplete, initialData }: EmployeeDataUplo
     setIsUploading(true)
     setUploadStatus("idle")
 
-    // Simulate file processing
-    setTimeout(() => {
-      // For demo purposes, use sample data
-      setUploadedData(SAMPLE_DATA)
+    try {
+      const text = await file.text()
+      const lines = text.split('\n').filter(line => line.trim())
+      
+      if (lines.length < 2) {
+        setUploadStatus("error")
+        setIsUploading(false)
+        return
+      }
+
+      const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
+      const data = lines.slice(1).map(line => {
+        const values = line.split(',').map(v => v.trim().replace(/"/g, ''))
+        const employee: any = {}
+        
+        headers.forEach((header, index) => {
+          const value = values[index] || ''
+          // Map common header variations to standard keys
+          if (header.toLowerCase().includes('id') || header.toLowerCase().includes('emp')) {
+            employee.id = value
+          } else if (header.toLowerCase().includes('name') && !header.toLowerCase().includes('user')) {
+            employee.name = value
+          } else if (header.toLowerCase().includes('department') || header.toLowerCase().includes('dept')) {
+            employee.department = value
+          } else if (header.toLowerCase().includes('title') || header.toLowerCase().includes('role') || header.toLowerCase().includes('job')) {
+            employee.role = value
+          } else if (header.toLowerCase().includes('location') || header.toLowerCase().includes('office')) {
+            employee.location = value
+          } else {
+            // Use the header name as-is for unmapped fields
+            employee[header.toLowerCase().replace(/\s+/g, '_')] = value
+          }
+        })
+        
+        return employee
+      }).filter(emp => emp.id) // Only include rows with an ID
+
+      setUploadedData(data)
       setUploadStatus("success")
+    } catch (error) {
+      console.error('Error parsing CSV:', error)
+      setUploadStatus("error")
+    } finally {
       setIsUploading(false)
-    }, 2000)
+    }
   }
 
   const handleContinue = () => {
