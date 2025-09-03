@@ -1,18 +1,21 @@
 import { useState, useEffect } from "react"
-import { useParams, Link } from "react-router-dom"
+import { useParams, Link, useNavigate } from "react-router-dom"
 import { supabase } from "@/integrations/supabase/client"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ArrowLeft, Building2, Users, Monitor, Target, TrendingUp, Calendar, Eye } from "lucide-react"
+import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle, AlertDialogTrigger } from "@/components/ui/alert-dialog"
+import { ArrowLeft, Building2, Users, Monitor, Target, TrendingUp, Calendar, Eye, Trash2 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 
 export default function ProjectDetails() {
   const { id } = useParams()
+  const navigate = useNavigate()
   const [project, setProject] = useState<any>(null)
   const [projectData, setProjectData] = useState<any>({})
   const [loading, setLoading] = useState(true)
+  const [deleting, setDeleting] = useState(false)
   const { toast } = useToast()
 
   useEffect(() => {
@@ -62,6 +65,48 @@ export default function ProjectDetails() {
       })
     } finally {
       setLoading(false)
+    }
+  }
+
+  const deleteProject = async () => {
+    setDeleting(true)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      // Delete project data first (due to foreign key relationship)
+      const { error: dataError } = await supabase
+        .from('project_data')
+        .delete()
+        .eq('project_id', id)
+
+      if (dataError) throw dataError
+
+      // Delete the project
+      const { error: projectError } = await supabase
+        .from('projects')
+        .delete()
+        .eq('id', id)
+        .eq('user_id', user.id)
+
+      if (projectError) throw projectError
+
+      toast({
+        title: "Success",
+        description: "Project deleted successfully",
+      })
+
+      // Navigate back to dashboard
+      navigate('/')
+    } catch (error) {
+      console.error('Error deleting project:', error)
+      toast({
+        title: "Error",
+        description: "Failed to delete project",
+        variant: "destructive"
+      })
+    } finally {
+      setDeleting(false)
     }
   }
 
@@ -124,9 +169,37 @@ export default function ProjectDetails() {
             <p className="text-muted-foreground">Project details and analysis results</p>
           </div>
         </div>
-        <Badge className={getStatusColor(project.status)}>
-          {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
-        </Badge>
+        <div className="flex items-center gap-3">
+          <Badge className={getStatusColor(project.status)}>
+            {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+          </Badge>
+          <AlertDialog>
+            <AlertDialogTrigger asChild>
+              <Button variant="destructive" size="sm" disabled={deleting}>
+                <Trash2 className="w-4 h-4 mr-2" />
+                {deleting ? "Deleting..." : "Delete Project"}
+              </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+              <AlertDialogHeader>
+                <AlertDialogTitle>Delete Project</AlertDialogTitle>
+                <AlertDialogDescription>
+                  Are you sure you want to delete "{project.name}"? This action cannot be undone and will permanently remove all project data, including employee data, device inventory, and recommendations.
+                </AlertDialogDescription>
+              </AlertDialogHeader>
+              <AlertDialogFooter>
+                <AlertDialogCancel disabled={deleting}>Cancel</AlertDialogCancel>
+                <AlertDialogAction 
+                  onClick={deleteProject} 
+                  disabled={deleting}
+                  className="bg-destructive text-destructive-foreground hover:bg-destructive/90"
+                >
+                  {deleting ? "Deleting..." : "Delete Project"}
+                </AlertDialogAction>
+              </AlertDialogFooter>
+            </AlertDialogContent>
+          </AlertDialog>
+        </div>
       </div>
 
       {/* Project Overview */}
