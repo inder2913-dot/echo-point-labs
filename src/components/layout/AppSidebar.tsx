@@ -47,11 +47,6 @@ export function AppSidebar() {
 
   const isActive = (path: string) => currentPath === path
 
-  const getNavClass = ({ isActive }: { isActive: boolean }) =>
-    isActive 
-      ? "bg-primary text-primary-foreground font-medium" 
-      : "text-foreground hover:bg-accent hover:text-accent-foreground transition-smooth"
-
   return (
     <Sidebar
       className={`${collapsed ? "w-14" : "w-64"} border-r border-border bg-background`}
@@ -78,7 +73,15 @@ export function AppSidebar() {
               {mainItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={getNavClass}>
+                    <NavLink 
+                      to={item.url} 
+                      end 
+                      className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive(item.url)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
@@ -96,7 +99,15 @@ export function AppSidebar() {
               {analyticsItems.map((item) => (
                 <SidebarMenuItem key={item.title}>
                   <SidebarMenuButton asChild>
-                    <NavLink to={item.url} end className={getNavClass}>
+                    <NavLink 
+                      to={item.url} 
+                      end 
+                      className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                        isActive(item.url)
+                          ? "bg-primary text-primary-foreground"
+                          : "text-foreground hover:bg-accent hover:text-accent-foreground"
+                      }`}
+                    >
                       <item.icon className="h-4 w-4" />
                       {!collapsed && <span>{item.title}</span>}
                     </NavLink>
