@@ -94,7 +94,10 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
 
     try {
       const text = await file.text()
+      console.log('Raw CSV text:', text.substring(0, 200)) // Debug log
+      
       const lines = text.split('\n').filter(line => line.trim())
+      console.log('Lines count:', lines.length) // Debug log
       
       if (lines.length < 2) {
         setUploadStatus("error")
@@ -103,15 +106,22 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
       }
 
       const headers = lines[0].split(',').map(h => h.trim().replace(/"/g, ''))
-      const data = lines.slice(1).map(line => {
+      console.log('Headers:', headers) // Debug log
+      
+      const data = lines.slice(1).map((line, lineIndex) => {
         const values = line.split(',').map(v => v.trim().replace(/"/g, ''))
+        console.log(`Line ${lineIndex + 1} values:`, values) // Debug log
+        
         const device: any = {}
         
         headers.forEach((header, index) => {
           const value = values[index] || ''
           const headerLower = header.toLowerCase()
           
-          // More flexible mapping for device data
+          // Store all fields first
+          device[header.toLowerCase().replace(/\s+/g, '_')] = value
+          
+          // Then map to standard fields
           if (headerLower.includes('device') && (headerLower.includes('id') || headerLower.includes('name'))) {
             device.deviceId = value
           } else if (headerLower === 'id' && !headerLower.includes('user')) {
@@ -144,11 +154,10 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
             device.os = value
           } else if (headerLower.includes('age') || headerLower.includes('year')) {
             device.age = value
-          } else {
-            // Store all other fields with their original header names
-            device[header.toLowerCase().replace(/\s+/g, '_')] = value
           }
         })
+        
+        console.log(`Parsed device ${lineIndex + 1}:`, device) // Debug log
         
         // Generate device ID if missing but we have some device info
         if (!device.deviceId && (device.model || device.userName)) {
@@ -167,9 +176,17 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
         }
         
         return device
-      }).filter(dev => dev.deviceId || dev.model || dev.userName) // Include rows with any meaningful device data
+      })
 
-      setUploadedDevices(data)
+      // Very lenient filtering - include any row that has at least one non-empty value
+      const filteredData = data.filter(dev => {
+        const hasData = Object.values(dev).some(value => value && value.toString().trim() !== '')
+        console.log('Device has data:', hasData, dev) // Debug log
+        return hasData
+      })
+
+      console.log('Final filtered data:', filteredData) // Debug log
+      setUploadedDevices(filteredData)
       setUploadStatus("success")
     } catch (error) {
       console.error('Error parsing CSV:', error)
