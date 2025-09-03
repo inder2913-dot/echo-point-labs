@@ -8,6 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { UpdateProjectName } from "@/components/UpdateProjectName"
 import { useToast } from "@/hooks/use-toast"
 
 export default function Dashboard() {
@@ -104,6 +105,7 @@ export default function Dashboard() {
           </p>
         </div>
         <div className="flex items-center space-x-2">
+          <UpdateProjectName />
           <Button variant="outline">Export Report</Button>
           <Button asChild>
             <Link to="/project">

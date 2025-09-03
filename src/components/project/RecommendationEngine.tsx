@@ -148,8 +148,7 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
     console.log('Saving project with data:', initialData); // Debug log
     
     // More flexible validation - check for any organization data
-    const hasOrgData = initialData.organizationSetup || 
-                      initialData.organizationType || 
+    const hasOrgData = initialData.organizationType || 
                       initialData.organization ||
                       initialData.orgType;
     
@@ -171,18 +170,19 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
       }
 
       // Get organization data more flexibly
-      const orgData = initialData.organizationSetup || initialData.organization || {};
+      const orgData = initialData || {};
+      const projectName = orgData.projectName || `Workplace Analytics Project - ${new Date().toLocaleDateString()}`;
       const orgType = orgData.organizationType || orgData.orgType || orgData.type || 'Unknown';
       const industry = orgData.industry || orgData.industryType || 'Unknown';
 
-      console.log('Organization data being saved:', { orgType, industry, orgData }); // Debug log
+      console.log('Organization data being saved:', { projectName, orgType, industry, orgData }); // Debug log
       
       // Create project
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert({
           user_id: userData.user.id,
-          name: `${orgType} Project - ${new Date().toLocaleDateString()}`,
+          name: projectName,
           organization_type: orgType,
           industry: industry,
           status: 'completed',
@@ -200,7 +200,7 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
 
       // Save all project data
       const projectDataInserts = [
-        { project_id: project.id, step_name: 'organizationSetup', data: orgData },
+        { project_id: project.id, step_name: 'organizationSetup', data: initialData },
         { project_id: project.id, step_name: 'employeeData', data: initialData.employeeData || [] },
         { project_id: project.id, step_name: 'deviceInventory', data: initialData.deviceData || [] },
         { project_id: project.id, step_name: 'userProfiles', data: initialData.userProfiles || [] },
