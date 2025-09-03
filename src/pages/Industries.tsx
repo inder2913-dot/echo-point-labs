@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from '@/components/ui/tabs';
 import { Building2, Users, Plus, Edit, Trash2, Copy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -410,12 +411,12 @@ export default function Industries() {
 
       {/* Edit Custom Industry Dialog */}
       <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
-        <DialogContent className="max-w-md">
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Edit Custom Industry</DialogTitle>
           </DialogHeader>
           {editingIndustry && (
-            <EditIndustryForm
+            <EditIndustryWithProfilesForm
               industry={editingIndustry}
               onIndustryUpdated={() => {
                 fetchCustomIndustries();
@@ -576,6 +577,383 @@ function CreateCustomIndustryDialog({
         </form>
       </DialogContent>
     </Dialog>
+  );
+}
+
+// Enhanced Edit Industry Form with Profile Management
+function EditIndustryWithProfilesForm({ 
+  industry, 
+  onIndustryUpdated, 
+  onCancel 
+}: {
+  industry: CustomIndustry;
+  onIndustryUpdated: () => void;
+  onCancel: () => void;
+}) {
+  const [activeTab, setActiveTab] = useState("details");
+  const [industryData, setIndustryData] = useState({
+    name: industry.name,
+    description: industry.description
+  });
+  const [profiles, setProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [profilesLoading, setProfilesLoading] = useState(true);
+  const [newProfile, setNewProfile] = useState({
+    role: '',
+    department: '',
+    level: 'Professional',
+    hardware_cpu: 'Core i5',
+    hardware_ram: '8GB',
+    hardware_storage: '256GB SSD',
+    hardware_graphics: 'Onboard',
+    hardware_graphics_capacity: ''
+  });
+  const { toast } = useToast();
+
+  // Fetch existing profiles
+  const fetchProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('custom_industry_profiles')
+        .select('*')
+        .eq('custom_industry_id', industry.id)
+        .order('created_at', { ascending: true });
+
+      if (error) throw error;
+      setProfiles(data || []);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+    } finally {
+      setProfilesLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchProfiles();
+  }, [industry.id]);
+
+  const updateIndustryDetails = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('custom_industries')
+        .update({
+          name: industryData.name,
+          description: industryData.description
+        })
+        .eq('id', industry.id);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Industry Updated",
+        description: "Your custom industry details have been updated successfully."
+      });
+
+      onIndustryUpdated();
+    } catch (error) {
+      console.error('Error updating industry:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update industry. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const addProfile = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newProfile.role || !newProfile.department) return;
+
+    try {
+      const { error } = await supabase
+        .from('custom_industry_profiles')
+        .insert({
+          custom_industry_id: industry.id,
+          role: newProfile.role,
+          department: newProfile.department,
+          level: newProfile.level,
+          hardware_cpu: newProfile.hardware_cpu,
+          hardware_ram: newProfile.hardware_ram,
+          hardware_storage: newProfile.hardware_storage,
+          hardware_graphics: newProfile.hardware_graphics,
+          hardware_graphics_capacity: newProfile.hardware_graphics === 'Dedicated' ? (newProfile.hardware_graphics_capacity || '8GB') : null
+        });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Profile Added",
+        description: `${newProfile.role} has been added to ${industry.name}.`
+      });
+
+      setNewProfile({
+        role: '',
+        department: '',
+        level: 'Professional',
+        hardware_cpu: 'Core i5',
+        hardware_ram: '8GB',
+        hardware_storage: '256GB SSD',
+        hardware_graphics: 'Onboard',
+        hardware_graphics_capacity: ''
+      });
+      
+      fetchProfiles();
+      onIndustryUpdated(); // Refresh profile count
+    } catch (error) {
+      console.error('Error adding profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const deleteProfile = async (profileId: string) => {
+    try {
+      const { error } = await supabase
+        .from('custom_industry_profiles')
+        .delete()
+        .eq('id', profileId);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Profile Removed",
+        description: "The profile has been removed from this industry."
+      });
+
+      fetchProfiles();
+      onIndustryUpdated(); // Refresh profile count
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  return (
+    <div className="space-y-4">
+      <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="details">Industry Details</TabsTrigger>
+          <TabsTrigger value="profiles">Manage Profiles ({profiles.length})</TabsTrigger>
+        </TabsList>
+        
+        <TabsContent value="details" className="space-y-4">
+          <form onSubmit={updateIndustryDetails} className="space-y-4">
+            <div className="space-y-2">
+              <Label>Industry Name</Label>
+              <Input
+                value={industryData.name}
+                onChange={(e) => setIndustryData(prev => ({ ...prev, name: e.target.value }))}
+                placeholder="e.g., Biotechnology, Aerospace"
+                required
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label>Description</Label>
+              <Textarea
+                value={industryData.description}
+                onChange={(e) => setIndustryData(prev => ({ ...prev, description: e.target.value }))}
+                placeholder="Brief description of this industry"
+                rows={3}
+              />
+            </div>
+
+            <div className="flex justify-end space-x-2">
+              <Button type="button" variant="outline" onClick={onCancel}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={loading}>
+                {loading ? 'Updating...' : 'Update Details'}
+              </Button>
+            </div>
+          </form>
+        </TabsContent>
+
+        <TabsContent value="profiles" className="space-y-4">
+          {/* Add New Profile Form */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Add New Profile</CardTitle>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={addProfile} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label>Job Role</Label>
+                    <Input
+                      value={newProfile.role}
+                      onChange={(e) => setNewProfile(prev => ({ ...prev, role: e.target.value }))}
+                      placeholder="e.g., Software Engineer"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Department</Label>
+                    <Input
+                      value={newProfile.department}
+                      onChange={(e) => setNewProfile(prev => ({ ...prev, department: e.target.value }))}
+                      placeholder="e.g., Engineering"
+                      required
+                    />
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Level</Label>
+                    <Select value={newProfile.level} onValueChange={(value) => setNewProfile(prev => ({ ...prev, level: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Executive">Executive</SelectItem>
+                        <SelectItem value="Management">Management</SelectItem>
+                        <SelectItem value="Professional">Professional</SelectItem>
+                        <SelectItem value="Technical">Technical</SelectItem>
+                        <SelectItem value="Support">Support</SelectItem>
+                        <SelectItem value="Staff">Staff</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>CPU</Label>
+                    <Select value={newProfile.hardware_cpu} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_cpu: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Core i3">Core i3</SelectItem>
+                        <SelectItem value="Core i5">Core i5</SelectItem>
+                        <SelectItem value="Core i7">Core i7</SelectItem>
+                        <SelectItem value="Core i9">Core i9</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>RAM</Label>
+                    <Select value={newProfile.hardware_ram} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_ram: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="8GB">8GB</SelectItem>
+                        <SelectItem value="16GB">16GB</SelectItem>
+                        <SelectItem value="32GB">32GB</SelectItem>
+                        <SelectItem value="64GB">64GB</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Storage</Label>
+                    <Select value={newProfile.hardware_storage} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_storage: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="256GB SSD">256GB SSD</SelectItem>
+                        <SelectItem value="512GB SSD">512GB SSD</SelectItem>
+                        <SelectItem value="1TB SSD">1TB SSD</SelectItem>
+                        <SelectItem value="2TB SSD">2TB SSD</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  <div className="space-y-2">
+                    <Label>Graphics</Label>
+                    <Select value={newProfile.hardware_graphics} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_graphics: value }))}>
+                      <SelectTrigger>
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="Onboard">Onboard</SelectItem>
+                        <SelectItem value="Dedicated">Dedicated</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+
+                  {newProfile.hardware_graphics === 'Dedicated' && (
+                    <div className="space-y-2">
+                      <Label>Graphics Memory</Label>
+                      <Select value={newProfile.hardware_graphics_capacity} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_graphics_capacity: value }))}>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select capacity" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="4GB">4GB</SelectItem>
+                          <SelectItem value="8GB">8GB</SelectItem>
+                          <SelectItem value="16GB">16GB</SelectItem>
+                          <SelectItem value="24GB">24GB</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  )}
+                </div>
+
+                <Button type="submit" className="w-full">
+                  <Plus className="mr-2 h-4 w-4" />
+                  Add Profile
+                </Button>
+              </form>
+            </CardContent>
+          </Card>
+
+          {/* Existing Profiles */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-lg">Current Profiles</CardTitle>
+            </CardHeader>
+            <CardContent>
+              {profilesLoading ? (
+                <div className="animate-pulse space-y-2">
+                  {[1, 2, 3].map(i => (
+                    <div key={i} className="h-16 bg-muted rounded"></div>
+                  ))}
+                </div>
+              ) : profiles.length === 0 ? (
+                <p className="text-center text-muted-foreground py-8">
+                  No profiles added yet. Add your first profile above.
+                </p>
+              ) : (
+                <div className="space-y-2">
+                  {profiles.map((profile) => (
+                    <div key={profile.id} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <div className="font-medium">{profile.role}</div>
+                        <div className="text-sm text-muted-foreground">
+                          {profile.department} • {profile.level} • {profile.hardware_cpu}, {profile.hardware_ram}, {profile.hardware_storage}
+                        </div>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteProfile(profile.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-4 w-4" />
+                      </Button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+      </Tabs>
+    </div>
   );
 }
 
