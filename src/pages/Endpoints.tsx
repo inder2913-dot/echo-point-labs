@@ -1,0 +1,507 @@
+import { useState, useEffect } from "react"
+import { Activity, Monitor, Smartphone, Tablet, Laptop, Shield, AlertTriangle, CheckCircle } from "lucide-react"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
+import { supabase } from "@/integrations/supabase/client"
+import { toast } from "sonner"
+
+interface Device {
+  id: string
+  name: string
+  deviceType: string
+  deviceSerial: string
+  deviceOS: string
+  osVersion?: string
+  deviceMake?: string
+  deviceModel?: string
+  lastSeen?: string
+  status: 'compliant' | 'needs-upgrade' | 'minor-issues' | 'critical'
+  score: number
+  department: string
+  location: string
+  issues: string[]
+  device?: any
+}
+
+const getStatusIcon = (status: string) => {
+  switch (status) {
+    case 'compliant':
+      return <CheckCircle className="w-4 h-4 text-green-600" />
+    case 'needs-upgrade':
+      return <AlertTriangle className="w-4 h-4 text-red-600" />
+    case 'minor-issues':
+      return <AlertTriangle className="w-4 h-4 text-yellow-600" />
+    case 'critical':
+      return <Shield className="w-4 h-4 text-red-700" />
+    default:
+      return <Monitor className="w-4 h-4" />
+  }
+}
+
+const getDeviceIcon = (deviceType: string) => {
+  switch (deviceType?.toLowerCase()) {
+    case 'laptop':
+      return <Laptop className="w-5 h-5" />
+    case 'desktop':
+      return <Monitor className="w-5 h-5" />
+    case 'tablet':
+      return <Tablet className="w-5 h-5" />
+    case 'mobile':
+    case 'phone':
+      return <Smartphone className="w-5 h-5" />
+    default:
+      return <Monitor className="w-5 h-5" />
+  }
+}
+
+const getStatusColor = (status: string) => {
+  switch (status) {
+    case 'compliant':
+      return 'bg-green-100 text-green-800'
+    case 'needs-upgrade':
+      return 'bg-red-100 text-red-800'
+    case 'minor-issues':
+      return 'bg-yellow-100 text-yellow-800'
+    case 'critical':
+      return 'bg-red-200 text-red-900'
+    default:
+      return 'bg-gray-100 text-gray-800'
+  }
+}
+
+export default function Endpoints() {
+  const [devices, setDevices] = useState<Device[]>([])
+  const [filteredDevices, setFilteredDevices] = useState<Device[]>([])
+  const [loading, setLoading] = useState(true)
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("all")
+  const [selectedLocation, setSelectedLocation] = useState<string>("all")
+  const [selectedStatus, setSelectedStatus] = useState<string>("all")
+  const [selectedDeviceType, setSelectedDeviceType] = useState<string>("all")
+
+  useEffect(() => {
+    loadEndpointsData()
+  }, [])
+
+  const loadEndpointsData = async () => {
+    try {
+      // Get the most recent device comparison data
+      const { data: projectData, error } = await supabase
+        .from('project_data')
+        .select('*')
+        .eq('step_name', 'device-comparison')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (error) throw error
+
+      if (projectData && projectData.length > 0) {
+        const data = projectData[0].data as any
+        const deviceComparison = data?.deviceComparison || []
+        
+        const transformedDevices: Device[] = deviceComparison.map((item: any, index: number) => ({
+          id: item.id?.toString() || index.toString(),
+          name: item.name || `${item.firstName} ${item.lastName}`,
+          deviceType: item.devicetype || item.device?.deviceType || 'Unknown',
+          deviceSerial: item.deviceserial || item.device?.deviceserial || 'N/A',
+          deviceOS: item.deviceos || item.device?.os || 'Unknown',
+          osVersion: item.device?.osversion,
+          deviceMake: item.device?.devicemake,
+          deviceModel: item.device?.devicemodel || item.device?.model,
+          lastSeen: item.device?.lastseen,
+          status: item.status || 'unknown',
+          score: item.score || 0,
+          department: item.department || 'Unknown',
+          location: item.location || 'Unknown',
+          issues: item.issues || [],
+          device: item.device
+        }))
+
+        setDevices(transformedDevices)
+        setFilteredDevices(transformedDevices)
+      }
+    } catch (error) {
+      console.error('Error loading endpoints data:', error)
+      toast.error('Failed to load endpoints data')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filter devices based on selected filters
+  useEffect(() => {
+    let filtered = devices
+
+    if (selectedDepartment !== "all") {
+      filtered = filtered.filter(device => device.department === selectedDepartment)
+    }
+    if (selectedLocation !== "all") {
+      filtered = filtered.filter(device => device.location === selectedLocation)
+    }
+    if (selectedStatus !== "all") {
+      filtered = filtered.filter(device => device.status === selectedStatus)
+    }
+    if (selectedDeviceType !== "all") {
+      filtered = filtered.filter(device => device.deviceType?.toLowerCase() === selectedDeviceType.toLowerCase())
+    }
+
+    setFilteredDevices(filtered)
+  }, [devices, selectedDepartment, selectedLocation, selectedStatus, selectedDeviceType])
+
+  // Get unique values for filters
+  const departments = [...new Set(devices.map(d => d.department).filter(Boolean))]
+  const locations = [...new Set(devices.map(d => d.location).filter(Boolean))]
+  const deviceTypes = [...new Set(devices.map(d => d.deviceType).filter(Boolean))]
+
+  // Statistics
+  const stats = {
+    total: devices.length,
+    compliant: devices.filter(d => d.status === 'compliant').length,
+    needsUpgrade: devices.filter(d => d.status === 'needs-upgrade').length,
+    minorIssues: devices.filter(d => d.status === 'minor-issues').length,
+    critical: devices.filter(d => d.status === 'critical').length,
+    byType: deviceTypes.reduce((acc, type) => {
+      acc[type] = devices.filter(d => d.deviceType === type).length
+      return acc
+    }, {} as Record<string, number>),
+    byDepartment: departments.reduce((acc, dept) => {
+      acc[dept] = devices.filter(d => d.department === dept).length
+      return acc
+    }, {} as Record<string, number>)
+  }
+
+  if (loading) {
+    return (
+      <div className="container mx-auto p-6">
+        <div className="animate-pulse space-y-6">
+          <div className="h-8 bg-muted rounded w-1/3"></div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[1, 2, 3, 4].map(i => (
+              <div key={i} className="h-32 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <div className="container mx-auto p-6 space-y-6">
+      <div className="flex items-center gap-2">
+        <Activity className="w-8 h-8 text-primary" />
+        <div>
+          <h1 className="text-3xl font-bold">Device Endpoints</h1>
+          <p className="text-muted-foreground">Monitor and manage all organizational devices ({filteredDevices.length} of {devices.length})</p>
+        </div>
+      </div>
+
+      {/* Statistics Overview */}
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Devices</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="text-2xl font-bold">{stats.total}</div>
+          </CardContent>
+        </Card>
+        
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Compliant</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-green-600" />
+              <span className="text-2xl font-bold text-green-600">{stats.compliant}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Needs Upgrade</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-600" />
+              <span className="text-2xl font-bold text-red-600">{stats.needsUpgrade}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Minor Issues</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-yellow-600" />
+              <span className="text-2xl font-bold text-yellow-600">{stats.minorIssues}</span>
+            </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">Critical</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="flex items-center gap-2">
+              <Shield className="w-4 h-4 text-red-700" />
+              <span className="text-2xl font-bold text-red-700">{stats.critical}</span>
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+
+      <Tabs defaultValue="all-devices" className="space-y-4">
+        <TabsList>
+          <TabsTrigger value="all-devices">All Devices</TabsTrigger>
+          <TabsTrigger value="by-type">By Device Type</TabsTrigger>
+          <TabsTrigger value="by-department">By Department</TabsTrigger>
+          <TabsTrigger value="by-status">By Status</TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="all-devices" className="space-y-4">
+          {/* Filters */}
+          <Card className="p-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Department</label>
+                <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Departments" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments.map(dept => (
+                      <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Location</label>
+                <Select value={selectedLocation} onValueChange={setSelectedLocation}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Locations" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Locations</SelectItem>
+                    {locations.map(location => (
+                      <SelectItem key={location} value={location}>{location}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Device Type</label>
+                <Select value={selectedDeviceType} onValueChange={setSelectedDeviceType}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Types" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Types</SelectItem>
+                    {deviceTypes.map(type => (
+                      <SelectItem key={type} value={type}>{type}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Status</label>
+                <Select value={selectedStatus} onValueChange={setSelectedStatus}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Statuses" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Statuses</SelectItem>
+                    <SelectItem value="compliant">Compliant</SelectItem>
+                    <SelectItem value="needs-upgrade">Needs Upgrade</SelectItem>
+                    <SelectItem value="minor-issues">Minor Issues</SelectItem>
+                    <SelectItem value="critical">Critical</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+
+            <Button 
+              variant="outline" 
+              onClick={() => {
+                setSelectedDepartment("all")
+                setSelectedLocation("all")
+                setSelectedDeviceType("all")
+                setSelectedStatus("all")
+              }}
+              className="mt-4"
+            >
+              Clear All Filters
+            </Button>
+          </Card>
+
+          {/* Device List */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {filteredDevices.map((device) => (
+              <Card key={device.id} className="relative">
+                <CardHeader className="pb-4">
+                  <div className="flex items-start justify-between">
+                    <div className="flex items-center gap-2">
+                      {getDeviceIcon(device.deviceType)}
+                      <div>
+                        <CardTitle className="text-lg">{device.name}</CardTitle>
+                        <p className="text-sm text-muted-foreground">{device.deviceSerial}</p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                      {getStatusIcon(device.status)}
+                      <Badge className={getStatusColor(device.status)}>
+                        {device.status.replace('-', ' ')}
+                      </Badge>
+                    </div>
+                  </div>
+                </CardHeader>
+                <CardContent className="space-y-3">
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">Type:</span>
+                      <p className="text-muted-foreground">{device.deviceType}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">OS:</span>
+                      <p className="text-muted-foreground">{device.deviceOS}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Department:</span>
+                      <p className="text-muted-foreground">{device.department}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Location:</span>
+                      <p className="text-muted-foreground">{device.location}</p>
+                    </div>
+                  </div>
+
+                  {device.deviceMake && device.deviceModel && (
+                    <div className="text-sm">
+                      <span className="font-medium">Device:</span>
+                      <p className="text-muted-foreground">{device.deviceMake} {device.deviceModel}</p>
+                    </div>
+                  )}
+
+                  <div className="text-sm">
+                    <span className="font-medium">Compliance Score:</span>
+                    <div className="flex items-center gap-2 mt-1">
+                      <div className="flex-1 bg-muted rounded-full h-2">
+                        <div 
+                          className={`h-2 rounded-full ${
+                            device.score >= 80 ? 'bg-green-500' : 
+                            device.score >= 60 ? 'bg-yellow-500' : 'bg-red-500'
+                          }`}
+                          style={{ width: `${device.score}%` }}
+                        />
+                      </div>
+                      <span className="text-muted-foreground">{device.score}%</span>
+                    </div>
+                  </div>
+
+                  {device.issues && device.issues.length > 0 && (
+                    <div className="text-sm">
+                      <span className="font-medium text-red-600">Issues:</span>
+                      <ul className="list-disc list-inside text-muted-foreground mt-1">
+                        {device.issues.map((issue, index) => (
+                          <li key={index} className="text-xs">{issue}</li>
+                        ))}
+                      </ul>
+                    </div>
+                  )}
+
+                  {device.lastSeen && (
+                    <div className="text-xs text-muted-foreground">
+                      Last seen: {new Date(device.lastSeen).toLocaleDateString()}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="by-type" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(stats.byType).map(([type, count]) => (
+              <Card key={type}>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2">
+                    {getDeviceIcon(type)}
+                    <CardTitle>{type}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-primary">{count}</div>
+                  <p className="text-sm text-muted-foreground">
+                    {((count / stats.total) * 100).toFixed(1)}% of total devices
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="by-department" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {Object.entries(stats.byDepartment).map(([dept, count]) => (
+              <Card key={dept}>
+                <CardHeader className="pb-4">
+                  <CardTitle>{dept}</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-3xl font-bold text-primary">{count}</div>
+                  <p className="text-sm text-muted-foreground">
+                    {((count / stats.total) * 100).toFixed(1)}% of total devices
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+
+        <TabsContent value="by-status" className="space-y-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            {[
+              { status: 'compliant', label: 'Compliant', count: stats.compliant, color: 'text-green-600' },
+              { status: 'needs-upgrade', label: 'Needs Upgrade', count: stats.needsUpgrade, color: 'text-red-600' },
+              { status: 'minor-issues', label: 'Minor Issues', count: stats.minorIssues, color: 'text-yellow-600' },
+              { status: 'critical', label: 'Critical', count: stats.critical, color: 'text-red-700' }
+            ].map(({ status, label, count, color }) => (
+              <Card key={status}>
+                <CardHeader className="pb-4">
+                  <div className="flex items-center gap-2">
+                    {getStatusIcon(status)}
+                    <CardTitle>{label}</CardTitle>
+                  </div>
+                </CardHeader>
+                <CardContent>
+                  <div className={`text-3xl font-bold ${color}`}>{count}</div>
+                  <p className="text-sm text-muted-foreground">
+                    {((count / stats.total) * 100).toFixed(1)}% of total devices
+                  </p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </TabsContent>
+      </Tabs>
+    </div>
+  )
+}
