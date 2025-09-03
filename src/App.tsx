@@ -13,6 +13,7 @@ import Dashboard from "./pages/Dashboard";
 import UserProfiles from "./pages/UserProfiles";
 import Baselines from "./pages/Baselines";
 import Endpoints from "./pages/Endpoints";
+import Organizations from "./pages/Organizations";
 import Project from "./pages/Project";
 import ProjectDetails from "./pages/ProjectDetails";
 import Auth from "./pages/Auth";
@@ -81,6 +82,7 @@ const App = () => (
                         <Route path="/profiles" element={<UserProfiles />} />
                         <Route path="/baselines" element={<Baselines />} />
                         <Route path="/endpoints" element={<Endpoints />} />
+                        <Route path="/organizations" element={<Organizations />} />
                         <Route path="/project" element={<Project />} />
                         <Route path="/project/:id" element={<ProjectDetails />} />
                         <Route path="*" element={<NotFound />} />
