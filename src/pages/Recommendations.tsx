@@ -455,7 +455,21 @@ export default function Recommendations() {
       const batteryPercentage = parseInt(batteryHealthStr.replace('%', '')) || 100
       const lowBatteryPercentage = batteryPercentage < 80
       
-      return hasBatteryIssue || poorBattery || lowBatteryPercentage
+      const shouldInclude = hasBatteryIssue || poorBattery || lowBatteryPercentage
+      
+      if (shouldInclude) {
+        console.log(`ANALYSIS: Including device ${d.id} for battery issues:`, {
+          employee: d.employee,
+          batteryHealth: d.batteryHealth,
+          issues: d.issues,
+          hasBatteryIssue,
+          poorBattery,
+          lowBatteryPercentage,
+          batteryPercentage
+        })
+      }
+      
+      return shouldInclude
     }).length
 
     // More realistic warranty calculation
