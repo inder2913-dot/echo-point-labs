@@ -39,10 +39,10 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.role || !formData.department || !formData.level) {
+    if (!formData.role || !formData.department || !formData.level || !formData.industry) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields.",
+        description: "Please fill in all required fields including custom industry.",
         variant: "destructive"
       });
       return;
@@ -154,17 +154,17 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="industry">Industry</Label>
-              <Select value={formData.industry} onValueChange={(value) => setFormData({ ...formData, industry: value })}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select industry" />
-                </SelectTrigger>
-                <SelectContent>
-                  {INDUSTRIES.map(industry => (
-                    <SelectItem key={industry} value={industry}>{industry}</SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label htmlFor="industry">Custom Industry *</Label>
+              <Input
+                id="industry"
+                value={formData.industry}
+                onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
+                placeholder="e.g., Custom Manufacturing, My Organization"
+                required
+              />
+              <p className="text-sm text-muted-foreground">
+                Create a custom industry category for your profile. This will be separate from standard industries.
+              </p>
             </div>
           </div>
 
