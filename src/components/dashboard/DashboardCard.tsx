@@ -24,33 +24,34 @@ export function DashboardCard({
   className 
 }: DashboardCardProps) {
   return (
-    <Card className={cn("bg-background border-border hover:shadow-card transition-smooth", className)}>
-      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-        <CardTitle className="text-sm font-medium text-muted-foreground">
+    <Card className={cn("group relative overflow-hidden border-border/50 bg-gradient-to-br from-card/80 to-card/40 hover:from-card to-card/60", className)}>
+      <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary-glow/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
+        <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
           {title}
         </CardTitle>
         {icon && (
-          <div className="text-muted-foreground">
+          <div className="text-muted-foreground group-hover:text-primary transition-colors duration-300 transform group-hover:scale-110">
             {icon}
           </div>
         )}
       </CardHeader>
-      <CardContent>
-        <div className="text-2xl font-bold text-foreground">{value}</div>
+      <CardContent className="relative z-10">
+        <div className="text-3xl font-bold text-foreground mb-1 group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary-glow group-hover:bg-clip-text transition-all duration-300">{value}</div>
         {description && (
-          <p className="text-xs text-muted-foreground mt-1">
+          <p className="text-xs text-muted-foreground group-hover:text-muted-foreground/80 transition-colors">
             {description}
           </p>
         )}
         {trend && (
-          <div className="flex items-center mt-2">
+          <div className="flex items-center mt-3 p-2 rounded-lg bg-background/50 backdrop-blur-sm">
             <span className={cn(
-              "text-xs font-medium",
+              "text-sm font-semibold flex items-center gap-1",
               trend.positive ? "text-success" : "text-destructive"
             )}>
-              {trend.positive ? "+" : ""}{trend.value}%
+              {trend.positive ? "↗" : "↘"} {trend.positive ? "+" : ""}{trend.value}%
             </span>
-            <span className="text-xs text-muted-foreground ml-1">
+            <span className="text-xs text-muted-foreground ml-2">
               {trend.label}
             </span>
           </div>

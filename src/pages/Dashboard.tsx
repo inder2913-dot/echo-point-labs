@@ -101,11 +101,11 @@ export default function Dashboard() {
   }
 
   return (
-    <div className="flex-1 space-y-6 p-8 bg-background font-inter">
+    <div className="flex-1 space-y-8 p-8 bg-gradient-to-br from-background via-background to-background/80 min-h-screen font-inter">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
-          <p className="text-muted-foreground">
+          <h2 className="text-4xl font-bold tracking-tight bg-gradient-to-r from-foreground via-primary to-primary-glow bg-clip-text text-transparent">Dashboard</h2>
+          <p className="text-muted-foreground mt-2 text-lg">
             Overview of your workplace analytics projects and insights
           </p>
         </div>
@@ -119,16 +119,16 @@ export default function Dashboard() {
       </div>
 
       {/* Projects Section */}
-      <Card className="bg-background border-border shadow-card">
+      <Card className="glass-card hover:shadow-elegant transition-all duration-500 group">
         <CardHeader>
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="text-foreground">Your Projects</CardTitle>
-              <CardDescription>
+              <CardTitle className="text-foreground group-hover:text-transparent group-hover:bg-gradient-to-r group-hover:from-primary group-hover:to-primary-glow group-hover:bg-clip-text transition-all duration-300">Your Projects</CardTitle>
+              <CardDescription className="mt-2">
                 Recent workplace analytics projects and their status
               </CardDescription>
             </div>
-            <Button asChild variant="outline" size="sm">
+            <Button asChild variant="glass" size="sm">
               <Link to="/project">
                 <Plus className="w-4 h-4 mr-2" />
                 Start New Analysis
@@ -200,52 +200,52 @@ export default function Dashboard() {
 
       {/* Quick Actions */}
       <div className="grid gap-4 md:grid-cols-3">
-        <Card className="bg-background border-border shadow-card">
+        <Card className="glass-card hover:shadow-glow transition-all duration-500">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-primary/10 rounded-lg">
+              <div className="p-3 bg-gradient-to-br from-primary/20 to-primary-glow/20 rounded-xl backdrop-blur-sm">
                 <Plus className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-medium text-foreground">Start New Project</h3>
+                <h3 className="font-semibold text-foreground">Start New Project</h3>
                 <p className="text-sm text-muted-foreground">Begin a new workplace analytics project</p>
               </div>
             </div>
-            <Button asChild className="w-full mt-4">
+            <Button asChild variant="hero" className="w-full mt-4">
               <Link to="/project">Get Started</Link>
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="bg-background border-border shadow-card">
+        <Card className="glass-card hover:neon-glow transition-all duration-500">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-blue-100 rounded-lg">
-                <TrendingUp className="h-6 w-6 text-blue-600" />
+              <div className="p-3 bg-gradient-to-br from-primary/20 to-primary-glow/20 rounded-xl backdrop-blur-sm">
+                <TrendingUp className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h3 className="font-medium text-foreground">View Analytics</h3>
+                <h3 className="font-semibold text-foreground">View Analytics</h3>
                 <p className="text-sm text-muted-foreground">Explore detailed project insights</p>
               </div>
             </div>
-            <Button variant="outline" className="w-full mt-4" disabled={projects.length === 0}>
+            <Button variant="glass" className="w-full mt-4" disabled={projects.length === 0}>
               View Reports
             </Button>
           </CardContent>
         </Card>
 
-        <Card className="bg-background border-border shadow-card">
+        <Card className="glass-card hover:shadow-elegant transition-all duration-500">
           <CardContent className="p-6">
             <div className="flex items-center gap-4">
-              <div className="p-2 bg-green-100 rounded-lg">
-                <Shield className="h-6 w-6 text-green-600" />
+              <div className="p-3 bg-gradient-to-br from-success/20 to-accent-bright/20 rounded-xl backdrop-blur-sm">
+                <Shield className="h-6 w-6 text-success" />
               </div>
               <div>
-                <h3 className="font-medium text-foreground">Security Overview</h3>
+                <h3 className="font-semibold text-foreground">Security Overview</h3>
                 <p className="text-sm text-muted-foreground">Review security recommendations</p>
               </div>
             </div>
-            <Button variant="outline" className="w-full mt-4" disabled={projects.length === 0}>
+            <Button variant="glass" className="w-full mt-4" disabled={projects.length === 0}>
               View Security
             </Button>
           </CardContent>
