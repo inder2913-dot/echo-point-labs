@@ -179,11 +179,24 @@ export default function Endpoints() {
           deviceComparison = data.deviceComparison // This is the correct structure
         } else if (Array.isArray(data)) {
           // Fallback: filter the array to only include items with user assignments
+          console.log('Sample device objects from data:', data.slice(0, 3))
           deviceComparison = data.filter((item: any) => {
             // Item has user assignment if it has employee info
             const hasUserAssignment = Boolean((item.firstName && item.lastName) || 
                                              (item.name && item.name !== 'Unknown') || 
                                              (item.department && item.department !== 'Unknown'))
+            
+            // Log first few items to understand the structure
+            if (data.indexOf(item) < 5) {
+              console.log(`Device ${data.indexOf(item)}:`, {
+                firstName: item.firstName,
+                lastName: item.lastName,
+                name: item.name,
+                department: item.department,
+                hasUserAssignment,
+                fullItem: item
+              })
+            }
             return hasUserAssignment
           })
         }
