@@ -327,6 +327,25 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
         </Card>
       )}
 
+      {/* Debug: Show device types found */}
+      {uploadedDevices.length > 0 && (
+        <Card className="bg-yellow-50 border-yellow-200">
+          <CardContent className="p-4">
+            <h4 className="font-medium text-yellow-800 mb-2">Debug: Device Types Found</h4>
+            <div className="text-sm text-yellow-700">
+              <p>Unique device types in your data:</p>
+              <ul className="mt-1 space-y-1">
+                {Array.from(new Set(uploadedDevices.map(d => d.deviceType || 'No device type'))).map((type, index) => (
+                  <li key={index} className="font-mono">
+                    "{type}" ({uploadedDevices.filter(d => (d.deviceType || 'No device type') === type).length} devices)
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Device Summary */}
       {uploadedDevices.length > 0 && (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -348,7 +367,7 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Laptops</p>
                   <p className="text-2xl font-bold">
-                    {uploadedDevices.filter(d => d.deviceType.toLowerCase() === 'laptop').length}
+                    {uploadedDevices.filter(d => d.deviceType && d.deviceType.toLowerCase().includes('laptop')).length}
                   </p>
                 </div>
                 <Laptop className="h-8 w-8 text-muted-foreground" />
@@ -362,7 +381,7 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Desktops</p>
                   <p className="text-2xl font-bold">
-                    {uploadedDevices.filter(d => d.deviceType.toLowerCase() === 'desktop').length}
+                    {uploadedDevices.filter(d => d.deviceType && (d.deviceType.toLowerCase().includes('desktop') || d.deviceType.toLowerCase().includes('workstation') || d.deviceType.toLowerCase().includes('pc'))).length}
                   </p>
                 </div>
                 <MonitorSpeaker className="h-8 w-8 text-muted-foreground" />
