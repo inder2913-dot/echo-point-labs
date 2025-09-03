@@ -132,6 +132,7 @@ export default function Recommendations() {
         break
       case 'windows10':
         filtered = devices.filter(d => d.os.includes('Windows 10'))
+        console.log('Windows 10 filter applied. Total devices:', devices.length, 'Filtered:', filtered.length)
         break
       case 'unpatched':
         // Devices that need security patches - Windows 10 devices with issues
@@ -189,6 +190,9 @@ export default function Recommendations() {
         const data = projectData[0].data as any
         const deviceComparison = Array.isArray(data) ? data : []
         
+        console.log('Total devices loaded from database:', deviceComparison.length)
+        console.log('Sample device data:', deviceComparison.slice(0, 3))
+        
         // Convert devices to DeviceItem format with enhanced data
         const deviceItems = deviceComparison.map((device: any, index: number) => ({
           id: device.id || `device-${index}`,
@@ -203,10 +207,15 @@ export default function Recommendations() {
           batteryHealth: device.device?.batteryhealth || 'Unknown',
           warrantyStatus: device.device?.warrantystatus || 'Unknown'
         }))
+        
+        console.log('Converted device items:', deviceItems.length)
+        console.log('Windows 10 devices found:', deviceItems.filter(d => d.os.includes('Windows 10')).length)
+        
         setDevices(deviceItems)
         
         // Analyze device data
         const analysis = analyzeDevices(deviceComparison)
+        console.log('Analysis results:', analysis)
         setDeviceAnalysis(analysis)
         
         // Generate recommendations
@@ -236,6 +245,9 @@ export default function Recommendations() {
     const windows10Devices = devices.filter(d => 
       d.deviceos?.includes('Windows 10')
     ).length
+    
+    console.log('Windows 10 device count in analysis:', windows10Devices)
+    console.log('Total devices in analysis:', totalDevices)
 
     // Count actual devices needing security patches (Windows 10 + devices with security issues)
     const unpatchedDevices = devices.filter(d => 
