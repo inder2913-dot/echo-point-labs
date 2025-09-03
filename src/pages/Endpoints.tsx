@@ -155,6 +155,21 @@ export default function Endpoints() {
 
       if (inventoryError) throw inventoryError
 
+      // Get the actual employee count from this project's employee data
+      const { data: employeeData, error: empError } = await supabase
+        .from('project_data')
+        .select('*')
+        .eq('step_name', 'employeeData')
+        .eq('project_id', selectedProject)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      let actualEmployeeCount = 0
+      if (!empError && employeeData && employeeData.length > 0) {
+        const empData = employeeData[0].data
+        actualEmployeeCount = Array.isArray(empData) ? empData.length : 0
+      }
+
       // Get total device inventory count
       const totalInventoryDevices = deviceInventoryData && deviceInventoryData.length > 0 
         ? (Array.isArray(deviceInventoryData[0].data) ? deviceInventoryData[0].data.length : 0)
@@ -166,6 +181,7 @@ export default function Endpoints() {
       console.log('DeviceInventoryData[0]?.data type:', typeof deviceInventoryData?.[0]?.data)
       console.log('DeviceInventoryData[0]?.data isArray:', Array.isArray(deviceInventoryData?.[0]?.data))
       console.log('Total devices in original inventory:', totalInventoryDevices)
+      console.log('Actual employee count for this project:', actualEmployeeCount)
 
       if (projectData && projectData.length > 0) {
         const data = projectData[0].data as any
@@ -178,42 +194,34 @@ export default function Endpoints() {
         if (data.deviceComparison && Array.isArray(data.deviceComparison)) {
           deviceComparison = data.deviceComparison // This is the correct structure
         } else if (Array.isArray(data)) {
-          // The DeviceComparison has created fake employee data for all devices
-          // We need to identify which ones are real employee assignments vs fake ones
+          // Use the employee count we fetched earlier to determine filtering
           console.log('Sample device objects from data:', data.slice(0, 3))
-          
-          // Get the actual employee count from this project's employee data
-          const { data: employeeData, error: empError } = await supabase
-            .from('project_data')
-            .select('*')
-            .eq('step_name', 'employeeData')
-            .eq('project_id', selectedProject)
-            .order('created_at', { ascending: false })
-            .limit(1)
-
-          let actualEmployeeCount = 0
-          if (!empError && employeeData && employeeData.length > 0) {
-            const empData = employeeData[0].data
-            actualEmployeeCount = Array.isArray(empData) ? empData.length : 0
-          }
-          
-          console.log('Actual employee count for this project:', actualEmployeeCount)
           console.log('Device comparison data length:', data.length)
+          console.log('Actual employee count:', actualEmployeeCount)
           
-          // If the device comparison length matches employee count, use all devices
-          // Otherwise, try to identify real vs fake employees
-          if (actualEmployeeCount > 0 && data.length <= actualEmployeeCount * 2) {
-            // Likely all real employees, use all data
-            deviceComparison = data
-          } else {
-            // Fallback: try to filter based on data quality/patterns
+          // If we have a reasonable employee count and data length is much larger, filter
+          if (actualEmployeeCount > 0 && data.length > actualEmployeeCount * 1.5) {
+            // Filter to only include devices with actual assignments
             deviceComparison = data.filter((item: any) => {
-              // Real employees should have device assignments or meaningful status
-              const hasDeviceAssignment = item.device && (item.device.deviceType || item.device.computername)
-              const hasRealStatus = item.status && item.status !== 'unknown'
+              const hasDeviceAssignment = Boolean(item.device && (item.device.deviceType || item.device.computername))
+              const hasRealStatus = Boolean(item.status && item.status !== 'unknown' && item.status !== 'no-device')
+              
+              if (data.indexOf(item) < 5) {
+                console.log(`Device ${data.indexOf(item)}:`, {
+                  name: item.name,
+                  hasDevice: !!item.device,
+                  status: item.status,
+                  hasDeviceAssignment,
+                  hasRealStatus,
+                  willInclude: hasDeviceAssignment || hasRealStatus
+                })
+              }
               
               return hasDeviceAssignment || hasRealStatus
             })
+          } else {
+            // Use all data - likely all employees have assignments
+            deviceComparison = data
           }
         }
         
