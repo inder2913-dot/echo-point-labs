@@ -500,7 +500,7 @@ export default function Recommendations() {
         impact: 'medium',
         priority: 'low',
         category: 'planning',
-        estimatedCost: `$${(analysis.warrantyExpiring * 1200).toLocaleString()}`,
+        estimatedCost: `$${((Math.floor(analysis.warrantyExpiring * 0.7) * 1200) + (Math.floor(analysis.warrantyExpiring * 0.3) * 200)).toLocaleString()}`,
         timeframe: '6-12 months',
         affectedDevices: analysis.warrantyExpiring,
         implementationSteps: [
