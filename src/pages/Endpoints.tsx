@@ -152,7 +152,14 @@ export default function Endpoints() {
         const deviceComparison = Array.isArray(data) ? data : []
         console.log('Device comparison array:', deviceComparison)
         
-        const transformedDevices: Device[] = deviceComparison.map((item: any, index: number) => ({
+        // Filter to only show devices that were successfully mapped to users
+        const mappedDevices = deviceComparison.filter((item: any) => {
+          // Device is mapped if it has user information (name, firstName/lastName, or department)
+          const hasUserInfo = item.name || (item.firstName && item.lastName) || item.department
+          return hasUserInfo && item.device // Also ensure there's actual device data
+        })
+
+        const transformedDevices: Device[] = mappedDevices.map((item: any, index: number) => ({
           id: item.id?.toString() || index.toString(),
           name: item.name || `${item.firstName} ${item.lastName}`,
           deviceType: item.devicetype || item.device?.deviceType || 'Unknown',
@@ -174,14 +181,9 @@ export default function Endpoints() {
           storage: item.device?.diskcapacity || item.device?.storage || item.diskcapacity || 'Unknown'
         }))
 
+        console.log('Total devices in inventory:', deviceComparison.length)
+        console.log('Mapped devices to users:', mappedDevices.length)
         console.log('Transformed devices:', transformedDevices)
-        console.log('Sample hardware values:', transformedDevices.slice(0, 10).map(d => ({ 
-          name: d.name, 
-          cpu: d.cpu, 
-          ram: d.ram, 
-          graphics: d.graphics, 
-          storage: d.storage 
-        })))
         setDevices(transformedDevices)
         setFilteredDevices(transformedDevices)
       } else {
@@ -313,7 +315,7 @@ export default function Endpoints() {
           <Activity className="w-8 h-8 text-primary" />
           <div>
             <h1 className="text-3xl font-bold">Device Endpoints</h1>
-            <p className="text-muted-foreground">Monitor and manage all organizational devices ({filteredDevices.length} of {devices.length})</p>
+            <p className="text-muted-foreground">Monitor and manage user-assigned devices ({filteredDevices.length} of {devices.length})</p>
           </div>
         </div>
         
