@@ -152,6 +152,7 @@ export default function Endpoints() {
         // The data field IS the array of devices, not nested under deviceComparison
         const deviceComparison = Array.isArray(data) ? data : []
         console.log('Device comparison array:', deviceComparison)
+        console.log('Raw device comparison length:', deviceComparison.length)
         
         // Filter to only show devices that were successfully mapped to users
         const mappedDevices = deviceComparison.filter((item: any) => {
@@ -165,18 +166,26 @@ export default function Endpoints() {
           
           const willInclude = hasUserAssignment && hasDeviceData
           
-          console.log('Checking device mapping:', {
-            firstName: item.firstName,
-            lastName: item.lastName, 
-            name: item.name,
-            department: item.department,
-            hasUserAssignment,
-            hasDeviceData,
-            willInclude
-          })
+          // Only log first few for debugging
+          if (deviceComparison.indexOf(item) < 5) {
+            console.log(`Device ${deviceComparison.indexOf(item)}:`, {
+              firstName: item.firstName,
+              lastName: item.lastName, 
+              name: item.name,
+              department: item.department,
+              hasUserAssignment,
+              hasDeviceData,
+              willInclude
+            })
+          }
           
           return willInclude
         })
+        
+        console.log('=== DEVICE COUNTS ===')
+        console.log('Total devices in raw data:', deviceComparison.length)
+        console.log('Devices with user assignments:', mappedDevices.length)
+        console.log('Devices without user assignments:', deviceComparison.length - mappedDevices.length)
 
         const transformedDevices: Device[] = mappedDevices.map((item: any, index: number) => ({
           id: item.id?.toString() || index.toString(),
