@@ -339,10 +339,10 @@ export default function ProjectDetails() {
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
               <TrendingUp className="w-5 h-5" />
-              Recommendations
+              Strategic Recommendations Overview
             </CardTitle>
             <CardDescription>
-              Generated recommendations and cost analysis
+              High-level insights and optimization opportunities
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -350,15 +350,7 @@ export default function ProjectDetails() {
               <div className="grid gap-4 md:grid-cols-3 mb-6">
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm font-medium text-muted-foreground">Total Savings</p>
-                    <p className="text-2xl font-bold text-green-600">
-                      ${projectData.recommendations.costSavings.total?.toLocaleString() || 0}
-                    </p>
-                  </CardContent>
-                </Card>
-                <Card>
-                  <CardContent className="p-4">
-                    <p className="text-sm font-medium text-muted-foreground">Upgrade Costs</p>
+                    <p className="text-sm font-medium text-muted-foreground">Total Investment</p>
                     <p className="text-2xl font-bold text-red-600">
                       ${projectData.recommendations.costSavings.upgrades?.toLocaleString() || 0}
                     </p>
@@ -366,44 +358,140 @@ export default function ProjectDetails() {
                 </Card>
                 <Card>
                   <CardContent className="p-4">
-                    <p className="text-sm font-medium text-muted-foreground">Downgrade Savings</p>
-                    <p className="text-2xl font-bold text-blue-600">
+                    <p className="text-sm font-medium text-muted-foreground">Potential Savings</p>
+                    <p className="text-2xl font-bold text-green-600">
                       ${projectData.recommendations.costSavings.downgrades?.toLocaleString() || 0}
+                    </p>
+                  </CardContent>
+                </Card>
+                <Card>
+                  <CardContent className="p-4">
+                    <p className="text-sm font-medium text-muted-foreground">Net Impact</p>
+                    <p className={`text-2xl font-bold ${(projectData.recommendations.costSavings.total || 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>
+                      ${Math.abs(projectData.recommendations.costSavings.total || 0).toLocaleString()}
+                    </p>
+                    <p className="text-xs text-muted-foreground">
+                      {(projectData.recommendations.costSavings.total || 0) < 0 ? 'Investment Required' : 'Savings'}
                     </p>
                   </CardContent>
                 </Card>
               </div>
             )}
             
-            {projectData.recommendations?.recommendations && (
-              <div className="space-y-3">
-                <h4 className="font-medium">Specific Recommendations</h4>
-                {projectData.recommendations.recommendations.slice(0, 5).map((rec: any, index: number) => (
-                  <div key={index} className="border rounded-lg p-4">
+            {projectData.recommendations.costSavings?.insights && (
+              <div className="space-y-4">
+                <h4 className="font-medium">Strategic Insights</h4>
+                
+                {/* Full Replacements */}
+                {projectData.recommendations.costSavings.insights.needsReplacement?.length > 0 && (
+                  <div className="border rounded-lg p-4 bg-red-50">
                     <div className="flex items-center justify-between mb-2">
-                      <div>
-                        <h5 className="font-medium">{rec.userName}</h5>
-                        <p className="text-sm text-muted-foreground">{rec.department}</p>
-                      </div>
-                      <Badge className={rec.priority === 'high' ? 'bg-red-100 text-red-800' : 
-                                       rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
-                                       'bg-green-100 text-green-800'}>
-                        {rec.priority} priority
+                      <h5 className="font-medium text-red-800">Full Device Replacements</h5>
+                      <Badge className="bg-red-100 text-red-800">
+                        {projectData.recommendations.costSavings.insights.needsReplacement.length} users
                       </Badge>
                     </div>
-                    <p className="text-sm font-medium mb-2">{rec.action}</p>
-                    <p className="text-sm text-muted-foreground mb-2">{rec.reasoning}</p>
-                    <div className="flex items-center justify-between text-sm">
-                      <span><strong>Impact:</strong> {rec.impact}</span>
-                      {rec.estimatedCost !== 0 && (
-                        <span className={`font-medium ${rec.estimatedCost < 0 ? 'text-green-600' : 'text-red-600'}`}>
-                          {rec.estimatedCost < 0 ? 'Saves ' : 'Costs '}${Math.abs(rec.estimatedCost).toLocaleString()}
-                        </span>
+                    <p className="text-sm text-red-700 mb-2">
+                      These devices are significantly outdated or incompatible with user requirements
+                    </p>
+                    <p className="text-sm font-medium">
+                      Estimated Cost: ${(projectData.recommendations.costSavings.insights.needsReplacement.length * 1500).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                {/* Minor Fixes */}
+                {projectData.recommendations.costSavings.insights.needsMinorFixes?.length > 0 && (
+                  <div className="border rounded-lg p-4 bg-yellow-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-yellow-800">Minor Fixes & Upgrades</h5>
+                      <Badge className="bg-yellow-100 text-yellow-800">
+                        {projectData.recommendations.costSavings.insights.needsMinorFixes.length} users
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-yellow-700 mb-3">
+                      These devices can be optimized with targeted improvements
+                    </p>
+                    
+                    <div className="grid grid-cols-2 md:grid-cols-3 gap-2 text-xs">
+                      {projectData.recommendations.costSavings.insights.minorFixTypes?.hddToSsd?.length > 0 && (
+                        <div className="bg-white p-2 rounded border">
+                          <p className="font-medium">HDD → SSD Upgrade</p>
+                          <p className="text-muted-foreground">{projectData.recommendations.costSavings.insights.minorFixTypes.hddToSsd.length} devices</p>
+                          <p className="text-orange-600 font-medium">${(projectData.recommendations.costSavings.insights.minorFixTypes.hddToSsd.length * 300).toLocaleString()}</p>
+                        </div>
+                      )}
+                      
+                      {projectData.recommendations.costSavings.insights.minorFixTypes?.ramUpgrade?.length > 0 && (
+                        <div className="bg-white p-2 rounded border">
+                          <p className="font-medium">RAM Upgrade</p>
+                          <p className="text-muted-foreground">{projectData.recommendations.costSavings.insights.minorFixTypes.ramUpgrade.length} devices</p>
+                          <p className="text-orange-600 font-medium">${(projectData.recommendations.costSavings.insights.minorFixTypes.ramUpgrade.length * 150).toLocaleString()}</p>
+                        </div>
+                      )}
+                      
+                      {projectData.recommendations.costSavings.insights.minorFixTypes?.diskCleanup?.length > 0 && (
+                        <div className="bg-white p-2 rounded border">
+                          <p className="font-medium">Disk Cleanup</p>
+                          <p className="text-muted-foreground">{projectData.recommendations.costSavings.insights.minorFixTypes.diskCleanup.length} devices</p>
+                          <p className="text-green-600 font-medium">Free</p>
+                        </div>
+                      )}
+                      
+                      {projectData.recommendations.costSavings.insights.minorFixTypes?.deviceReset?.length > 0 && (
+                        <div className="bg-white p-2 rounded border">
+                          <p className="font-medium">Device Reset</p>
+                          <p className="text-muted-foreground">{projectData.recommendations.costSavings.insights.minorFixTypes.deviceReset.length} devices</p>
+                          <p className="text-green-600 font-medium">Free</p>
+                        </div>
+                      )}
+                      
+                      {projectData.recommendations.costSavings.insights.minorFixTypes?.osUpdate?.length > 0 && (
+                        <div className="bg-white p-2 rounded border">
+                          <p className="font-medium">OS Update</p>
+                          <p className="text-muted-foreground">{projectData.recommendations.costSavings.insights.minorFixTypes.osUpdate.length} devices</p>
+                          <p className="text-green-600 font-medium">Free</p>
+                        </div>
                       )}
                     </div>
-                    <p className="text-xs text-muted-foreground mt-1">Timeline: {rec.timeline}</p>
                   </div>
-                ))}
+                )}
+
+                {/* Over-provisioned */}
+                {projectData.recommendations.costSavings.insights.overProvisioned?.length > 0 && (
+                  <div className="border rounded-lg p-4 bg-blue-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-blue-800">Over-Provisioned Devices</h5>
+                      <Badge className="bg-blue-100 text-blue-800">
+                        {projectData.recommendations.costSavings.insights.overProvisioned.length} users
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-blue-700 mb-2">
+                      These devices exceed user requirements and can be reassigned
+                    </p>
+                    <p className="text-sm font-medium text-green-600">
+                      Potential Savings: ${(projectData.recommendations.costSavings.insights.overProvisioned.length * 800).toLocaleString()}
+                    </p>
+                  </div>
+                )}
+
+                {/* No Device */}
+                {projectData.recommendations.costSavings.insights.noDevice?.length > 0 && (
+                  <div className="border rounded-lg p-4 bg-purple-50">
+                    <div className="flex items-center justify-between mb-2">
+                      <h5 className="font-medium text-purple-800">Missing Device Assignments</h5>
+                      <Badge className="bg-purple-100 text-purple-800">
+                        {projectData.recommendations.costSavings.insights.noDevice.length} users
+                      </Badge>
+                    </div>
+                    <p className="text-sm text-purple-700 mb-2">
+                      These employees need device assignments for productivity
+                    </p>
+                    <p className="text-sm font-medium text-red-600">
+                      Required Investment: ${(projectData.recommendations.costSavings.insights.noDevice.length * 1200).toLocaleString()}
+                    </p>
+                  </div>
+                )}
               </div>
             )}
           </CardContent>

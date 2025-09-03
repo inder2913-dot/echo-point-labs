@@ -31,7 +31,7 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
   const [recommendations, setRecommendations] = useState<any[]>([])
   const [isGenerating, setIsGenerating] = useState(false)
   const [filterType, setFilterType] = useState("all")
-  const [costSavings, setCostSavings] = useState({ total: 0, upgrades: 0, downgrades: 0 })
+  const [costSavings, setCostSavings] = useState<any>({ total: 0, upgrades: 0, downgrades: 0 })
   const [isSaving, setIsSaving] = useState(false)
   const { toast } = useToast()
 
@@ -45,29 +45,92 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
       let upgradeCosts = 0
       let downgradeSavings = 0
       
+      // Aggregated insights
+      const insights = {
+        needsReplacement: [],
+        needsMinorFixes: [],
+        overProvisioned: [],
+        noDevice: [],
+        minorFixTypes: {
+          hddToSsd: [],
+          ramUpgrade: [],
+          diskCleanup: [],
+          deviceReset: [],
+          osUpdate: []
+        }
+      }
+      
       comparisonResults.forEach(result => {
         const recommendations = []
         
         if (result.status === 'needs-upgrade') {
-          const recommendation = {
-            userId: result.id,
-            userName: result.name,
-            department: result.department,
-            currentDevice: result.device,
-            profile: result.profile,
-            type: 'upgrade',
-            priority: 'high',
-            action: `Upgrade to ${result.profile?.baseline.deviceType} with ${result.profile?.baseline.minRam} RAM`,
-            reasoning: result.issues.join(', '),
-            estimatedCost: 1500,
-            timeline: '30 days',
-            impact: 'High productivity gain expected'
+          // Determine if it's a full replacement or minor fix
+          const issues = result.issues || []
+          const needsFullReplacement = issues.some(issue => 
+            issue.includes('CPU') || 
+            issue.includes('age') || 
+            issue.includes('obsolete') ||
+            (issues.length > 2)
+          )
+          
+          if (needsFullReplacement) {
+            insights.needsReplacement.push(result)
+            const recommendation = {
+              userId: result.id,
+              userName: result.name,
+              department: result.department,
+              currentDevice: result.device,
+              profile: result.profile,
+              type: 'replacement',
+              priority: 'high',
+              action: `Full device replacement with ${result.profile?.baseline.deviceType}`,
+              reasoning: result.issues.join(', '),
+              estimatedCost: 1500,
+              timeline: '30 days',
+              impact: 'High productivity gain expected'
+            }
+            recommendations.push(recommendation)
+            upgradeCosts += 1500
+          } else {
+            insights.needsMinorFixes.push(result)
+            
+            // Categorize minor fixes
+            issues.forEach(issue => {
+              if (issue.toLowerCase().includes('storage') || issue.toLowerCase().includes('hdd')) {
+                insights.minorFixTypes.hddToSsd.push(result)
+              } else if (issue.toLowerCase().includes('ram') || issue.toLowerCase().includes('memory')) {
+                insights.minorFixTypes.ramUpgrade.push(result)
+              } else if (issue.toLowerCase().includes('disk space') || issue.toLowerCase().includes('cleanup')) {
+                insights.minorFixTypes.diskCleanup.push(result)
+              } else if (issue.toLowerCase().includes('performance') || issue.toLowerCase().includes('slow')) {
+                insights.minorFixTypes.deviceReset.push(result)
+              } else if (issue.toLowerCase().includes('os') || issue.toLowerCase().includes('operating system')) {
+                insights.minorFixTypes.osUpdate.push(result)
+              }
+            })
+            
+            const fixCost = issues.some(i => i.toLowerCase().includes('storage')) ? 300 : 150
+            const recommendation = {
+              userId: result.id,
+              userName: result.name,
+              department: result.department,
+              currentDevice: result.device,
+              profile: result.profile,
+              type: 'minor-fix',
+              priority: 'medium',
+              action: `Minor fixes: ${result.issues.join(', ')}`,
+              reasoning: 'Device can be optimized with targeted improvements',
+              estimatedCost: fixCost,
+              timeline: '7-14 days',
+              impact: 'Moderate productivity improvement'
+            }
+            recommendations.push(recommendation)
+            upgradeCosts += fixCost
           }
-          recommendations.push(recommendation)
-          upgradeCosts += 1500
         }
         
         if (result.status === 'over-provisioned') {
+          insights.overProvisioned.push(result)
           const recommendation = {
             userId: result.id,
             userName: result.name,
@@ -75,7 +138,7 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
             currentDevice: result.device,
             profile: result.profile,
             type: 'downgrade',
-            priority: 'medium',
+            priority: 'low',
             action: `Reassign to standard ${result.profile?.baseline.deviceType} configuration`,
             reasoning: 'Current device exceeds baseline requirements',
             estimatedCost: -800,
@@ -87,6 +150,7 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
         }
         
         if (result.status === 'minor-issues') {
+          insights.needsMinorFixes.push(result)
           const recommendation = {
             userId: result.id,
             userName: result.name,
@@ -105,6 +169,7 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
         }
         
         if (result.status === 'no-device') {
+          insights.noDevice.push(result)
           const recommendation = {
             userId: result.id,
             userName: result.name,
@@ -132,7 +197,8 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
       setCostSavings({
         total: totalSavings,
         upgrades: upgradeCosts,
-        downgrades: downgradeSavings
+        downgrades: downgradeSavings,
+        insights: insights
       })
       setIsGenerating(false)
     }, 3000)
