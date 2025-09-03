@@ -39,17 +39,54 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
       const devices = initialData.deviceData || []
       const profiles = initialData.userProfiles || []
       
+      console.log('Device Analysis - Employees:', employees)
+      console.log('Device Analysis - Devices:', devices)
+      console.log('Device Analysis - Profiles:', profiles)
+      
       const results = employees.map(employee => {
-        const userDevice = devices.find(d => d.userId === employee.id)
+        // Try multiple ways to match employee with device
+        let userDevice = null
+        
+        // Try matching by various ID fields
+        userDevice = devices.find(d => 
+          d.userId === employee.id || 
+          d.user_id === employee.id ||
+          d.employeeId === employee.id ||
+          d.employee_id === employee.id
+        )
+        
+        // If no direct ID match, try matching by name
+        if (!userDevice && employee.name) {
+          userDevice = devices.find(d => 
+            d.userName === employee.name ||
+            d.user_name === employee.name ||
+            d.employeeName === employee.name ||
+            d.employee_name === employee.name
+          )
+        }
+        
+        console.log(`Employee ${employee.name} (ID: ${employee.id}) matched with device:`, userDevice)
+        
         const userProfile = profiles.find(p => p.id === employee.profileId)
         
-        if (!userDevice || !userProfile) {
+        if (!userDevice) {
           return {
             ...employee,
-            device: userDevice,
+            device: null,
             profile: userProfile,
             status: 'no-device',
             issues: ['No device assigned'],
+            score: 0
+          }
+        }
+        
+        if (!userProfile) {
+          return {
+            ...employee,
+            device: userDevice,
+            profile: null,
+            status: 'no-profile',
+            issues: ['No profile assigned'],
             score: 0
           }
         }
