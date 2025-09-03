@@ -570,6 +570,32 @@ export default function Recommendations() {
 
     // Battery health recommendations
     if (analysis.batteryIssues > 0) {
+      // Calculate actual cost breakdown totals
+      const laptopBatteryQty = Math.max(1, Math.floor(analysis.batteryIssues * 0.8))
+      const tabletBatteryQty = Math.floor(analysis.batteryIssues * 0.2)
+      const installationQty = laptopBatteryQty + tabletBatteryQty
+      const totalCost = (laptopBatteryQty * 150) + (tabletBatteryQty * 120) + (installationQty * 30)
+      
+      // Better device breakdown for small numbers
+      let deviceBreakdown
+      if (analysis.batteryIssues <= 3) {
+        // For small numbers, show actual devices instead of percentages
+        deviceBreakdown = [
+          { type: 'Devices with Battery Issues', count: analysis.batteryIssues, issues: ['Battery health below 80%', 'Reduced battery life', 'Replacement recommended'] }
+        ]
+      } else {
+        // For larger numbers, use percentage breakdowns but ensure no zeros
+        const poorCount = Math.max(1, Math.floor(analysis.batteryIssues * 0.4))
+        const fairCount = Math.max(1, Math.floor(analysis.batteryIssues * 0.3))
+        const unknownCount = analysis.batteryIssues - poorCount - fairCount
+        
+        deviceBreakdown = [
+          { type: 'Poor Battery Health', count: poorCount, issues: ['Battery capacity <50%', 'Frequent charging required'] },
+          { type: 'Fair Battery Health', count: fairCount, issues: ['Battery capacity 50-70%', 'Reduced mobility'] },
+          { type: 'Unknown Battery Status', count: Math.max(0, unknownCount), issues: ['Battery diagnostics needed'] }
+        ]
+      }
+      
       recommendations.push({
         id: 'battery-replacement',
         title: 'Battery Health Assessment',
@@ -577,7 +603,7 @@ export default function Recommendations() {
         impact: 'medium',
         priority: 'medium',
         category: 'hardware',
-        estimatedCost: `$${(analysis.batteryIssues * 150).toLocaleString()}`,
+        estimatedCost: `$${totalCost.toLocaleString()}`,
         timeframe: '1-2 months',
         affectedDevices: analysis.batteryIssues,
         implementationSteps: [
@@ -587,15 +613,11 @@ export default function Recommendations() {
           'Schedule replacements during planned maintenance'
         ],
         detailedAnalysis: {
-          deviceBreakdown: [
-            { type: 'Poor Battery Health', count: Math.floor(analysis.batteryIssues * 0.4), issues: ['Battery capacity <50%', 'Frequent charging required'] },
-            { type: 'Fair Battery Health', count: Math.floor(analysis.batteryIssues * 0.3), issues: ['Battery capacity 50-70%', 'Reduced mobility'] },
-            { type: 'Unknown Battery Status', count: Math.floor(analysis.batteryIssues * 0.3), issues: ['Battery diagnostics needed'] }
-          ],
+          deviceBreakdown,
           costBreakdown: [
-            { item: 'Laptop Battery Replacement', cost: 150, quantity: Math.floor(analysis.batteryIssues * 0.8) },
-            { item: 'Tablet Battery Replacement', cost: 120, quantity: Math.floor(analysis.batteryIssues * 0.2) },
-            { item: 'Installation Service', cost: 30, quantity: analysis.batteryIssues }
+            { item: 'Laptop Battery Replacement', cost: 150, quantity: laptopBatteryQty },
+            { item: 'Tablet Battery Replacement', cost: 120, quantity: tabletBatteryQty },
+            { item: 'Installation Service', cost: 30, quantity: installationQty }
           ],
           riskAssessment: [
             'Reduced productivity due to frequent charging',
