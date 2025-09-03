@@ -901,8 +901,11 @@ export default function Recommendations() {
           <CardContent>
             <div className="flex items-center gap-2">
               <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-2xl font-bold text-red-600">{recommendations.filter(r => r.priority === 'critical').length}</span>
+              <span className="text-2xl font-bold text-red-600">
+                {recommendations.filter(r => r.priority === 'critical').reduce((sum, r) => sum + (r.affectedDevices || 0), 0)}
+              </span>
             </div>
+            <p className="text-xs text-muted-foreground">devices affected</p>
           </CardContent>
         </Card>
         
@@ -913,8 +916,11 @@ export default function Recommendations() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Zap className="w-4 h-4 text-orange-500" />
-              <span className="text-2xl font-bold text-orange-600">{recommendations.filter(r => r.priority === 'high').length}</span>
+              <span className="text-2xl font-bold text-orange-600">
+                {recommendations.filter(r => r.priority === 'high').reduce((sum, r) => sum + (r.affectedDevices || 0), 0)}
+              </span>
             </div>
+            <p className="text-xs text-muted-foreground">devices affected</p>
           </CardContent>
         </Card>
 
@@ -925,8 +931,11 @@ export default function Recommendations() {
           <CardContent>
             <div className="flex items-center gap-2">
               <Target className="w-4 h-4 text-yellow-500" />
-              <span className="text-2xl font-bold text-yellow-600">{recommendations.filter(r => r.priority === 'medium').length}</span>
+              <span className="text-2xl font-bold text-yellow-600">
+                {recommendations.filter(r => r.priority === 'medium').reduce((sum, r) => sum + (r.affectedDevices || 0), 0)}
+              </span>
             </div>
+            <p className="text-xs text-muted-foreground">devices affected</p>
           </CardContent>
         </Card>
 
@@ -937,8 +946,11 @@ export default function Recommendations() {
           <CardContent>
             <div className="flex items-center gap-2">
               <CheckCircle className="w-4 h-4 text-blue-500" />
-              <span className="text-2xl font-bold text-blue-600">{recommendations.filter(r => r.priority === 'low').length}</span>
+              <span className="text-2xl font-bold text-blue-600">
+                {recommendations.filter(r => r.priority === 'low').reduce((sum, r) => sum + (r.affectedDevices || 0), 0)}
+              </span>
             </div>
+            <p className="text-xs text-muted-foreground">devices affected</p>
           </CardContent>
         </Card>
       </div>
