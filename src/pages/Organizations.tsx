@@ -179,7 +179,7 @@ export default function Organizations() {
         <div className="flex items-center gap-2">
           <Building2 className="w-8 h-8 text-primary" />
           <div>
-            <h1 className="text-3xl font-bold">My Organizations</h1>
+            <h1 className="text-3xl font-bold">My Projects</h1>
             <p className="text-muted-foreground">Manage your hardware analysis projects</p>
           </div>
         </div>

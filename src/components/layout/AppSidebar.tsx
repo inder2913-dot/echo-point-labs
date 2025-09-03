@@ -30,8 +30,8 @@ const mainItems = [
   { title: "User Profiles", url: "/profiles", icon: Users },
   { title: "Baselines", url: "/baselines", icon: Target },
   { title: "Endpoints", url: "/endpoints", icon: Activity },
-  { title: "Organizations", url: "/organizations", icon: Building2 },
-  { title: "Project", url: "/project", icon: FolderOpen },
+  { title: "Projects", url: "/projects", icon: Building2 },
+  { title: "New Project", url: "/project", icon: FolderOpen },
   { title: "Recommendations", url: "/recommendations", icon: Lightbulb },
 ]
 
