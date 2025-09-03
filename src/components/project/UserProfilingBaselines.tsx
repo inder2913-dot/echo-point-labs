@@ -28,68 +28,195 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog"
 
-const DEFAULT_PROFILES = [
-  {
-    id: "power-user",
-    name: "Power User",
-    description: "High-performance users requiring premium hardware",
-    criteria: ["Engineering", "Design", "Video Production"],
-    baseline: {
-      deviceType: "Laptop",
-      minRam: "32GB",
-      minCpu: "Intel i7 / AMD Ryzen 7",
-      minStorage: "1TB SSD",
-      mobility: "High",
-      specialRequirements: "Dedicated GPU"
+const INDUSTRY_PROFILES = {
+  retail: [
+    {
+      id: "store-manager",
+      name: "Store Manager",
+      description: "Store managers requiring robust systems for operations",
+      criteria: ["Store Manager", "Assistant Manager", "Operations Manager"],
+      baseline: {
+        deviceType: "Desktop or Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "Medium",
+        specialRequirements: "Dual monitor support, POS integration"
+      },
+      color: "bg-purple-100 text-purple-800"
     },
-    color: "bg-red-100 text-red-800"
-  },
-  {
-    id: "mobile-user",
-    name: "Mobile User",
-    description: "Users who work primarily on-the-go",
-    criteria: ["Sales", "Consulting", "Field Service"],
-    baseline: {
-      deviceType: "Laptop",
-      minRam: "16GB",
-      minCpu: "Intel i5 / AMD Ryzen 5",
-      minStorage: "512GB SSD",
-      mobility: "High",
-      specialRequirements: "Long battery life, lightweight"
+    {
+      id: "sales-associate",
+      name: "Sales Associate",
+      description: "Front-line sales staff with customer interaction needs",
+      criteria: ["Sales Associate", "Cashier", "Sales Representative"],
+      baseline: {
+        deviceType: "Tablet or Desktop",
+        minRam: "8GB",
+        minCpu: "Intel i3 / AMD Ryzen 3",
+        minStorage: "256GB SSD",
+        mobility: "High",
+        specialRequirements: "Touch screen, POS terminal access"
+      },
+      color: "bg-green-100 text-green-800"
     },
-    color: "bg-blue-100 text-blue-800"
-  },
-  {
-    id: "office-user",
-    name: "Office Worker",
-    description: "Standard office productivity tasks",
-    criteria: ["HR", "Finance", "Administration"],
-    baseline: {
-      deviceType: "Desktop or Laptop",
-      minRam: "16GB",
-      minCpu: "Intel i5 / AMD Ryzen 5",
-      minStorage: "256GB SSD",
-      mobility: "Low",
-      specialRequirements: "Dual monitor support"
+    {
+      id: "inventory-specialist",
+      name: "Inventory Specialist",
+      description: "Warehouse and inventory management staff",
+      criteria: ["Inventory Specialist", "Warehouse Manager", "Stock Clerk"],
+      baseline: {
+        deviceType: "Laptop or Tablet",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "High",
+        specialRequirements: "Barcode scanner integration, rugged design"
+      },
+      color: "bg-blue-100 text-blue-800"
     },
-    color: "bg-green-100 text-green-800"
-  },
-  {
-    id: "task-worker",
-    name: "Task Worker",
-    description: "Basic computing needs for routine tasks",
-    criteria: ["Customer Service", "Data Entry", "Reception"],
-    baseline: {
-      deviceType: "Desktop",
-      minRam: "8GB",
-      minCpu: "Intel i3 / AMD Ryzen 3",
-      minStorage: "256GB SSD",
-      mobility: "Low",
-      specialRequirements: "Basic peripherals"
+    {
+      id: "customer-service",
+      name: "Customer Service",
+      description: "Customer support and service desk operations",
+      criteria: ["Customer Service", "Support Representative", "Help Desk"],
+      baseline: {
+        deviceType: "Desktop",
+        minRam: "8GB",
+        minCpu: "Intel i3 / AMD Ryzen 3",
+        minStorage: "256GB SSD",
+        mobility: "Low",
+        specialRequirements: "Headset support, CRM system access"
+      },
+      color: "bg-yellow-100 text-yellow-800"
+    }
+  ],
+  manufacturing: [
+    {
+      id: "production-engineer",
+      name: "Production Engineer",
+      description: "Engineering staff requiring high-performance systems",
+      criteria: ["Engineer", "Production Engineer", "Process Engineer"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "32GB",
+        minCpu: "Intel i7 / AMD Ryzen 7",
+        minStorage: "1TB SSD",
+        mobility: "Medium",
+        specialRequirements: "CAD software support, dedicated GPU"
+      },
+      color: "bg-red-100 text-red-800"
     },
-    color: "bg-yellow-100 text-yellow-800"
-  }
-]
+    {
+      id: "production-worker",
+      name: "Production Worker",
+      description: "Factory floor workers with basic computing needs",
+      criteria: ["Production Worker", "Operator", "Technician"],
+      baseline: {
+        deviceType: "Desktop or Tablet",
+        minRam: "8GB",
+        minCpu: "Intel i3 / AMD Ryzen 3",
+        minStorage: "256GB SSD",
+        mobility: "Low",
+        specialRequirements: "Industrial-grade, touch interface"
+      },
+      color: "bg-blue-100 text-blue-800"
+    },
+    {
+      id: "quality-control",
+      name: "Quality Control",
+      description: "Quality assurance and testing personnel",
+      criteria: ["Quality Control", "QA Technician", "Inspector"],
+      baseline: {
+        deviceType: "Laptop or Tablet",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "High",
+        specialRequirements: "Testing software, measurement tools integration"
+      },
+      color: "bg-green-100 text-green-800"
+    },
+    {
+      id: "supervisor",
+      name: "Supervisor",
+      description: "Production supervisors and team leads",
+      criteria: ["Supervisor", "Team Lead", "Production Manager"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "Medium",
+        specialRequirements: "Management software, reporting tools"
+      },
+      color: "bg-purple-100 text-purple-800"
+    }
+  ],
+  // Default generic profiles for other industries
+  default: [
+    {
+      id: "power-user",
+      name: "Power User",
+      description: "High-performance users requiring premium hardware",
+      criteria: ["Engineering", "Design", "Video Production"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "32GB",
+        minCpu: "Intel i7 / AMD Ryzen 7",
+        minStorage: "1TB SSD",
+        mobility: "High",
+        specialRequirements: "Dedicated GPU"
+      },
+      color: "bg-red-100 text-red-800"
+    },
+    {
+      id: "mobile-user",
+      name: "Mobile User",
+      description: "Users who work primarily on-the-go",
+      criteria: ["Sales", "Consulting", "Field Service"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "High",
+        specialRequirements: "Long battery life, lightweight"
+      },
+      color: "bg-blue-100 text-blue-800"
+    },
+    {
+      id: "office-user",
+      name: "Office Worker",
+      description: "Standard office productivity tasks",
+      criteria: ["HR", "Finance", "Administration"],
+      baseline: {
+        deviceType: "Desktop or Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "256GB SSD",
+        mobility: "Low",
+        specialRequirements: "Dual monitor support"
+      },
+      color: "bg-green-100 text-green-800"
+    },
+    {
+      id: "task-worker",
+      name: "Task Worker",
+      description: "Basic computing needs for routine tasks",
+      criteria: ["Customer Service", "Data Entry", "Reception"],
+      baseline: {
+        deviceType: "Desktop",
+        minRam: "8GB",
+        minCpu: "Intel i3 / AMD Ryzen 3",
+        minStorage: "256GB SSD",
+        mobility: "Low",
+        specialRequirements: "Basic peripherals"
+      },
+      color: "bg-yellow-100 text-yellow-800"
+    }
+  ]
+}
 
 interface UserProfilingBaselinesProps {
   onComplete: (data: any) => void
@@ -97,18 +224,25 @@ interface UserProfilingBaselinesProps {
 }
 
 export function UserProfilingBaselines({ onComplete, initialData }: UserProfilingBaselinesProps) {
-  const [userProfiles, setUserProfiles] = useState(DEFAULT_PROFILES)
+  // Get industry-specific profiles based on organization setup
+  const selectedIndustry = initialData?.organizationSetup?.industry?.toLowerCase() || 'default'
+  const industryProfiles = INDUSTRY_PROFILES[selectedIndustry as keyof typeof INDUSTRY_PROFILES] || INDUSTRY_PROFILES.default
+  
+  const [userProfiles, setUserProfiles] = useState(industryProfiles)
   const [editingProfile, setEditingProfile] = useState<any>(null)
   const [userAssignments, setUserAssignments] = useState<any[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
 
-  // Auto-assign users to profiles based on their department/role
+  console.log('Selected industry:', selectedIndustry)
+  console.log('Using profiles:', industryProfiles)
+
+  // Auto-assign users to profiles based on their department/role and industry
   const autoAssignUsers = () => {
     const employees = initialData.employeeData || []
     console.log('Auto-assigning users:', employees) // Debug log
     
     const assignments = employees.map((employee: any) => {
-      let assignedProfile = "office-user" // default
+      let assignedProfile = userProfiles[0].id // default to first profile
       
       // Get department and role, handling various data structures
       const dept = (employee.department || employee.dept || employee.Department || "").toLowerCase()
@@ -116,44 +250,90 @@ export function UserProfilingBaselines({ onComplete, initialData }: UserProfilin
       
       console.log(`Employee: ${employee.name}, Dept: "${dept}", Role: "${role}"`) // Debug log
       
-      // More comprehensive rule-based assignment
-      if (
-        // Engineering/Development
-        dept.includes("engineering") || dept.includes("development") || dept.includes("tech") || dept.includes("it") ||
-        role.includes("developer") || role.includes("engineer") || role.includes("architect") || 
-        role.includes("programmer") || role.includes("software") || role.includes("technical")
-      ) {
-        assignedProfile = "power-user"
-      } else if (
-        // Sales/Marketing/Field workers
-        dept.includes("sales") || dept.includes("marketing") || dept.includes("business") ||
-        role.includes("sales") || role.includes("marketing") || role.includes("consultant") ||
-        role.includes("representative") || role.includes("account") || role.includes("business")
-      ) {
-        assignedProfile = "mobile-user"
-      } else if (
-        // Support/Operations/Administrative
-        dept.includes("support") || dept.includes("operations") || dept.includes("admin") ||
-        dept.includes("hr") || dept.includes("finance") || dept.includes("customer") ||
-        role.includes("support") || role.includes("service") || role.includes("clerk") ||
-        role.includes("assistant") || role.includes("coordinator") || role.includes("admin")
-      ) {
-        assignedProfile = "task-worker"
-      } else if (
-        // Management/Analysis stays office worker
-        role.includes("manager") || role.includes("director") || role.includes("analyst") ||
-        role.includes("lead") || role.includes("supervisor") || role.includes("officer")
-      ) {
-        assignedProfile = "office-user"
+      // Industry-specific assignment logic
+      if (selectedIndustry === 'retail') {
+        if (
+          role.includes("manager") || role.includes("supervisor") || role.includes("lead") ||
+          dept.includes("management") || role.includes("director")
+        ) {
+          assignedProfile = "store-manager"
+        } else if (
+          role.includes("sales") || role.includes("cashier") || role.includes("associate") ||
+          dept.includes("sales") || role.includes("representative")
+        ) {
+          assignedProfile = "sales-associate"
+        } else if (
+          role.includes("inventory") || role.includes("warehouse") || role.includes("stock") ||
+          dept.includes("inventory") || dept.includes("warehouse")
+        ) {
+          assignedProfile = "inventory-specialist"
+        } else if (
+          role.includes("customer") || role.includes("support") || role.includes("service") ||
+          dept.includes("customer") || dept.includes("support")
+        ) {
+          assignedProfile = "customer-service"
+        }
+      } else if (selectedIndustry === 'manufacturing') {
+        if (
+          role.includes("engineer") || role.includes("designer") || role.includes("developer") ||
+          dept.includes("engineering") || dept.includes("design")
+        ) {
+          assignedProfile = "production-engineer"
+        } else if (
+          role.includes("operator") || role.includes("worker") || role.includes("technician") ||
+          dept.includes("production") || dept.includes("manufacturing")
+        ) {
+          assignedProfile = "production-worker"
+        } else if (
+          role.includes("quality") || role.includes("inspector") || role.includes("qa") ||
+          dept.includes("quality")
+        ) {
+          assignedProfile = "quality-control"
+        } else if (
+          role.includes("supervisor") || role.includes("manager") || role.includes("lead") ||
+          dept.includes("management")
+        ) {
+          assignedProfile = "supervisor"
+        }
+      } else {
+        // Default generic assignment logic
+        if (
+          // Engineering/Development
+          dept.includes("engineering") || dept.includes("development") || dept.includes("tech") || dept.includes("it") ||
+          role.includes("developer") || role.includes("engineer") || role.includes("architect") || 
+          role.includes("programmer") || role.includes("software") || role.includes("technical")
+        ) {
+          assignedProfile = "power-user"
+        } else if (
+          // Sales/Marketing/Field workers
+          dept.includes("sales") || dept.includes("marketing") || dept.includes("business") ||
+          role.includes("sales") || role.includes("marketing") || role.includes("consultant") ||
+          role.includes("representative") || role.includes("account") || role.includes("business")
+        ) {
+          assignedProfile = "mobile-user"
+        } else if (
+          // Support/Operations/Administrative
+          dept.includes("support") || dept.includes("operations") || dept.includes("admin") ||
+          dept.includes("hr") || dept.includes("finance") || dept.includes("customer") ||
+          role.includes("support") || role.includes("service") || role.includes("clerk") ||
+          role.includes("assistant") || role.includes("coordinator") || role.includes("admin")
+        ) {
+          assignedProfile = "task-worker"
+        } else if (
+          // Management/Analysis stays office worker
+          role.includes("manager") || role.includes("director") || role.includes("analyst") ||
+          role.includes("lead") || role.includes("supervisor") || role.includes("officer")
+        ) {
+          assignedProfile = "office-user"
+        }
       }
-      // If none match, keep default "office-user"
       
       console.log(`Assigned ${employee.name} to ${assignedProfile}`) // Debug log
       
       return {
         ...employee,
         profileId: assignedProfile,
-        profileName: userProfiles.find(p => p.id === assignedProfile)?.name || "Office Worker"
+        profileName: userProfiles.find(p => p.id === assignedProfile)?.name || userProfiles[0].name
       }
     })
     
