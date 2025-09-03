@@ -598,16 +598,6 @@ function EditIndustryWithProfilesForm({
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [profilesLoading, setProfilesLoading] = useState(true);
-  const [newProfile, setNewProfile] = useState({
-    role: '',
-    department: '',
-    level: 'Professional',
-    hardware_cpu: 'Core i5',
-    hardware_ram: '8GB',
-    hardware_storage: '256GB SSD',
-    hardware_graphics: 'Onboard',
-    hardware_graphics_capacity: ''
-  });
   const { toast } = useToast();
 
   // Fetch existing profiles
@@ -662,55 +652,6 @@ function EditIndustryWithProfilesForm({
       });
     } finally {
       setLoading(false);
-    }
-  };
-
-  const addProfile = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newProfile.role || !newProfile.department) return;
-
-    try {
-      const { error } = await supabase
-        .from('custom_industry_profiles')
-        .insert({
-          custom_industry_id: industry.id,
-          role: newProfile.role,
-          department: newProfile.department,
-          level: newProfile.level,
-          hardware_cpu: newProfile.hardware_cpu,
-          hardware_ram: newProfile.hardware_ram,
-          hardware_storage: newProfile.hardware_storage,
-          hardware_graphics: newProfile.hardware_graphics,
-          hardware_graphics_capacity: newProfile.hardware_graphics === 'Dedicated' ? (newProfile.hardware_graphics_capacity || '8GB') : null
-        });
-
-      if (error) throw error;
-      
-      toast({
-        title: "Profile Added",
-        description: `${newProfile.role} has been added to ${industry.name}.`
-      });
-
-      setNewProfile({
-        role: '',
-        department: '',
-        level: 'Professional',
-        hardware_cpu: 'Core i5',
-        hardware_ram: '8GB',
-        hardware_storage: '256GB SSD',
-        hardware_graphics: 'Onboard',
-        hardware_graphics_capacity: ''
-      });
-      
-      fetchProfiles();
-      onIndustryUpdated(); // Refresh profile count
-    } catch (error) {
-      console.error('Error adding profile:', error);
-      toast({
-        title: "Error",
-        description: "Failed to add profile. Please try again.",
-        variant: "destructive"
-      });
     }
   };
 
@@ -929,5 +870,195 @@ function EditIndustryForm({
         </Button>
       </div>
     </form>
+  );
+}
+
+// Profile Selector Component
+function ProfileSelector({ 
+  customIndustryId, 
+  onProfileAdded, 
+  existingProfileIds 
+}: {
+  customIndustryId: string;
+  onProfileAdded: () => void;
+  existingProfileIds: string[];
+}) {
+  const [availableProfiles, setAvailableProfiles] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [searchTerm, setSearchTerm] = useState('');
+  const [selectedLevel, setSelectedLevel] = useState('');
+  const [selectedIndustry, setSelectedIndustry] = useState('');
+  const { toast } = useToast();
+
+  // Fetch all available profiles
+  const fetchAvailableProfiles = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .order('role', { ascending: true });
+
+      if (error) throw error;
+      setAvailableProfiles(data || []);
+    } catch (error) {
+      console.error('Error fetching profiles:', error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchAvailableProfiles();
+  }, []);
+
+  // Filter profiles
+  const filteredProfiles = availableProfiles.filter(profile => {
+    const matchesSearch = profile.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                         profile.department.toLowerCase().includes(searchTerm.toLowerCase());
+    const matchesLevel = !selectedLevel || profile.level === selectedLevel;
+    const matchesIndustry = !selectedIndustry || profile.industry === selectedIndustry;
+    const notAlreadyAdded = !existingProfileIds.includes(profile.id);
+    
+    return matchesSearch && matchesLevel && matchesIndustry && notAlreadyAdded;
+  });
+
+  const addProfileToIndustry = async (profile: any) => {
+    try {
+      const { error } = await supabase
+        .from('custom_industry_profiles')
+        .insert({
+          custom_industry_id: customIndustryId,
+          source_profile_id: profile.id,
+          role: profile.role,
+          department: profile.department,
+          level: profile.level,
+          hardware_cpu: profile.hardware_cpu,
+          hardware_ram: profile.hardware_ram,
+          hardware_storage: profile.hardware_storage,
+          hardware_graphics: profile.hardware_graphics,
+          hardware_graphics_capacity: profile.hardware_graphics_capacity
+        });
+
+      if (error) throw error;
+      
+      toast({
+        title: "Profile Added",
+        description: `${profile.role} has been added to this industry.`
+      });
+
+      onProfileAdded();
+    } catch (error) {
+      console.error('Error adding profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to add profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  const levels = [...new Set(availableProfiles.map(p => p.level))];
+  const industries = [...new Set(availableProfiles.map(p => p.industry).filter(Boolean))];
+
+  if (loading) {
+    return (
+      <div className="space-y-4">
+        <div className="animate-pulse">
+          <div className="h-10 bg-muted rounded mb-4"></div>
+          <div className="grid grid-cols-2 gap-4 mb-4">
+            <div className="h-10 bg-muted rounded"></div>
+            <div className="h-10 bg-muted rounded"></div>
+          </div>
+          <div className="space-y-2">
+            {[1, 2, 3, 4, 5].map(i => (
+              <div key={i} className="h-16 bg-muted rounded"></div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div className="space-y-4">
+      {/* Search and Filters */}
+      <div className="flex flex-col md:flex-row gap-4">
+        <div className="flex-1">
+          <Input
+            placeholder="Search profiles by role or department..."
+            value={searchTerm}
+            onChange={(e) => setSearchTerm(e.target.value)}
+          />
+        </div>
+        <div className="flex gap-2">
+          <Select value={selectedLevel} onValueChange={setSelectedLevel}>
+            <SelectTrigger className="w-32">
+              <SelectValue placeholder="Level" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Levels</SelectItem>
+              {levels.map(level => (
+                <SelectItem key={level} value={level}>{level}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={selectedIndustry} onValueChange={setSelectedIndustry}>
+            <SelectTrigger className="w-40">
+              <SelectValue placeholder="Industry" />
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="">All Industries</SelectItem>
+              {industries.map(industry => (
+                <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        </div>
+      </div>
+
+      {/* Available Profiles */}
+      <div className="max-h-96 overflow-y-auto space-y-2">
+        {filteredProfiles.length === 0 ? (
+          <p className="text-center text-muted-foreground py-8">
+            {searchTerm || selectedLevel || selectedIndustry 
+              ? 'No profiles match your search criteria.' 
+              : 'All available profiles have been added to this industry.'
+            }
+          </p>
+        ) : (
+          filteredProfiles.map((profile) => (
+            <div key={profile.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+              <div className="flex-1">
+                <div className="font-medium">{profile.role}</div>
+                <div className="text-sm text-muted-foreground">
+                  {profile.department} • {profile.level}
+                  {profile.industry && ` • ${profile.industry}`}
+                  {profile.is_custom ? ' (Custom)' : ' (Default)'}
+                </div>
+                <div className="text-xs text-muted-foreground">
+                  {profile.hardware_cpu}, {profile.hardware_ram}, {profile.hardware_storage}
+                  {profile.hardware_graphics === 'Dedicated' && profile.hardware_graphics_capacity && 
+                    `, ${profile.hardware_graphics_capacity} Graphics`
+                  }
+                </div>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => addProfileToIndustry(profile)}
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add
+              </Button>
+            </div>
+          ))
+        )}
+      </div>
+
+      <div className="text-sm text-muted-foreground">
+        Showing {filteredProfiles.length} of {availableProfiles.length} available profiles
+        {existingProfileIds.length > 0 && ` (${existingProfileIds.length} already added)`}
+      </div>
+    </div>
   );
 }

@@ -57,6 +57,7 @@ export type Database = {
           id: string
           level: string
           role: string
+          source_profile_id: string | null
           updated_at: string
         }
         Insert: {
@@ -71,6 +72,7 @@ export type Database = {
           id?: string
           level: string
           role: string
+          source_profile_id?: string | null
           updated_at?: string
         }
         Update: {
@@ -85,6 +87,7 @@ export type Database = {
           id?: string
           level?: string
           role?: string
+          source_profile_id?: string | null
           updated_at?: string
         }
         Relationships: [
@@ -93,6 +96,13 @@ export type Database = {
             columns: ["custom_industry_id"]
             isOneToOne: false
             referencedRelation: "custom_industries"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "custom_industry_profiles_source_profile_id_fkey"
+            columns: ["source_profile_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
             referencedColumns: ["id"]
           },
         ]
