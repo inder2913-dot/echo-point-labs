@@ -232,6 +232,15 @@ export default function Recommendations() {
         });
         break
       case 'battery':
+        console.log('=== BATTERY FILTER DEBUG ===')
+        console.log('Total devices to filter:', devices.length)
+        console.log('Sample device battery data:', devices.slice(0, 3).map(d => ({
+          id: d.id,
+          batteryHealth: d.batteryHealth,
+          issues: d.issues,
+          hasLowBattery: d.batteryHealth && parseInt(d.batteryHealth.replace('%', '')) < 80
+        })))
+        
         filtered = devices.filter(d => {
           const hasBatteryIssue = d.issues?.some((issue: string) => 
             issue.toLowerCase().includes('battery')
@@ -239,13 +248,21 @@ export default function Recommendations() {
           
           const poorBattery = d.batteryHealth === 'Poor' || d.batteryHealth === 'Fair'
           
-          // Check for battery percentage below 80% (same logic as analysis)
+          // Check for battery percentage below 80%
           const batteryHealthStr = d.batteryHealth || ''
           const batteryPercentage = parseInt(batteryHealthStr.replace('%', '')) || 100
           const lowBatteryPercentage = batteryPercentage < 80
           
-          return hasBatteryIssue || poorBattery || lowBatteryPercentage
+          const shouldInclude = hasBatteryIssue || poorBattery || lowBatteryPercentage
+          
+          if (shouldInclude) {
+            console.log(`Including device ${d.id}: battery=${d.batteryHealth}, issues=${d.issues}, low=${lowBatteryPercentage}`)
+          }
+          
+          return shouldInclude
         })
+        
+        console.log('Filtered battery devices:', filtered.length)
         break
       case 'warranty':
         filtered = devices.filter(d => 
