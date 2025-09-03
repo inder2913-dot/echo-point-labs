@@ -95,8 +95,8 @@ export default function Auth() {
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
         <CardHeader className="text-center">
-          <div className="flex items-center justify-center gap-1 mb-4">
-            <img src="/lovable-uploads/36fc8716-9747-40f2-a4ee-5256a2fe5ded.png" alt="EcoPoint" className="h-10 w-10" />
+          <div className="flex items-center justify-center gap-0.5 mb-4">
+            <img src="/lovable-uploads/36fc8716-9747-40f2-a4ee-5256a2fe5ded.png" alt="EcoPoint" className="h-12 w-12" />
             <h1 className="text-2xl font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">EcoPoint</h1>
           </div>
           <CardTitle>Welcome to EcoPoint</CardTitle>
