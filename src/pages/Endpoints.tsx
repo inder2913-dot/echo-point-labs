@@ -206,8 +206,10 @@ export default function Endpoints() {
             
             if (data.indexOf(item) < 10) {
               console.log(`User ${data.indexOf(item)} - ${item.name}:`, {
+                fullItem: item,
                 profile: item.profile,
                 profileId: item.profileId,
+                profileName: item.profile?.name,
                 hasValidProfile,
                 hasValidProfileId,
                 isProfileAssigned,
