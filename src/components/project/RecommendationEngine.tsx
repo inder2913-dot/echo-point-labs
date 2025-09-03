@@ -19,6 +19,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { supabase } from "@/integrations/supabase/client"
+import { useToast } from "@/hooks/use-toast"
 
 interface RecommendationEngineProps {
   onComplete: (data: any) => void
@@ -30,6 +32,8 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
   const [isGenerating, setIsGenerating] = useState(false)
   const [filterType, setFilterType] = useState("all")
   const [costSavings, setCostSavings] = useState({ total: 0, upgrades: 0, downgrades: 0 })
+  const [isSaving, setIsSaving] = useState(false)
+  const { toast } = useToast()
 
   const generateRecommendations = () => {
     setIsGenerating(true)
@@ -140,13 +144,74 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
     }
   }, [])
 
-  const handleComplete = () => {
-    onComplete({
-      recommendations: recommendations,
-      costAnalysis: costSavings,
-      projectComplete: true
-    })
-  }
+  const saveProject = async () => {
+    if (!initialData.organizationSetup?.organizationType) {
+      toast({
+        title: "Error",
+        description: "Missing organization data. Please start from the beginning.",
+        variant: "destructive"
+      });
+      return;
+    }
+
+    setIsSaving(true);
+    try {
+      // Create project
+      const { data: project, error: projectError } = await supabase
+        .from('projects')
+        .insert({
+          user_id: (await supabase.auth.getUser()).data.user?.id,
+          name: `${initialData.organizationSetup.organizationType} Project - ${new Date().toLocaleDateString()}`,
+          organization_type: initialData.organizationSetup.organizationType,
+          industry: initialData.organizationSetup.industry,
+          status: 'completed',
+          completed_at: new Date().toISOString()
+        })
+        .select()
+        .single();
+
+      if (projectError) throw projectError;
+
+      // Save all project data
+      const projectDataInserts = [
+        { project_id: project.id, step_name: 'organizationSetup', data: initialData.organizationSetup },
+        { project_id: project.id, step_name: 'employeeData', data: initialData.employeeData },
+        { project_id: project.id, step_name: 'deviceInventory', data: initialData.deviceInventory },
+        { project_id: project.id, step_name: 'userProfiles', data: initialData.userProfiles },
+        { project_id: project.id, step_name: 'deviceComparison', data: initialData.deviceComparison },
+        { project_id: project.id, step_name: 'recommendations', data: { recommendations, costSavings } }
+      ];
+
+      const { error: dataError } = await supabase
+        .from('project_data')
+        .insert(projectDataInserts);
+
+      if (dataError) throw dataError;
+
+      toast({
+        title: "Project Saved",
+        description: "Your project has been successfully saved to the database.",
+      });
+
+      // Call onComplete with success data
+      onComplete({
+        projectId: project.id,
+        recommendations,
+        costAnalysis: costSavings,
+        projectComplete: true
+      });
+
+    } catch (error) {
+      console.error('Error saving project:', error);
+      toast({
+        title: "Error",
+        description: "Failed to save project. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setIsSaving(false);
+    }
+  };
 
   const getTypeInfo = (type: string) => {
     switch (type) {
@@ -404,9 +469,9 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
             Regenerate Recommendations
           </Button>
           
-          <Button onClick={handleComplete}>
+          <Button onClick={saveProject} disabled={isSaving}>
             <Save className="w-4 h-4 mr-2" />
-            Complete Project
+            {isSaving ? 'Saving...' : 'Complete & Save Project'}
           </Button>
         </div>
       )}
