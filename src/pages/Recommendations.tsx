@@ -189,14 +189,20 @@ export default function Recommendations() {
         )
         break
       case 'laptops':
+        console.log('Filtering laptops - Total devices:', devices.length)
+        console.log('Devices with Laptop deviceType:', devices.filter(d => d.deviceType === 'Laptop').length)
+        console.log('Devices with needs-upgrade status:', devices.filter(d => d.status === 'needs-upgrade').length)
         filtered = devices.filter(d => 
           d.deviceType === 'Laptop' && d.status === 'needs-upgrade'
         )
+        console.log('Filtered laptops needing upgrade:', filtered.length)
         break
       case 'desktops':
+        console.log('Filtering desktops - Total devices:', devices.length)
         filtered = devices.filter(d => 
           d.deviceType === 'Desktop' && d.status === 'needs-upgrade'
         )
+        console.log('Filtered desktops needing upgrade:', filtered.length)
         break
       case 'upgrade':
         filtered = devices.filter(d => d.status === 'needs-upgrade')
