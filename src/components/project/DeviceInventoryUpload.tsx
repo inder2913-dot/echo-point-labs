@@ -367,7 +367,13 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Laptops</p>
                   <p className="text-2xl font-bold">
-                    {uploadedDevices.filter(d => d.deviceType && d.deviceType.toLowerCase().includes('laptop')).length}
+                    {uploadedDevices.filter(d => 
+                      (d.deviceserial && d.deviceserial.startsWith('LTP')) ||
+                      (d.devicemodel && (d.devicemodel.toLowerCase().includes('laptop') || 
+                                       d.devicemodel.toLowerCase().includes('macbook') ||
+                                       d.devicemodel.toLowerCase().includes('thinkpad') ||
+                                       d.devicemodel.toLowerCase().includes('elitebook')))
+                    ).length}
                   </p>
                 </div>
                 <Laptop className="h-8 w-8 text-muted-foreground" />
@@ -381,7 +387,12 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
                 <div>
                   <p className="text-sm font-medium text-muted-foreground">Desktops</p>
                   <p className="text-2xl font-bold">
-                    {uploadedDevices.filter(d => d.deviceType && (d.deviceType.toLowerCase().includes('desktop') || d.deviceType.toLowerCase().includes('workstation') || d.deviceType.toLowerCase().includes('pc'))).length}
+                    {uploadedDevices.filter(d => 
+                      (d.deviceserial && d.deviceserial.startsWith('DESK')) ||
+                      (d.devicemodel && (d.devicemodel.toLowerCase().includes('optiplex') ||
+                                       d.devicemodel.toLowerCase().includes('thinkcentre') ||
+                                       d.devicemodel.toLowerCase().includes('elitedesk')))
+                    ).length}
                   </p>
                 </div>
                 <MonitorSpeaker className="h-8 w-8 text-muted-foreground" />
