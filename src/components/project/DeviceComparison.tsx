@@ -58,11 +58,19 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
       const employees = initialData.userAssignments || []
       const profiles = initialData.userProfiles || []
       
+      console.log('=== DEVICE COMPARISON DEBUG ===')
       console.log('Device Analysis - Employees:', employees.length)
       console.log('Device Analysis - Devices loaded:', devices.length)
       console.log('Device Analysis - Profiles:', profiles.length)
       console.log('Device Analysis - First few employees:', employees.slice(0, 3))
+      console.log('Device Analysis - Employee sample:', employees.slice(0, 2).map(e => ({
+        name: e.name,
+        firstName: e.firstName,
+        lastName: e.lastName,
+        department: e.department
+      })))
       
+      // IMPORTANT: Only process actual employees, not all devices!
       const results = employees.map(employee => {
         // Try multiple ways to match employee with device
         let userDevice = null
