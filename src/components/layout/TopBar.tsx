@@ -52,8 +52,8 @@ export function TopBar() {
       <div className="flex items-center gap-4">
         <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
         
-        <div className="flex items-center gap-2">
-          <img src="/lovable-uploads/36fc8716-9747-40f2-a4ee-5256a2fe5ded.png" alt="Hexaware EcoPoint" className="w-8 h-8 rounded-full" />
+        <div className="flex items-center gap-1">
+          <img src="/lovable-uploads/36fc8716-9747-40f2-a4ee-5256a2fe5ded.png" alt="Hexaware EcoPoint" className="w-10 h-10 rounded-full" />
           <div>
             <h1 className="font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Hexaware EcoPoint</h1>
           </div>
