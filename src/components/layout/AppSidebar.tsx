@@ -50,7 +50,7 @@ export function AppSidebar() {
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     isActive 
       ? "bg-primary text-primary-foreground font-medium" 
-      : "text-muted-foreground hover:bg-accent hover:text-foreground transition-smooth"
+      : "text-foreground hover:bg-accent hover:text-accent-foreground transition-smooth"
 
   return (
     <Sidebar
