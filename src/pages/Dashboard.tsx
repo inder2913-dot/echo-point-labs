@@ -20,6 +20,21 @@ export default function Dashboard() {
     fetchProjects()
   }, [])
 
+  // Also fetch projects when the component becomes visible (user navigates back)
+  useEffect(() => {
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        fetchProjects()
+      }
+    }
+
+    document.addEventListener('visibilitychange', handleVisibilityChange)
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange)
+    }
+  }, [])
+
   const fetchProjects = async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
