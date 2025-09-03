@@ -102,6 +102,7 @@ export default function Baselines() {
       const { data: allProfiles, error } = await supabase
         .from('user_profiles')
         .select('*')
+        .eq('is_custom', false)  // Only fetch baseline profiles, not user's custom profile
         .order('role', { ascending: true })
 
       if (error) throw error
