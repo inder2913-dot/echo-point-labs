@@ -374,7 +374,7 @@ export default function Recommendations() {
         impact: 'high',
         priority: 'high',
         category: 'hardware',
-        estimatedCost: `$${(analysis.upgradeNeeded * 800).toLocaleString()}`,
+        estimatedCost: `$${((Math.floor(analysis.upgradeNeeded * 0.3) * 1500) + (Math.floor(analysis.upgradeNeeded * 0.7) * 250)).toLocaleString()}`,
         timeframe: '2-3 months',
         affectedDevices: analysis.upgradeNeeded,
         implementationSteps: [
