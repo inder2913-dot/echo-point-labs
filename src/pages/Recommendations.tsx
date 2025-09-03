@@ -548,10 +548,26 @@ export default function Recommendations() {
           'Budget for upcoming hardware refresh cycle'
         ],
         detailedAnalysis: {
-          deviceBreakdown: [
-            { type: 'Warranty Expiring (3-6 months)', count: Math.floor(analysis.warrantyExpiring * 0.6), issues: ['Support coverage ending', 'Repair costs increasing'] },
-            { type: 'End-of-Life Approaching', count: Math.floor(analysis.warrantyExpiring * 0.4), issues: ['Vendor support ending', 'Security updates stopping'] }
-          ],
+          deviceBreakdown: (() => {
+            // For small numbers, show all warranty devices in one category to avoid rounding issues
+            if (analysis.warrantyExpiring <= 3) {
+              return [
+                { 
+                  type: 'Warranty & End-of-Life Issues', 
+                  count: analysis.warrantyExpiring, 
+                  issues: ['Warranty expiring soon', 'End-of-life approaching', 'Support coverage ending'] 
+                }
+              ];
+            } else {
+              // For larger numbers, split more evenly
+              const nearExpiring = Math.ceil(analysis.warrantyExpiring * 0.7);
+              const endOfLife = analysis.warrantyExpiring - nearExpiring;
+              return [
+                { type: 'Warranty Expiring (3-6 months)', count: nearExpiring, issues: ['Support coverage ending', 'Repair costs increasing'] },
+                { type: 'End-of-Life Approaching', count: endOfLife, issues: ['Vendor support ending', 'Security updates stopping'] }
+              ];
+            }
+          })(),
           costBreakdown: [
             { item: 'Device Replacement (Average)', cost: 1200, quantity: Math.floor(analysis.warrantyExpiring * 0.7) },
             { item: 'Extended Warranty', cost: 200, quantity: Math.floor(analysis.warrantyExpiring * 0.3) }
@@ -988,7 +1004,7 @@ function RecommendationDetails({ recommendation, onDeviceListClick }: Recommenda
                                              device.type === 'Laptops' ? 'laptops' :
                                              device.type === 'Desktops' ? 'desktops' :
                                              device.type === 'Poor Battery Health' || device.type === 'Fair Battery Health' || device.type === 'Unknown Battery Status' ? 'battery' :
-                                             device.type === 'Warranty Expiring (3-6 months)' || device.type === 'End-of-Life Approaching' ? 'warranty' :
+                                             device.type === 'Warranty Expiring (3-6 months)' || device.type === 'End-of-Life Approaching' || device.type === 'Warranty & End-of-Life Issues' ? 'warranty' :
                                              'upgrade'
                                onDeviceListClick(filterType, `${device.type} - ${device.count} devices`)
                              }
