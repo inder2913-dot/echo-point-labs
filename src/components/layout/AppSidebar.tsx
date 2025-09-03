@@ -56,9 +56,7 @@ export function AppSidebar() {
       <SidebarContent className="bg-background">
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
-            <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
-              <span className="text-primary-foreground font-bold text-sm">H</span>
-            </div>
+            <img src="/lovable-uploads/36fc8716-9747-40f2-a4ee-5256a2fe5ded.png" alt="EcoPoint" className="w-8 h-8 rounded-full" />
             {!collapsed && (
               <div>
                 <h2 className="font-semibold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">EcoPoint</h2>
