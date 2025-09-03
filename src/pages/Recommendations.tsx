@@ -232,11 +232,20 @@ export default function Recommendations() {
         });
         break
       case 'battery':
-        filtered = devices.filter(d => 
-          d.issues.some(issue => issue.includes('Battery')) ||
-          (d as any).batteryHealth === 'Poor' ||
-          (d as any).batteryHealth === 'Fair'
-        )
+        filtered = devices.filter(d => {
+          const hasBatteryIssue = d.issues?.some((issue: string) => 
+            issue.toLowerCase().includes('battery')
+          ) || false
+          
+          const poorBattery = d.batteryHealth === 'Poor' || d.batteryHealth === 'Fair'
+          
+          // Check for battery percentage below 80% (same logic as analysis)
+          const batteryHealthStr = d.batteryHealth || ''
+          const batteryPercentage = parseInt(batteryHealthStr.replace('%', '')) || 100
+          const lowBatteryPercentage = batteryPercentage < 80
+          
+          return hasBatteryIssue || poorBattery || lowBatteryPercentage
+        })
         break
       case 'warranty':
         filtered = devices.filter(d => 
@@ -422,17 +431,12 @@ export default function Recommendations() {
         issue.toLowerCase().includes('battery')
       ) || false
       
-      const poorBattery = d.device?.batteryhealth === 'Poor' || 
-                         d.device?.batteryhealth === 'Fair' ||
-                         d.batteryHealth === 'Poor' || 
-                         d.batteryHealth === 'Fair'
+      const poorBattery = d.batteryHealth === 'Poor' || d.batteryHealth === 'Fair'
       
       // Check for battery percentage below 80%
-      const batteryHealthStr = d.device?.batteryhealth || d.batteryHealth || ''
+      const batteryHealthStr = d.batteryHealth || ''
       const batteryPercentage = parseInt(batteryHealthStr.replace('%', '')) || 100
       const lowBatteryPercentage = batteryPercentage < 80
-      
-      console.log(`Device ${d.id}: battery health = ${d.device?.batteryhealth || d.batteryHealth}, percentage = ${batteryPercentage}, low = ${lowBatteryPercentage}`)
       
       return hasBatteryIssue || poorBattery || lowBatteryPercentage
     }).length
