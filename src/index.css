@@ -2,39 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
-All colors MUST be HSL.
-*/
+/* Hexaware EchoPoint Design System - Professional Dark Theme */
 
 @layer base {
   :root {
-    --background: 0 0% 100%;
-    --foreground: 222.2 84% 4.9%;
+    /* Core brand colors */
+    --background: 210 30% 8%;
+    --foreground: 210 20% 95%;
 
-    --card: 0 0% 100%;
-    --card-foreground: 222.2 84% 4.9%;
+    /* Card system */
+    --card: 210 25% 12%;
+    --card-foreground: 210 20% 95%;
+    --card-hover: 210 25% 15%;
 
-    --popover: 0 0% 100%;
-    --popover-foreground: 222.2 84% 4.9%;
+    /* Popover system */
+    --popover: 210 25% 12%;
+    --popover-foreground: 210 20% 95%;
 
-    --primary: 222.2 47.4% 11.2%;
-    --primary-foreground: 210 40% 98%;
+    /* Brand primary - Hexaware blue */
+    --primary: 220 90% 56%;
+    --primary-foreground: 210 20% 98%;
+    --primary-glow: 220 90% 66%;
 
-    --secondary: 210 40% 96.1%;
-    --secondary-foreground: 222.2 47.4% 11.2%;
+    /* Secondary system */
+    --secondary: 210 25% 18%;
+    --secondary-foreground: 210 20% 95%;
 
-    --muted: 210 40% 96.1%;
-    --muted-foreground: 215.4 16.3% 46.9%;
+    /* Muted system */
+    --muted: 210 25% 15%;
+    --muted-foreground: 210 20% 70%;
 
-    --accent: 210 40% 96.1%;
-    --accent-foreground: 222.2 47.4% 11.2%;
+    /* Accent system */
+    --accent: 270 80% 60%;
+    --accent-foreground: 210 20% 98%;
 
-    --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    /* Status colors */
+    --destructive: 0 75% 60%;
+    --destructive-foreground: 210 20% 98%;
+    --success: 142 76% 36%;
+    --success-foreground: 210 20% 98%;
+    --warning: 38 92% 50%;
+    --warning-foreground: 210 20% 98%;
 
-    --border: 214.3 31.8% 91.4%;
-    --input: 214.3 31.8% 91.4%;
-    --ring: 222.2 84% 4.9%;
+    /* Border system */
+    --border: 210 25% 20%;
+    --input: 210 25% 15%;
+    --ring: 220 90% 56%;
+
+    /* Professional gradients */
+    --gradient-primary: linear-gradient(135deg, hsl(220 90% 56%), hsl(220 90% 66%));
+    --gradient-secondary: linear-gradient(135deg, hsl(210 25% 12%), hsl(210 25% 18%));
+    --gradient-accent: linear-gradient(135deg, hsl(270 80% 60%), hsl(290 80% 60%));
+    
+    /* Shadows */
+    --shadow-elegant: 0 10px 30px -10px hsl(220 90% 56% / 0.3);
+    --shadow-card: 0 4px 20px -2px hsl(210 25% 8% / 0.4);
+    --shadow-glow: 0 0 40px hsl(220 90% 66% / 0.4);
+
+    /* Animation system */
+    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --radius: 0.5rem;
 
