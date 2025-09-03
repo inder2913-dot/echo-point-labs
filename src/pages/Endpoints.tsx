@@ -94,6 +94,7 @@ export default function Endpoints() {
   const [selectedRam, setSelectedRam] = useState<string>("all")
   const [selectedGraphics, setSelectedGraphics] = useState<string>("all")
   const [selectedStorage, setSelectedStorage] = useState<string>("all")
+  const [selectedOS, setSelectedOS] = useState<string>("all")
 
   useEffect(() => {
     loadEndpointsData()
@@ -184,9 +185,12 @@ export default function Endpoints() {
     if (selectedStorage !== "all") {
       filtered = filtered.filter(device => device.storage?.includes(selectedStorage))
     }
+    if (selectedOS !== "all") {
+      filtered = filtered.filter(device => device.deviceOS?.toLowerCase().includes(selectedOS.toLowerCase()))
+    }
 
     setFilteredDevices(filtered)
-  }, [devices, selectedDepartment, selectedLocation, selectedStatus, selectedDeviceType, selectedCpu, selectedRam, selectedGraphics, selectedStorage])
+  }, [devices, selectedDepartment, selectedLocation, selectedStatus, selectedDeviceType, selectedCpu, selectedRam, selectedGraphics, selectedStorage, selectedOS])
 
   // Get unique values for filters
   const departments = [...new Set(devices.map(d => d.department).filter(Boolean))]
@@ -196,6 +200,7 @@ export default function Endpoints() {
   const ramTypes = [...new Set(devices.map(d => d.ram).filter(Boolean))]
   const graphicsTypes = [...new Set(devices.map(d => d.graphics).filter(Boolean))]
   const storageTypes = [...new Set(devices.map(d => d.storage).filter(Boolean))]
+  const osTypes = [...new Set(devices.map(d => d.deviceOS).filter(Boolean))]
 
   // Statistics
   const stats = {
@@ -310,7 +315,7 @@ export default function Endpoints() {
         <TabsContent value="all-devices" className="space-y-4">
           {/* Filters */}
           <Card className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Department</label>
                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
@@ -431,6 +436,21 @@ export default function Endpoints() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Operating System</label>
+                <Select value={selectedOS} onValueChange={setSelectedOS}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All OS" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Operating Systems</SelectItem>
+                    {osTypes.map(os => (
+                      <SelectItem key={os} value={os}>{os}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Button 
@@ -444,6 +464,7 @@ export default function Endpoints() {
                 setSelectedRam("all")
                 setSelectedGraphics("all")
                 setSelectedStorage("all")
+                setSelectedOS("all")
               }}
               className="mt-4"
             >
