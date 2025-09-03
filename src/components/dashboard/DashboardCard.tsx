@@ -24,14 +24,14 @@ export function DashboardCard({
   className 
 }: DashboardCardProps) {
   return (
-    <Card className={cn("group relative overflow-hidden border-border/50 bg-gradient-to-br from-card/80 to-card/40 hover:from-card to-card/60", className)}>
+    <Card className={cn("group relative overflow-hidden border-border/50 bg-gradient-to-br from-card/80 to-card/40 hover:from-card to-card/60 will-change-transform transform-gpu", className)}>
       <div className="absolute inset-0 bg-gradient-to-r from-primary/5 via-transparent to-primary-glow/5 opacity-0 group-hover:opacity-100 transition-opacity duration-500" />
       <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-3 relative z-10">
         <CardTitle className="text-sm font-medium text-muted-foreground group-hover:text-foreground transition-colors">
           {title}
         </CardTitle>
         {icon && (
-          <div className="text-muted-foreground group-hover:text-primary transition-colors duration-300 transform group-hover:scale-110">
+          <div className="text-muted-foreground group-hover:text-primary transition-colors duration-300 will-change-transform transform-gpu group-hover:scale-105">
             {icon}
           </div>
         )}

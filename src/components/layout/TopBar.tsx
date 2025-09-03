@@ -80,7 +80,7 @@ export function TopBar() {
         {/* User Menu */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="ghost" className="flex items-center gap-2 bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card hover:shadow-glow transition-all">
+            <Button variant="ghost" className="flex items-center gap-2 bg-card/50 backdrop-blur-sm border border-border/50 hover:bg-card hover:shadow-glow transition-all will-change-transform transform-gpu">
               <Avatar className="h-8 w-8 ring-2 ring-primary/20">
                 <AvatarFallback className="bg-gradient-to-br from-primary to-primary-glow text-primary-foreground font-semibold">
                   {user?.email?.charAt(0).toUpperCase() || 'U'}
