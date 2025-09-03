@@ -10,6 +10,7 @@ import { SidebarProvider } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/layout/AppSidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import Dashboard from "./pages/Dashboard";
+import UserProfiles from "./pages/UserProfiles";
 import Project from "./pages/Project";
 import ProjectDetails from "./pages/ProjectDetails";
 import Auth from "./pages/Auth";
@@ -75,6 +76,7 @@ const App = () => (
                     <main className="flex-1">
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
+                        <Route path="/profiles" element={<UserProfiles />} />
                         <Route path="/project" element={<Project />} />
                         <Route path="/project/:id" element={<ProjectDetails />} />
                         <Route path="*" element={<NotFound />} />
