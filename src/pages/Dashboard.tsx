@@ -104,16 +104,6 @@ export default function Dashboard() {
             Overview of your workplace analytics projects and insights
           </p>
         </div>
-        <div className="flex items-center space-x-2">
-          <UpdateProjectName />
-          <Button variant="outline">Export Report</Button>
-          <Button asChild>
-            <Link to="/project">
-              <Plus className="w-4 h-4 mr-2" />
-              New Project
-            </Link>
-          </Button>
-        </div>
       </div>
 
       {/* Stats Grid */}
