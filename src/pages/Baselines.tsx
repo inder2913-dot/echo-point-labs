@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Settings, Edit, Check, Plus } from "lucide-react"
+import { Settings, Edit, Check, Plus, Filter } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -79,9 +79,16 @@ const DEFAULT_PROFILES = [
 
 export default function Baselines() {
   const [userProfiles, setUserProfiles] = useState<any[]>([])
+  const [filteredProfiles, setFilteredProfiles] = useState<any[]>([])
   const [editingProfile, setEditingProfile] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [loading, setLoading] = useState(true)
+  
+  // Filter states
+  const [departmentFilter, setDepartmentFilter] = useState<string>("")
+  const [levelFilter, setLevelFilter] = useState<string>("")
+  const [industryFilter, setIndustryFilter] = useState<string>("")
+  const [graphicsFilter, setGraphicsFilter] = useState<string>("")
 
   useEffect(() => {
     loadUserProfiles()
@@ -116,14 +123,49 @@ export default function Baselines() {
       }))
 
       setUserProfiles(profiles)
+      setFilteredProfiles(profiles)
     } catch (error) {
       console.error('Error loading profiles:', error)
       toast.error('Failed to load user profiles')
       // Fall back to default profiles
       setUserProfiles(DEFAULT_PROFILES)
+      setFilteredProfiles(DEFAULT_PROFILES)
     } finally {
       setLoading(false)
     }
+  }
+
+  // Filter profiles based on selected filters
+  useEffect(() => {
+    let filtered = userProfiles
+
+    if (departmentFilter) {
+      filtered = filtered.filter(profile => profile.department === departmentFilter)
+    }
+    if (levelFilter) {
+      filtered = filtered.filter(profile => profile.level === levelFilter)
+    }
+    if (industryFilter) {
+      filtered = filtered.filter(profile => profile.industry === industryFilter)
+    }
+    if (graphicsFilter) {
+      filtered = filtered.filter(profile => profile.baseline.graphics === graphicsFilter)
+    }
+
+    setFilteredProfiles(filtered)
+  }, [userProfiles, departmentFilter, levelFilter, industryFilter, graphicsFilter])
+
+  // Get unique values for filter options
+  const departments = [...new Set(userProfiles.map(p => p.department).filter(Boolean))]
+  const levels = [...new Set(userProfiles.map(p => p.level).filter(Boolean))]
+  const industries = [...new Set(userProfiles.map(p => p.industry).filter(Boolean))]
+  const graphicsOptions = [...new Set(userProfiles.map(p => p.baseline.graphics).filter(Boolean))]
+
+  const clearFilters = () => {
+    setDepartmentFilter("")
+    setLevelFilter("")
+    setIndustryFilter("")
+    setGraphicsFilter("")
   }
 
   const updateProfile = async (updatedProfile: any) => {
@@ -182,12 +224,85 @@ export default function Baselines() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Device Baselines</h1>
-          <p className="text-muted-foreground">Manage hardware baselines for all user profiles</p>
+          <p className="text-muted-foreground">Manage hardware baselines for all user profiles ({filteredProfiles.length} of {userProfiles.length})</p>
         </div>
       </div>
 
+      {/* Filters Section */}
+      <Card className="p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <Filter className="w-4 h-4" />
+          <h3 className="font-medium">Filters</h3>
+          <Button variant="ghost" size="sm" onClick={clearFilters} className="ml-auto">
+            Clear All
+          </Button>
+        </div>
+        
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="space-y-2">
+            <Label>Department</Label>
+            <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="">All Departments</SelectItem>
+                {departments.map(dept => (
+                  <SelectItem key={dept} value={dept}>{dept}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Level</Label>
+            <Select value={levelFilter} onValueChange={setLevelFilter}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="All Levels" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="">All Levels</SelectItem>
+                {levels.map(level => (
+                  <SelectItem key={level} value={level}>{level}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Industry</Label>
+            <Select value={industryFilter} onValueChange={setIndustryFilter}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="All Industries" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="">All Industries</SelectItem>
+                {industries.map(industry => (
+                  <SelectItem key={industry} value={industry}>{industry}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Graphics</Label>
+            <Select value={graphicsFilter} onValueChange={setGraphicsFilter}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="All Graphics" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="">All Graphics</SelectItem>
+                {graphicsOptions.map(graphics => (
+                  <SelectItem key={graphics} value={graphics}>{graphics}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+      </Card>
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {userProfiles.map((profile, index) => (
+        {filteredProfiles.map((profile, index) => (
           <Card key={profile.id || index} className="relative">
             <CardHeader>
               <div className="flex items-start justify-between">
@@ -283,11 +398,11 @@ function BaselineEditor({ profile, onSave, onCancel }: any) {
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="Desktop">Desktop</SelectItem>
-            <SelectItem value="Laptop">Laptop</SelectItem>
-            <SelectItem value="Desktop or Laptop">Desktop or Laptop</SelectItem>
-          </SelectContent>
+            <SelectContent className="bg-background border shadow-lg z-50">
+              <SelectItem value="Desktop">Desktop</SelectItem>
+              <SelectItem value="Laptop">Laptop</SelectItem>
+              <SelectItem value="Desktop or Laptop">Desktop or Laptop</SelectItem>
+            </SelectContent>
         </Select>
       </div>
 
@@ -303,7 +418,7 @@ function BaselineEditor({ profile, onSave, onCancel }: any) {
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background border shadow-lg z-50">
             <SelectItem value="8GB">8GB</SelectItem>
             <SelectItem value="16GB">16GB</SelectItem>
             <SelectItem value="32GB">32GB</SelectItem>
@@ -335,7 +450,7 @@ function BaselineEditor({ profile, onSave, onCancel }: any) {
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background border shadow-lg z-50">
             <SelectItem value="256GB SSD">256GB SSD</SelectItem>
             <SelectItem value="512GB SSD">512GB SSD</SelectItem>
             <SelectItem value="1TB SSD">1TB SSD</SelectItem>
@@ -360,7 +475,7 @@ function BaselineEditor({ profile, onSave, onCancel }: any) {
           <SelectTrigger>
             <SelectValue />
           </SelectTrigger>
-          <SelectContent>
+          <SelectContent className="bg-background border shadow-lg z-50">
             <SelectItem value="Onboard">Onboard</SelectItem>
             <SelectItem value="Dedicated">Dedicated</SelectItem>
           </SelectContent>
@@ -380,11 +495,13 @@ function BaselineEditor({ profile, onSave, onCancel }: any) {
             <SelectTrigger>
               <SelectValue placeholder="Select capacity" />
             </SelectTrigger>
-            <SelectContent>
+            <SelectContent className="bg-background border shadow-lg z-50">
               <SelectItem value="2GB">2GB</SelectItem>
               <SelectItem value="4GB">4GB</SelectItem>
               <SelectItem value="6GB">6GB</SelectItem>
               <SelectItem value="8GB">8GB</SelectItem>
+              <SelectItem value="16GB">16GB</SelectItem>
+              <SelectItem value="24GB">24GB</SelectItem>
             </SelectContent>
           </Select>
         </div>
