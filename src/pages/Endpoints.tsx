@@ -319,9 +319,6 @@ export default function Endpoints() {
               <div className="flex items-center gap-2">
                 <Filter className="w-4 h-4" />
                 <h3 className="font-medium">Filters</h3>
-                <Badge variant="secondary" className="ml-2">
-                  {filteredDevices.length} of {devices.length} devices
-                </Badge>
               </div>
               <Button 
                 variant="outline" 
