@@ -315,13 +315,20 @@ interface UserProfilingBaselinesProps {
 
 export function UserProfilingBaselines({ onComplete, initialData }: UserProfilingBaselinesProps) {
   // Get industry-specific profiles based on organization setup
-  const selectedIndustry = initialData?.organizationSetup?.industry?.toLowerCase() || 'default'
+  // The data structure should be: initialData.organizationType (from step 1)
+  const selectedIndustry = (initialData?.organizationType || 'default').toLowerCase()
   const industryProfiles = INDUSTRY_PROFILES[selectedIndustry as keyof typeof INDUSTRY_PROFILES] || INDUSTRY_PROFILES.default
   
   const [userProfiles, setUserProfiles] = useState(industryProfiles)
   const [editingProfile, setEditingProfile] = useState<any>(null)
   const [userAssignments, setUserAssignments] = useState<any[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+
+  console.log('Full InitialData:', JSON.stringify(initialData, null, 2))
+  console.log('Organization Type:', initialData?.organizationType)
+  console.log('Selected industry:', selectedIndustry)
+  console.log('Available profiles:', Object.keys(INDUSTRY_PROFILES))
+  console.log('Using profiles:', industryProfiles.map(p => p.name))
 
   console.log('Selected industry:', selectedIndustry)
   console.log('Using profiles:', industryProfiles)
