@@ -327,24 +327,6 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
         </Card>
       )}
 
-      {/* Debug: Show device types found */}
-      {uploadedDevices.length > 0 && (
-        <Card className="bg-yellow-50 border-yellow-200">
-          <CardContent className="p-4">
-            <h4 className="font-medium text-yellow-800 mb-2">Debug: Device Types Found</h4>
-            <div className="text-sm text-yellow-700">
-              <p>Unique device types in your data:</p>
-              <ul className="mt-1 space-y-1">
-                {Array.from(new Set(uploadedDevices.map(d => d.deviceType || 'No device type'))).map((type, index) => (
-                  <li key={index} className="font-mono">
-                    "{type}" ({uploadedDevices.filter(d => (d.deviceType || 'No device type') === type).length} devices)
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </CardContent>
-        </Card>
-      )}
 
       {/* Device Summary */}
       {uploadedDevices.length > 0 && (
