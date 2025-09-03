@@ -1146,7 +1146,7 @@ function RecommendationDetails({ recommendation, onDeviceListClick }: Recommenda
                                               device.type === 'Minor Issues (Fixes & Upgrades)' ? 'upgrade' :
                                              device.type === 'Laptops' ? 'laptops' :
                                              device.type === 'Desktops' ? 'desktops' :
-                                             device.type === 'Poor Battery Health' || device.type === 'Fair Battery Health' || device.type === 'Unknown Battery Status' ? 'battery' :
+                                             device.type === 'Poor Battery Health' || device.type === 'Fair Battery Health' || device.type === 'Unknown Battery Status' || device.type === 'Devices with Battery Issues' ? 'battery' :
                                              device.type === 'Warranty Expiring (3-6 months)' || device.type === 'End-of-Life Approaching' || device.type === 'Warranty & End-of-Life Issues' ? 'warranty' :
                                              'upgrade'
                                onDeviceListClick(filterType, `${device.type} - ${device.count} devices`)
