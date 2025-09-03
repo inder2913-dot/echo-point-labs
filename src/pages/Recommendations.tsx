@@ -283,53 +283,69 @@ export default function Recommendations() {
       ? Math.round(devices.reduce((sum, d) => sum + (d.score || 0), 0) / totalDevices)
       : 0
 
-    // Count actual Windows 10 devices
-    const windows10Devices = devices.filter(d => 
-      d.deviceos?.includes('Windows 10')
-    ).length
+    // Count Windows 10 devices more accurately
+    const windows10Devices = devices.filter(d => {
+      const os = (d.deviceos || d.device?.os || '').toLowerCase()
+      return os.includes('windows 10') && !os.includes('windows 11')
+    }).length
     
     console.log('Windows 10 device count in analysis:', windows10Devices)
     console.log('Total devices in analysis:', totalDevices)
 
-    // Count actual devices needing security patches (Windows 10 + devices with security issues)
-    const unpatchedDevices = devices.filter(d => 
-      d.deviceos?.includes('Windows 10') && (
-        d.status === 'needs-upgrade' || 
-        d.status === 'minor-issues' ||
-        d.issues?.some((issue: string) => 
-          issue.includes('Security') || 
-          issue.includes('Patch') || 
-          issue.includes('Outdated')
-        )
-      )
-    ).length
+    // Count devices that actually need security patches (only flag real security issues)
+    const unpatchedDevices = devices.filter(d => {
+      const hasSecurityIssue = d.issues?.some((issue: string) => 
+        issue.toLowerCase().includes('security') || 
+        issue.toLowerCase().includes('patch') || 
+        issue.toLowerCase().includes('vulnerability')
+      ) || false
+      
+      const isOutdatedWindows = (d.deviceos || '').toLowerCase().includes('windows 10')
+      
+      return hasSecurityIssue || (isOutdatedWindows && d.status === 'needs-upgrade')
+    }).length
 
-    // Total security risks = all Windows 10 devices + other devices with security issues
-    const securityRisks = devices.filter(d => 
-      d.deviceos?.includes('Windows 10') || 
-      d.issues?.some((issue: string) => 
-        issue.includes('Security') || 
-        issue.includes('Patch') || 
-        issue.includes('Outdated')
-      )
-    ).length
+    // More accurate security risk calculation
+    const securityRisks = devices.filter(d => {
+      const hasSecurityIssue = d.issues?.some((issue: string) => 
+        issue.toLowerCase().includes('security') || 
+        issue.toLowerCase().includes('vulnerability') ||
+        issue.toLowerCase().includes('patch')
+      ) || false
+      
+      const isOutdatedOS = (d.deviceos || '').toLowerCase().includes('windows 10')
+      
+      return hasSecurityIssue || isOutdatedOS
+    }).length
 
-    // Estimate cost optimization opportunities
-    const deviceTypes = new Set(devices.map(d => d.devicetype))
-    const costOptimization = deviceTypes.size > 3 ? Math.floor(totalDevices * 0.3) : 0
-
-    // Calculate devices needing battery replacement
-    const batteryIssues = devices.filter(d => 
-      d.device?.batteryhealth === 'Poor' || 
-      d.device?.batteryhealth === 'Fair' ||
-      d.devicetype === 'Laptop' && !d.device?.batteryhealth
+    // Better cost optimization estimation based on actual over-provisioning
+    const overProvisionedDevices = devices.filter(d => 
+      d.status === 'over-provisioned' || 
+      d.issues?.some((issue: string) => issue.includes('significantly over'))
     ).length
+    const costOptimization = overProvisionedDevices
 
-    // Calculate devices with warranty expiring (simulated)
-    const warrantyExpiring = devices.filter(d => 
-      d.device?.warrantystatus === 'Expiring' ||
-      (d.device?.warrantystatus === 'Active' && Math.random() < 0.15) // Simulate 15% approaching EOL
-    ).length
+    // More accurate battery issues calculation
+    const batteryIssues = devices.filter(d => {
+      const hasBatteryIssue = d.issues?.some((issue: string) => 
+        issue.toLowerCase().includes('battery')
+      ) || false
+      
+      const poorBattery = d.device?.batteryhealth === 'Poor' || d.device?.batteryhealth === 'Fair'
+      
+      return hasBatteryIssue || poorBattery
+    }).length
+
+    // More realistic warranty calculation
+    const warrantyExpiring = devices.filter(d => {
+      const hasWarrantyIssue = d.issues?.some((issue: string) => 
+        issue.toLowerCase().includes('warranty')
+      ) || false
+      
+      const expiringWarranty = d.device?.warrantystatus === 'Expiring' || d.device?.warrantystatus === 'Expired'
+      
+      return hasWarrantyIssue || expiringWarranty
+    }).length
 
     return {
       totalDevices,

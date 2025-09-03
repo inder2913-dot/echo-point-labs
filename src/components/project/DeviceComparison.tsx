@@ -179,12 +179,33 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
           score -= 10
         }
         
-        // Device type match
+        // Device type match - improved logic to avoid confusing graphics with device type
         const profileDeviceType = userProfile.baseline.deviceType.toLowerCase()
-        const actualDeviceType = (userDevice.deviceType || userDevice.device_type || 'unknown').toLowerCase()
-        if (profileDeviceType !== 'desktop or laptop' && !profileDeviceType.includes(actualDeviceType)) {
+        // Get actual device type from multiple possible fields, excluding graphics-related terms
+        let actualDeviceType = (
+          userDevice.devicetype || 
+          userDevice.device_type || 
+          userDevice.type || 
+          'unknown'
+        ).toLowerCase()
+        
+        // Don't treat graphics terms as device types
+        const graphicsTerms = ['onboard', 'integrated', 'dedicated', 'nvidia', 'amd', 'intel hd', 'radeon']
+        if (graphicsTerms.some(term => actualDeviceType.includes(term))) {
+          // Try to get device type from other sources
+          actualDeviceType = (
+            userDevice.devicemake?.toLowerCase().includes('apple') && userDevice.devicemodel?.toLowerCase().includes('ipad') ? 'tablet' :
+            userDevice.devicemodel?.toLowerCase().includes('laptop') ? 'laptop' :
+            userDevice.devicemodel?.toLowerCase().includes('desktop') ? 'desktop' :
+            'unknown'
+          )
+        }
+        
+        // Only flag as mismatch if we have a specific requirement and actual type doesn't match
+        const isFlexibleRequirement = profileDeviceType.includes('or') || profileDeviceType === 'any'
+        if (!isFlexibleRequirement && actualDeviceType !== 'unknown' && !profileDeviceType.includes(actualDeviceType)) {
           issues.push(`Device type mismatch (has ${actualDeviceType}, needs ${userProfile.baseline.deviceType})`)
-          score -= 25
+          score -= 15 // Reduced penalty since this might not be critical
         }
         
         // Storage comparison
