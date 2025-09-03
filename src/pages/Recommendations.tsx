@@ -402,11 +402,7 @@ export default function Recommendations() {
         category: 'hardware',
         estimatedCost: `$${((Math.floor(analysis.upgradeNeeded * 0.3) * 1500) + (Math.floor(analysis.upgradeNeeded * 0.7) * 250)).toLocaleString()}`,
         timeframe: '2-3 months',
-        affectedDevices: (() => {
-          const laptopsNeedingUpgrade = devices.filter(d => d.devicetype === 'Laptop' && d.status === 'needs-upgrade').length;
-          const desktopsNeedingUpgrade = devices.filter(d => d.devicetype === 'Desktop' && d.status === 'needs-upgrade').length;
-          return laptopsNeedingUpgrade + desktopsNeedingUpgrade;
-        })(),
+        affectedDevices: analysis.upgradeNeeded,
         implementationSteps: [
           'Audit devices with RAM below baseline requirements',
           'Prioritize upgrades for power users and engineers',
