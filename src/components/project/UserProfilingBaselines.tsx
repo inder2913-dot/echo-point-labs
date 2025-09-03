@@ -105,22 +105,50 @@ export function UserProfilingBaselines({ onComplete, initialData }: UserProfilin
   // Auto-assign users to profiles based on their department/role
   const autoAssignUsers = () => {
     const employees = initialData.employeeData || []
+    console.log('Auto-assigning users:', employees) // Debug log
+    
     const assignments = employees.map((employee: any) => {
       let assignedProfile = "office-user" // default
       
-      // Simple rule-based assignment based on department/role
-      const dept = employee.department?.toLowerCase() || ""
-      const role = employee.role?.toLowerCase() || ""
+      // Get department and role, handling various data structures
+      const dept = (employee.department || employee.dept || employee.Department || "").toLowerCase()
+      const role = (employee.role || employee.title || employee.job_title || employee.position || employee.Role || employee.Title || "").toLowerCase()
       
-      if (dept.includes("engineering") || dept.includes("development") || role.includes("developer")) {
+      console.log(`Employee: ${employee.name}, Dept: "${dept}", Role: "${role}"`) // Debug log
+      
+      // More comprehensive rule-based assignment
+      if (
+        // Engineering/Development
+        dept.includes("engineering") || dept.includes("development") || dept.includes("tech") || dept.includes("it") ||
+        role.includes("developer") || role.includes("engineer") || role.includes("architect") || 
+        role.includes("programmer") || role.includes("software") || role.includes("technical")
+      ) {
         assignedProfile = "power-user"
-      } else if (dept.includes("sales") || dept.includes("marketing") || role.includes("sales")) {
+      } else if (
+        // Sales/Marketing/Field workers
+        dept.includes("sales") || dept.includes("marketing") || dept.includes("business") ||
+        role.includes("sales") || role.includes("marketing") || role.includes("consultant") ||
+        role.includes("representative") || role.includes("account") || role.includes("business")
+      ) {
         assignedProfile = "mobile-user"
-      } else if (role.includes("manager") || role.includes("analyst")) {
-        assignedProfile = "office-user"
-      } else if (role.includes("support") || role.includes("service")) {
+      } else if (
+        // Support/Operations/Administrative
+        dept.includes("support") || dept.includes("operations") || dept.includes("admin") ||
+        dept.includes("hr") || dept.includes("finance") || dept.includes("customer") ||
+        role.includes("support") || role.includes("service") || role.includes("clerk") ||
+        role.includes("assistant") || role.includes("coordinator") || role.includes("admin")
+      ) {
         assignedProfile = "task-worker"
+      } else if (
+        // Management/Analysis stays office worker
+        role.includes("manager") || role.includes("director") || role.includes("analyst") ||
+        role.includes("lead") || role.includes("supervisor") || role.includes("officer")
+      ) {
+        assignedProfile = "office-user"
       }
+      // If none match, keep default "office-user"
+      
+      console.log(`Assigned ${employee.name} to ${assignedProfile}`) // Debug log
       
       return {
         ...employee,
@@ -129,6 +157,7 @@ export function UserProfilingBaselines({ onComplete, initialData }: UserProfilin
       }
     })
     
+    console.log('Final assignments:', assignments) // Debug log
     setUserAssignments(assignments)
   }
 
