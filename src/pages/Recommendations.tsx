@@ -20,6 +20,7 @@ import { toast } from "sonner"
 interface DeviceItem {
   id: string
   employee: string
+  deviceSerial: string
   department: string
   deviceType: string
   model: string
@@ -264,6 +265,7 @@ export default function Recommendations() {
         const deviceItems = deviceComparison.map((device: any, index: number) => ({
           id: device.id || `device-${index}`,
           employee: device.name || `Employee ${index + 1}`,
+          deviceSerial: device.deviceserial || device.device?.deviceserial || `DEV-${index + 1}`,
           department: device.department || 'Unknown',
           deviceType: device.devicetype || 'Unknown',
           model: device.device?.model || device.model || 'Unknown Model',
@@ -774,7 +776,7 @@ export default function Recommendations() {
               <Table>
                 <TableHeader className="sticky top-0 bg-background">
                   <TableRow>
-                    <TableHead>Employee</TableHead>
+                    <TableHead>Device Serial</TableHead>
                     <TableHead>Department</TableHead>
                     <TableHead>Device Type</TableHead>
                     <TableHead>Model</TableHead>
@@ -787,7 +789,7 @@ export default function Recommendations() {
                 <TableBody>
                   {filteredDevices.map((device) => (
                   <TableRow key={device.id}>
-                    <TableCell className="font-medium">{device.employee}</TableCell>
+                    <TableCell className="font-medium">{device.deviceSerial}</TableCell>
                     <TableCell>{device.department}</TableCell>
                     <TableCell>{device.deviceType}</TableCell>
                     <TableCell>{device.model}</TableCell>
