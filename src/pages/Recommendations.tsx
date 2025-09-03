@@ -159,11 +159,11 @@ export default function Recommendations() {
         // Convert devices to DeviceItem format
         const deviceItems = deviceComparison.map((device: any, index: number) => ({
           id: device.id || `device-${index}`,
-          employee: device.employee || `Employee ${index + 1}`,
+          employee: device.name || `Employee ${index + 1}`,
           department: device.department || 'Unknown',
           deviceType: device.devicetype || 'Unknown',
-          model: device.model || 'Unknown Model',
-          os: device.deviceos || 'Unknown OS',
+          model: device.device?.model || device.model || 'Unknown Model',
+          os: device.deviceos || device.device?.os || 'Unknown OS',
           issues: device.issues || [],
           status: device.status || 'unknown',
           score: device.score || 0
@@ -442,7 +442,7 @@ export default function Recommendations() {
           </DialogHeader>
           <div className="space-y-4">
             <p className="text-sm text-muted-foreground">
-              Showing {filteredDevices.length} devices
+              Showing {filteredDevices.length} of {filteredDevices.length} devices
             </p>
             <Table>
               <TableHeader>
@@ -466,7 +466,11 @@ export default function Recommendations() {
                     <TableCell>{device.model}</TableCell>
                     <TableCell>{device.os}</TableCell>
                     <TableCell>
-                      <Badge variant={device.status === 'compliant' ? 'default' : 'destructive'}>
+                      <Badge variant={
+                        device.status === 'compliant' ? 'default' : 
+                        device.status === 'needs-upgrade' ? 'destructive' : 
+                        device.status === 'minor-issues' ? 'secondary' : 'outline'
+                      }>
                         {device.status}
                       </Badge>
                     </TableCell>
