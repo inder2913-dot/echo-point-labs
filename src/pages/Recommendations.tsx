@@ -7,6 +7,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { 
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 
@@ -209,11 +216,12 @@ export default function Recommendations() {
 
   const loadRecommendations = async () => {
     try {
-      // Get the most recent device comparison data
+      // Get device comparison data for the selected project
       const { data: projectData, error } = await supabase
         .from('project_data')
         .select('*')
         .eq('step_name', 'deviceComparison')
+        .eq('project_id', selectedProject)
         .order('created_at', { ascending: false })
         .limit(1)
 
@@ -542,11 +550,29 @@ export default function Recommendations() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center gap-2">
-        <Lightbulb className="w-8 h-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Recommendations</h1>
-          <p className="text-muted-foreground">AI-powered insights to optimize your hardware infrastructure</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Lightbulb className="w-8 h-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Recommendations</h1>
+            <p className="text-muted-foreground">AI-powered insights to optimize your hardware infrastructure</p>
+          </div>
+        </div>
+        
+        {/* Project Selector */}
+        <div className="w-64">
+          <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select Project" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border shadow-lg z-50">
+              {projects.map(project => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
