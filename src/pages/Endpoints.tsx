@@ -105,7 +105,12 @@ export default function Endpoints() {
 
       if (projectData && projectData.length > 0) {
         const data = projectData[0].data as any
-        const deviceComparison = data?.deviceComparison || []
+        console.log('Raw project data:', projectData[0])
+        console.log('Data field:', data)
+        
+        // The data field IS the array of devices, not nested under deviceComparison
+        const deviceComparison = Array.isArray(data) ? data : []
+        console.log('Device comparison array:', deviceComparison)
         
         const transformedDevices: Device[] = deviceComparison.map((item: any, index: number) => ({
           id: item.id?.toString() || index.toString(),
@@ -125,8 +130,11 @@ export default function Endpoints() {
           device: item.device
         }))
 
+        console.log('Transformed devices:', transformedDevices)
         setDevices(transformedDevices)
         setFilteredDevices(transformedDevices)
+      } else {
+        console.log('No project data found')
       }
     } catch (error) {
       console.error('Error loading endpoints data:', error)
