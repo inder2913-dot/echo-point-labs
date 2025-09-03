@@ -969,11 +969,13 @@ function RecommendationDetails({ recommendation, onDeviceListClick }: Recommenda
                            size="sm"
                            onClick={() => {
                              if (onDeviceListClick) {
-                             const filterType = device.type === 'Windows 10 Devices' ? 'windows10' : 
-                                            device.type === 'Unpatched Systems' ? 'unpatched' :
-                                            device.type === 'Poor Battery Health' || device.type === 'Fair Battery Health' || device.type === 'Unknown Battery Status' ? 'battery' :
-                                            device.type === 'Warranty Expiring (3-6 months)' || device.type === 'End-of-Life Approaching' ? 'warranty' :
-                                            'security'
+                              const filterType = device.type === 'Windows 10 Devices' ? 'windows10' : 
+                                             device.type === 'Unpatched Systems' ? 'unpatched' :
+                                             device.type === 'Laptops' ? 'laptops' :
+                                             device.type === 'Desktops' ? 'desktops' :
+                                             device.type === 'Poor Battery Health' || device.type === 'Fair Battery Health' || device.type === 'Unknown Battery Status' ? 'battery' :
+                                             device.type === 'Warranty Expiring (3-6 months)' || device.type === 'End-of-Life Approaching' ? 'warranty' :
+                                             'security'
                                onDeviceListClick(filterType, `${device.type} - ${device.count} devices`)
                              }
                            }}
