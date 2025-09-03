@@ -62,7 +62,6 @@ export function AppSidebar() {
             {!collapsed && (
               <div>
                 <h2 className="font-semibold text-foreground">EcoPoint</h2>
-                <p className="text-xs text-muted-foreground">Workplace Analytics</p>
               </div>
             )}
           </div>
