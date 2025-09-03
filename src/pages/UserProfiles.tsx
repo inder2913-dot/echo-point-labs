@@ -4,6 +4,7 @@ import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Search, Users, Building2, Plus, Filter, Monitor, Cpu, HardDrive, Trash2, Edit } from 'lucide-react';
 import { CreateCustomProfile } from '@/components/profile/CreateCustomProfile';
 import { supabase } from '@/integrations/supabase/client';
@@ -147,6 +148,8 @@ export default function UserProfiles() {
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
   const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
+  const [editingProfile, setEditingProfile] = useState<any>(null);
   const [customProfiles, setCustomProfiles] = useState<any[]>([]);
   const { toast } = useToast();
 
@@ -359,16 +362,27 @@ export default function UserProfiles() {
                           <h4 className="font-semibold">{profile.role}</h4>
                           <p className="text-sm text-muted-foreground">{profile.department}</p>
                         </div>
-                        <div className="flex gap-1">
-                          <Button
-                            variant="ghost"
-                            size="sm"
-                            onClick={() => deleteCustomProfile(profile.id)}
-                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
-                          >
-                            <Trash2 className="h-3 w-3" />
-                          </Button>
-                        </div>
+                         <div className="flex gap-1">
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => {
+                               setEditingProfile(profile);
+                               setShowEditDialog(true);
+                             }}
+                             className="h-8 w-8 p-0 text-primary hover:text-primary"
+                           >
+                             <Edit className="h-3 w-3" />
+                           </Button>
+                           <Button
+                             variant="ghost"
+                             size="sm"
+                             onClick={() => deleteCustomProfile(profile.id)}
+                             className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                           >
+                             <Trash2 className="h-3 w-3" />
+                           </Button>
+                         </div>
                       </div>
                       
                       <Badge className={LEVEL_COLORS[profile.level as keyof typeof LEVEL_COLORS]}>
@@ -502,11 +516,190 @@ export default function UserProfiles() {
         </Card>
       )}
 
+      {/* Edit Profile Dialog */}
+      <Dialog open={showEditDialog} onOpenChange={setShowEditDialog}>
+        <DialogContent className="max-w-md">
+          <DialogHeader>
+            <DialogTitle>Edit Custom Profile</DialogTitle>
+          </DialogHeader>
+          {editingProfile && (
+            <EditProfileForm
+              profile={editingProfile}
+              onProfileUpdated={() => {
+                fetchCustomProfiles();
+                setShowEditDialog(false);
+                setEditingProfile(null);
+              }}
+              onCancel={() => {
+                setShowEditDialog(false);
+                setEditingProfile(null);
+              }}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
       <CreateCustomProfile
         open={showCreateDialog}
         onOpenChange={setShowCreateDialog}
         onProfileCreated={fetchCustomProfiles}
       />
     </div>
+  );
+}
+
+// Edit Profile Form Component
+function EditProfileForm({ profile, onProfileUpdated, onCancel }: {
+  profile: any;
+  onProfileUpdated: () => void;
+  onCancel: () => void;
+}) {
+  const [formData, setFormData] = useState({
+    role: profile.role || '',
+    department: profile.department || '',
+    level: profile.level || '',
+    description: profile.description || '',
+    baseline_id: profile.baseline_id || ''
+  });
+  const [baselines, setBaselines] = useState<any[]>([]);
+  const [loading, setLoading] = useState(false);
+  const { toast } = useToast();
+
+  // Fetch available baselines
+  useEffect(() => {
+    const fetchBaselines = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+
+        const { data, error } = await supabase
+          .from('user_profiles')
+          .select('id, role, hardware_cpu, hardware_ram, hardware_storage, hardware_graphics, hardware_graphics_capacity, department, level, is_custom')
+          .or(`is_custom.eq.false,and(is_custom.eq.true,baseline_id.is.null,user_id.eq.${user?.id || 'null'})`)
+          .order('role', { ascending: true });
+
+        if (error) throw error;
+        setBaselines(data || []);
+      } catch (error) {
+        console.error('Error fetching baselines:', error);
+        toast({
+          title: "Error",
+          description: "Failed to load baselines",
+          variant: "destructive"
+        });
+      }
+    };
+
+    fetchBaselines();
+  }, []);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .update({
+          role: formData.role,
+          department: formData.department,
+          level: formData.level,
+          description: formData.description || null,
+          baseline_id: formData.baseline_id || null
+        })
+        .eq('id', profile.id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile Updated",
+        description: "Your custom profile has been updated successfully."
+      });
+
+      onProfileUpdated();
+    } catch (error) {
+      console.error('Error updating profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to update profile. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return (
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Role Name</label>
+        <Input
+          value={formData.role}
+          onChange={(e) => setFormData(prev => ({ ...prev, role: e.target.value }))}
+          placeholder="e.g., Senior Developer"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Department</label>
+        <Input
+          value={formData.department}
+          onChange={(e) => setFormData(prev => ({ ...prev, department: e.target.value }))}
+          placeholder="e.g., Engineering"
+          required
+        />
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Level</label>
+        <Select value={formData.level} onValueChange={(value) => setFormData(prev => ({ ...prev, level: value }))}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select level" />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="Staff">Staff</SelectItem>
+            <SelectItem value="Support">Support</SelectItem>
+            <SelectItem value="Technical">Technical</SelectItem>
+            <SelectItem value="Professional">Professional</SelectItem>
+            <SelectItem value="Management">Management</SelectItem>
+            <SelectItem value="Executive">Executive</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Choose a hardware baseline</label>
+        <Select value={formData.baseline_id} onValueChange={(value) => setFormData(prev => ({ ...prev, baseline_id: value }))}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select baseline" />
+          </SelectTrigger>
+          <SelectContent>
+            {baselines.map((baseline) => (
+              <SelectItem key={baseline.id} value={baseline.id}>
+                {baseline.role} ({baseline.hardware_cpu}, {baseline.hardware_ram})
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <label className="text-sm font-medium">Description (Optional)</label>
+        <Input
+          value={formData.description}
+          onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+          placeholder="Brief description"
+        />
+      </div>
+
+      <div className="flex justify-end space-x-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button type="submit" disabled={loading}>
+          {loading ? 'Updating...' : 'Update Profile'}
+        </Button>
+      </div>
+    </form>
   );
 }

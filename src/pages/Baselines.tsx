@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Settings, Edit, Check, Plus, Filter } from "lucide-react"
+import { Settings, Edit, Check, Plus, Filter, Trash2 } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -558,6 +558,23 @@ export default function Baselines() {
     }
   }
 
+  const deleteBaseline = async (baselineId: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('id', baselineId);
+
+      if (error) throw error;
+      
+      toast.success('Custom baseline deleted successfully');
+      loadUserProfiles(); // Reload the profiles
+    } catch (error) {
+      console.error('Error deleting baseline:', error);
+      toast.error('Failed to delete baseline');
+    }
+  };
+
   if (loading) {
     return (
       <div className="container mx-auto p-6">
@@ -735,30 +752,40 @@ export default function Baselines() {
                       </Badge>
                       <Badge variant="secondary">Custom</Badge>
                     </div>
-                    <Dialog open={isDialogOpen && editingProfile?.name === profile.name} onOpenChange={setIsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => setEditingProfile(profile)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Edit Baseline: {profile.name}</DialogTitle>
-                        </DialogHeader>
-                        <BaselineEditor 
-                          profile={profile} 
-                          onSave={updateProfile}
-                          onCancel={() => {
-                            setEditingProfile(null)
-                            setIsDialogOpen(false)
-                          }}
-                        />
-                      </DialogContent>
-                    </Dialog>
+                    <div className="flex gap-1">
+                      <Dialog open={isDialogOpen && editingProfile?.name === profile.name} onOpenChange={setIsDialogOpen}>
+                        <DialogTrigger asChild>
+                          <Button 
+                            variant="ghost" 
+                            size="sm"
+                            onClick={() => setEditingProfile(profile)}
+                          >
+                            <Edit className="w-4 h-4" />
+                          </Button>
+                        </DialogTrigger>
+                        <DialogContent className="max-w-md">
+                          <DialogHeader>
+                            <DialogTitle>Edit Baseline: {profile.name}</DialogTitle>
+                          </DialogHeader>
+                          <BaselineEditor 
+                            profile={profile} 
+                            onSave={updateProfile}
+                            onCancel={() => {
+                              setEditingProfile(null)
+                              setIsDialogOpen(false)
+                            }}
+                          />
+                        </DialogContent>
+                      </Dialog>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => deleteBaseline(profile.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="w-4 h-4" />
+                      </Button>
+                    </div>
                   </div>
                   <CardTitle className="text-lg">{profile.name}</CardTitle>
                 </CardHeader>
