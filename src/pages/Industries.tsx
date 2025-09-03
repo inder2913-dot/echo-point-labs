@@ -92,9 +92,24 @@ export default function Industries() {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) return;
 
-      // For now, we'll simulate custom industries as we don't have the table yet
-      // In a real implementation, you'd fetch from a custom_industries table
-      setCustomIndustries([]);
+      // Fetch custom industries with profile count
+      const { data, error } = await supabase
+        .from('custom_industries')
+        .select(`
+          *,
+          profiles:custom_industry_profiles(count)
+        `)
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      
+      const industriesWithCount = (data || []).map(industry => ({
+        ...industry,
+        profiles_count: industry.profiles?.[0]?.count || 0
+      }));
+      
+      setCustomIndustries(industriesWithCount);
     } catch (error) {
       console.error('Error fetching custom industries:', error);
     } finally {
@@ -108,7 +123,13 @@ export default function Industries() {
 
   const deleteCustomIndustry = async (id: string) => {
     try {
-      // Implementation would delete from database
+      const { error } = await supabase
+        .from('custom_industries')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
       toast({
         title: "Industry Deleted",
         description: "The custom industry has been deleted successfully."
@@ -340,8 +361,44 @@ function CreateCustomIndustryDialog({
     setLoading(true);
 
     try {
-      // Implementation would create custom industry in database
-      // and potentially copy profiles from starter template
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) throw new Error('User not authenticated');
+
+      // Create the custom industry
+      const { data: industry, error: industryError } = await supabase
+        .from('custom_industries')
+        .insert({
+          user_id: user.id,
+          name: formData.name,
+          description: formData.description,
+          starter_template: formData.starterTemplate || null
+        })
+        .select()
+        .single();
+
+      if (industryError) throw industryError;
+
+      // If a starter template was selected, copy its profiles
+      if (formData.starterTemplate && INDUSTRY_TEMPLATES[formData.starterTemplate as keyof typeof INDUSTRY_TEMPLATES]) {
+        const template = INDUSTRY_TEMPLATES[formData.starterTemplate as keyof typeof INDUSTRY_TEMPLATES];
+        const profilesToInsert = template.profiles.map(profile => ({
+          custom_industry_id: industry.id,
+          role: profile.role,
+          department: profile.department,
+          level: profile.level,
+          hardware_cpu: profile.hardware.cpu,
+          hardware_ram: profile.hardware.ram,
+          hardware_storage: profile.hardware.storage,
+          hardware_graphics: profile.hardware.graphics,
+          hardware_graphics_capacity: profile.hardware.graphics === 'Dedicated' ? '8GB' : null
+        }));
+
+        const { error: profilesError } = await supabase
+          .from('custom_industry_profiles')
+          .insert(profilesToInsert);
+
+        if (profilesError) throw profilesError;
+      }
       
       toast({
         title: "Industry Created",
@@ -448,7 +505,15 @@ function EditIndustryForm({
     setLoading(true);
 
     try {
-      // Implementation would update industry in database
+      const { error } = await supabase
+        .from('custom_industries')
+        .update({
+          name: formData.name,
+          description: formData.description
+        })
+        .eq('id', industry.id);
+
+      if (error) throw error;
       
       toast({
         title: "Industry Updated",
