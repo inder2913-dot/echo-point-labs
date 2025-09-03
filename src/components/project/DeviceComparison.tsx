@@ -42,11 +42,12 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
         .order('created_at', { ascending: false })
         .limit(1)
 
-      let devices = []
+      let devices: any[] = []
       if (deviceInventoryData && deviceInventoryData.length > 0) {
-        devices = deviceInventoryData[0].data || []
+        const rawData = deviceInventoryData[0].data
+        devices = Array.isArray(rawData) ? rawData : []
         console.log('Loaded real device inventory:', devices.length, 'devices')
-        console.log('Sample devices with RAM:', devices.slice(0, 5).map(d => ({ 
+        console.log('Sample devices with RAM:', devices.slice(0, 5).map((d: any) => ({ 
           computername: d.computername, 
           ram: d.ram || d.ramcapacity, 
           deviceserial: d.deviceserial 
