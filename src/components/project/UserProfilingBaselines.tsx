@@ -243,6 +243,158 @@ const INDUSTRY_PROFILES = {
       color: "bg-purple-100 text-purple-800"
     }
   ],
+  technology: [
+    {
+      id: "senior-software-engineer",
+      name: "Senior Software Engineer",
+      description: "Experienced developers requiring high-performance development systems",
+      criteria: ["Senior Software Engineer", "Software Developer", "Full Stack Developer", "Backend Developer", "Frontend Developer"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "32GB",
+        minCpu: "Intel i7 / AMD Ryzen 7",
+        minStorage: "1TB SSD",
+        mobility: "Medium",
+        specialRequirements: "Multi-monitor support, high-speed SSD, powerful GPU for development"
+      },
+      color: "bg-blue-100 text-blue-800"
+    },
+    {
+      id: "devops-engineer",
+      name: "DevOps Engineer",
+      description: "Infrastructure and deployment specialists",
+      criteria: ["DevOps Engineer", "Site Reliability Engineer", "Cloud Engineer", "Infrastructure Engineer"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "32GB",
+        minCpu: "Intel i7 / AMD Ryzen 7",
+        minStorage: "1TB SSD",
+        mobility: "Medium",
+        specialRequirements: "Multiple environments, container support, cloud access"
+      },
+      color: "bg-purple-100 text-purple-800"
+    },
+    {
+      id: "product-owner",
+      name: "Product Owner",
+      description: "Product management and strategy roles",
+      criteria: ["Product Owner", "Product Manager", "Product Director", "Product Lead"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i7 / AMD Ryzen 7",
+        minStorage: "512GB SSD",
+        mobility: "High",
+        specialRequirements: "Presentation software, analytics tools, collaboration platforms"
+      },
+      color: "bg-green-100 text-green-800"
+    },
+    {
+      id: "ux-designer",
+      name: "UX Designer",
+      description: "User experience and interface designers",
+      criteria: ["UX Designer", "UI Designer", "Product Designer", "Visual Designer", "Graphic Designer"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "32GB",
+        minCpu: "Intel i7 / AMD Ryzen 7",
+        minStorage: "1TB SSD",
+        mobility: "Medium",
+        specialRequirements: "Dedicated GPU, color-accurate display, drawing tablet support"
+      },
+      color: "bg-pink-100 text-pink-800"
+    },
+    {
+      id: "qa-analyst",
+      name: "QA Analyst",
+      description: "Quality assurance and testing professionals",
+      criteria: ["QA Analyst", "Test Engineer", "QA Engineer", "Software Tester"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "Medium",
+        specialRequirements: "Testing environments, automation tools, multiple browser support"
+      },
+      color: "bg-yellow-100 text-yellow-800"
+    },
+    {
+      id: "network-engineer",
+      name: "Network Engineer",
+      description: "Network infrastructure and security specialists",
+      criteria: ["Network Engineer", "System Administrator", "Network Administrator", "Infrastructure Specialist"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "Medium",
+        specialRequirements: "Network diagnostic tools, VPN access, security software"
+      },
+      color: "bg-indigo-100 text-indigo-800"
+    },
+    {
+      id: "account-manager",
+      name: "Account Manager",
+      description: "Client relationship and sales management",
+      criteria: ["Account Manager", "Sales Manager", "Business Development", "Client Success Manager"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "8GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "256GB SSD",
+        mobility: "High",
+        specialRequirements: "CRM software, presentation tools, video conferencing"
+      },
+      color: "bg-orange-100 text-orange-800"
+    },
+    {
+      id: "digital-marketing-manager",
+      name: "Digital Marketing Manager",
+      description: "Digital marketing and growth specialists",
+      criteria: ["Digital Marketing Manager", "Marketing Manager", "Growth Manager", "Marketing Specialist"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "16GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "512GB SSD",
+        mobility: "Medium",
+        specialRequirements: "Analytics software, design tools, social media platforms"
+      },
+      color: "bg-teal-100 text-teal-800"
+    },
+    {
+      id: "technical-recruiter",
+      name: "Technical Recruiter",
+      description: "HR and talent acquisition specialists",
+      criteria: ["Technical Recruiter", "Talent Acquisition", "HR Manager", "People Operations"],
+      baseline: {
+        deviceType: "Laptop",
+        minRam: "8GB",
+        minCpu: "Intel i5 / AMD Ryzen 5",
+        minStorage: "256GB SSD",
+        mobility: "Medium",
+        specialRequirements: "HR software, video interviewing, applicant tracking systems"
+      },
+      color: "bg-cyan-100 text-cyan-800"
+    },
+    {
+      id: "office-assistant",
+      name: "Office Assistant",
+      description: "Administrative and support staff",
+      criteria: ["Office Assistant", "Administrative Assistant", "Office Manager", "Executive Assistant"],
+      baseline: {
+        deviceType: "Desktop",
+        minRam: "8GB",
+        minCpu: "Intel i3 / AMD Ryzen 3",
+        minStorage: "256GB SSD",
+        mobility: "Low",
+        specialRequirements: "Office productivity suite, scheduling software"
+      },
+      color: "bg-gray-100 text-gray-800"
+    }
+  ],
   // Default generic profiles for other industries
   default: [
     {
@@ -446,7 +598,92 @@ export function UserProfilingBaselines({ onComplete, initialData }: UserProfilin
         ) {
           assignedProfile = "supervisor"
         }
-      } else {
+      } else if (selectedIndustry === 'technology') {
+        // Senior Software Engineers and Developers
+        if (
+          role.includes("senior") && (role.includes("software") || role.includes("developer")) ||
+          role.includes("full stack") || role.includes("backend") || role.includes("frontend") ||
+          role.includes("lead developer") || role.includes("principal engineer") ||
+          dept.includes("engineering") || dept.includes("development")
+        ) {
+          assignedProfile = "senior-software-engineer"
+        }
+        // DevOps Engineers
+        else if (
+          role.includes("devops") || role.includes("site reliability") || role.includes("sre") ||
+          role.includes("cloud engineer") || role.includes("infrastructure") ||
+          dept.includes("devops") || dept.includes("infrastructure")
+        ) {
+          assignedProfile = "devops-engineer"
+        }
+        // Product Owners and Managers
+        else if (
+          role.includes("product owner") || role.includes("product manager") ||
+          role.includes("product director") || role.includes("product lead") ||
+          dept.includes("product") || dept.includes("product management")
+        ) {
+          assignedProfile = "product-owner"
+        }
+        // UX/UI Designers
+        else if (
+          role.includes("ux") || role.includes("ui") || role.includes("designer") ||
+          role.includes("visual designer") || role.includes("graphic designer") ||
+          dept.includes("design") || dept.includes("ux") || dept.includes("ui")
+        ) {
+          assignedProfile = "ux-designer"
+        }
+        // QA Analysts and Testers
+        else if (
+          role.includes("qa") || role.includes("quality") || role.includes("test") ||
+          role.includes("tester") || role.includes("quality assurance") ||
+          dept.includes("qa") || dept.includes("quality") || dept.includes("testing")
+        ) {
+          assignedProfile = "qa-analyst"
+        }
+        // Network Engineers and System Admins
+        else if (
+          role.includes("network") || role.includes("system admin") || role.includes("infrastructure") ||
+          role.includes("network admin") || role.includes("it support") ||
+          dept.includes("it") || dept.includes("network") || dept.includes("systems")
+        ) {
+          assignedProfile = "network-engineer"
+        }
+        // Account Managers and Sales
+        else if (
+          role.includes("account manager") || role.includes("sales") || role.includes("business development") ||
+          role.includes("client success") || role.includes("customer success") ||
+          dept.includes("sales") || dept.includes("business development")
+        ) {
+          assignedProfile = "account-manager"
+        }
+        // Digital Marketing Managers
+        else if (
+          role.includes("marketing") || role.includes("growth") || role.includes("digital marketing") ||
+          dept.includes("marketing") || dept.includes("growth")
+        ) {
+          assignedProfile = "digital-marketing-manager"
+        }
+        // Technical Recruiters and HR
+        else if (
+          role.includes("recruiter") || role.includes("talent acquisition") || role.includes("hr") ||
+          role.includes("people operations") || dept.includes("hr") || dept.includes("recruiting")
+        ) {
+          assignedProfile = "technical-recruiter"
+        }
+        // Office Assistants and Admin
+        else if (
+          role.includes("assistant") || role.includes("admin") || role.includes("office manager") ||
+          role.includes("executive assistant") || dept.includes("admin") || dept.includes("operations")
+        ) {
+          assignedProfile = "office-assistant"
+        }
+        // Default for any remaining tech roles
+        else if (
+          role.includes("engineer") || role.includes("developer") || role.includes("programmer") ||
+          role.includes("architect") || role.includes("technical")
+        ) {
+          assignedProfile = "senior-software-engineer"
+        }
         // Default generic assignment logic
         if (
           // Engineering/Development
