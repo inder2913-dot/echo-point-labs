@@ -30,43 +30,79 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
   const [filterStatus, setFilterStatus] = useState("all")
   const [isAnalyzing, setIsAnalyzing] = useState(false)
 
-  const analyzeDevices = () => {
+  const analyzeDevices = async () => {
     setIsAnalyzing(true)
     
-    // Simulate analysis
-    setTimeout(() => {
+    try {
+      // Get the real device data from database instead of mock data
+      const { data: deviceInventoryData, error: deviceError } = await supabase
+        .from('project_data')
+        .select('*')
+        .eq('step_name', 'deviceInventory')
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      let devices = []
+      if (deviceInventoryData && deviceInventoryData.length > 0) {
+        devices = deviceInventoryData[0].data || []
+        console.log('Loaded real device inventory:', devices.length, 'devices')
+        console.log('Sample devices with RAM:', devices.slice(0, 5).map(d => ({ 
+          computername: d.computername, 
+          ram: d.ram || d.ramcapacity, 
+          deviceserial: d.deviceserial 
+        })))
+      }
+
       const employees = initialData.userAssignments || []
-      const devices = initialData.deviceData || []
       const profiles = initialData.userProfiles || []
       
-      console.log('Device Analysis - Employees:', employees)
-      console.log('Device Analysis - Devices:', devices)
-      console.log('Device Analysis - Profiles:', profiles)
+      console.log('Device Analysis - Employees:', employees.length)
+      console.log('Device Analysis - Devices loaded:', devices.length)
+      console.log('Device Analysis - Profiles:', profiles.length)
       
       const results = employees.map(employee => {
         // Try multiple ways to match employee with device
         let userDevice = null
         
         console.log(`Trying to match employee: ${employee.name} (ID: ${employee.id})`)
-        console.log('Available devices:', devices.map(d => ({ 
-          deviceId: d.deviceId, 
-          userId: d.userId, 
-          userName: d.userName,
-          allFields: Object.keys(d)
-        })))
+        
+        // First try matching by computername containing employee first name
+        if (!userDevice && employee.name) {
+          const employeeFirstName = (employee.firstName || employee.name.split(' ')[0] || '').toLowerCase()
+          
+          userDevice = devices.find(d => {
+            const computerName = (d.computername || '').toLowerCase()
+            // Match patterns like "John-LTP", "Wei-PC", etc.
+            return computerName.includes(employeeFirstName) && employeeFirstName
+          })
+          
+          if (userDevice) {
+            console.log(`Matched ${employee.name} with device via computername: ${userDevice.computername}`)
+          }
+        }
+        
+        // Try matching by deviceserial from employee data
+        if (!userDevice && employee.deviceSerial) {
+          userDevice = devices.find(d => d.deviceserial === employee.deviceSerial)
+          if (userDevice) {
+            console.log(`Matched ${employee.name} with device via deviceserial: ${userDevice.deviceserial}`)
+          }
+        }
         
         // Try matching by various ID fields
-        userDevice = devices.find(d => {
-          const matches = [
-            d.userId === employee.id,
-            d.user_id === employee.id,
-            d.employeeId === employee.id,
-            d.employee_id === employee.id,
-            d.emp_id === employee.id,
-            d.id === employee.id
-          ]
-          return matches.some(match => match)
-        })
+        if (!userDevice) {
+          userDevice = devices.find(d => {
+            const matches = [
+              d.userId === employee.id,
+              d.user_id === employee.id,
+              d.employeeId === employee.id,
+              d.employee_id === employee.id,
+              d.emp_id === employee.id,
+              d.id === employee.id
+            ]
+            return matches.some(match => match)
+          })
+        }
         
         // If no direct ID match, try matching by name (more flexible)
         if (!userDevice && employee.name) {
@@ -88,12 +124,6 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
               deviceNameParts.some(devicePart => devicePart.includes(part) || part.includes(devicePart))
             )
           })
-        }
-        
-        // If still no match and we have devices, try to assign first available device (for testing)
-        if (!userDevice && devices.length > 0) {
-          console.log(`No match found for ${employee.name}, trying first available device`)
-          // Don't auto-assign, just log the issue
         }
         
         console.log(`Employee ${employee.name} matched with device:`, userDevice)
@@ -122,34 +152,35 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
           }
         }
         
-        // Compare device specs with baseline
+        // Compare device specs with baseline using real device data
         const issues = []
         let score = 100
         
-        // RAM comparison
-        const deviceRam = parseInt(userDevice.ram) || 0
+        // RAM comparison - use actual RAM values from device inventory
+        const deviceRam = parseInt(userDevice.ram || userDevice.ramcapacity) || 0
         const requiredRam = parseInt(userProfile.baseline.minRam) || 0
         if (deviceRam < requiredRam) {
-          issues.push(`RAM below baseline (${userDevice.ram} < ${userProfile.baseline.minRam})`)
+          issues.push(`RAM below baseline (${deviceRam}GB < ${userProfile.baseline.minRam})`)
           score -= 30
         } else if (deviceRam > requiredRam * 2) {
-          issues.push(`RAM significantly over baseline (${userDevice.ram} > ${userProfile.baseline.minRam})`)
+          issues.push(`RAM significantly over baseline (${deviceRam}GB > ${userProfile.baseline.minRam})`)
           score -= 10
-        }
-        
-        // Device age
-        const deviceAge = parseInt(userDevice.age?.split(' ')[0]) || 0
-        if (deviceAge > 4) {
-          issues.push(`Device is old (${userDevice.age})`)
-          score -= 20
         }
         
         // Device type match
         const profileDeviceType = userProfile.baseline.deviceType.toLowerCase()
-        const actualDeviceType = userDevice.deviceType.toLowerCase()
+        const actualDeviceType = (userDevice.deviceType || userDevice.device_type || 'unknown').toLowerCase()
         if (profileDeviceType !== 'desktop or laptop' && !profileDeviceType.includes(actualDeviceType)) {
-          issues.push(`Device type mismatch (has ${userDevice.deviceType}, needs ${userProfile.baseline.deviceType})`)
+          issues.push(`Device type mismatch (has ${actualDeviceType}, needs ${userProfile.baseline.deviceType})`)
           score -= 25
+        }
+        
+        // Storage comparison
+        const deviceStorage = parseInt(userDevice.storage || userDevice.diskcapacity) || 0
+        const requiredStorage = parseInt(userProfile.baseline.minStorage) || 0
+        if (deviceStorage < requiredStorage) {
+          issues.push(`Storage below baseline (${deviceStorage}GB < ${userProfile.baseline.minStorage})`)
+          score -= 20
         }
         
         // Determine status
@@ -170,7 +201,10 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
       
       setComparisonResults(results)
       setIsAnalyzing(false)
-    }, 2000)
+    } catch (error) {
+      console.error('Error analyzing devices:', error)
+      setIsAnalyzing(false)
+    }
   }
 
   useEffect(() => {
