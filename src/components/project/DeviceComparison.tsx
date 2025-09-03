@@ -47,25 +47,56 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
         // Try multiple ways to match employee with device
         let userDevice = null
         
-        // Try matching by various ID fields
-        userDevice = devices.find(d => 
-          d.userId === employee.id || 
-          d.user_id === employee.id ||
-          d.employeeId === employee.id ||
-          d.employee_id === employee.id
-        )
+        console.log(`Trying to match employee: ${employee.name} (ID: ${employee.id})`)
+        console.log('Available devices:', devices.map(d => ({ 
+          deviceId: d.deviceId, 
+          userId: d.userId, 
+          userName: d.userName,
+          allFields: Object.keys(d)
+        })))
         
-        // If no direct ID match, try matching by name
+        // Try matching by various ID fields
+        userDevice = devices.find(d => {
+          const matches = [
+            d.userId === employee.id,
+            d.user_id === employee.id,
+            d.employeeId === employee.id,
+            d.employee_id === employee.id,
+            d.emp_id === employee.id,
+            d.id === employee.id
+          ]
+          return matches.some(match => match)
+        })
+        
+        // If no direct ID match, try matching by name (more flexible)
         if (!userDevice && employee.name) {
-          userDevice = devices.find(d => 
-            d.userName === employee.name ||
-            d.user_name === employee.name ||
-            d.employeeName === employee.name ||
-            d.employee_name === employee.name
-          )
+          userDevice = devices.find(d => {
+            const deviceUserName = d.userName || d.user_name || d.employeeName || d.employee_name || d.name || ''
+            const employeeName = employee.name || ''
+            
+            // Try exact match first
+            if (deviceUserName.toLowerCase() === employeeName.toLowerCase()) {
+              return true
+            }
+            
+            // Try partial matches
+            const deviceNameParts = deviceUserName.toLowerCase().split(' ')
+            const employeeNameParts = employeeName.toLowerCase().split(' ')
+            
+            // Check if all parts of employee name are in device name
+            return employeeNameParts.every(part => 
+              deviceNameParts.some(devicePart => devicePart.includes(part) || part.includes(devicePart))
+            )
+          })
         }
         
-        console.log(`Employee ${employee.name} (ID: ${employee.id}) matched with device:`, userDevice)
+        // If still no match and we have devices, try to assign first available device (for testing)
+        if (!userDevice && devices.length > 0) {
+          console.log(`No match found for ${employee.name}, trying first available device`)
+          // Don't auto-assign, just log the issue
+        }
+        
+        console.log(`Employee ${employee.name} matched with device:`, userDevice)
         
         const userProfile = profiles.find(p => p.id === employee.profileId)
         
