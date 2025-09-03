@@ -67,19 +67,29 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
         let userDevice = null
         
         console.log(`Trying to match employee: ${employee.name} (ID: ${employee.id})`)
+        console.log('Available devices sample:', devices.slice(0, 3).map(d => ({ 
+          computername: d.computername, 
+          deviceserial: d.deviceserial,
+          devicemake: d.devicemake,
+          devicemodel: d.devicemodel
+        })))
         
         // First try matching by computername containing employee first name
         if (!userDevice && employee.name) {
           const employeeFirstName = (employee.firstName || employee.name.split(' ')[0] || '').toLowerCase()
+          console.log(`Looking for computername containing: "${employeeFirstName}"`)
           
           userDevice = devices.find(d => {
             const computerName = (d.computername || '').toLowerCase()
-            // Match patterns like "John-LTP", "Wei-PC", etc.
+            console.log(`Checking computername: "${computerName}" against "${employeeFirstName}"`)
+            // Match patterns like "John-LTP", "Wei-PC", "Rajesh-Tab", etc.
             return computerName.includes(employeeFirstName) && employeeFirstName
           })
           
           if (userDevice) {
-            console.log(`Matched ${employee.name} with device via computername: ${userDevice.computername}`)
+            console.log(`✓ Matched ${employee.name} with device via computername: ${userDevice.computername}`)
+          } else {
+            console.log(`✗ No computername match found for ${employee.name}`)
           }
         }
         
