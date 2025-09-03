@@ -279,7 +279,24 @@ export default function Recommendations() {
 
       if (projectData && projectData.length > 0) {
         const data = projectData[0].data as any
-        const deviceComparison = Array.isArray(data) ? data : []
+        console.log('=== RECOMMENDATIONS DEBUG ===')
+        console.log('Selected project:', selectedProject)
+        console.log('Raw project data:', projectData[0])
+        console.log('Data field:', data)
+        
+        // Apply same filtering logic as Endpoints - only users with actual profiles
+        let deviceComparison = []
+        if (Array.isArray(data)) {
+          // Filter to only include users who have actual profile objects (not null)
+          deviceComparison = data.filter((item: any) => {
+            const hasRealProfile = Boolean(item.profile && item.profile !== null)
+            return hasRealProfile
+          })
+          console.log('Total devices in raw data:', data.length)
+          console.log('Devices with actual profiles:', deviceComparison.length)
+        }
+        
+        console.log('Final device comparison for recommendations:', deviceComparison.length)
         
         console.log('Total devices loaded from database:', deviceComparison.length)
         console.log('Sample device data:', deviceComparison.slice(0, 3))
