@@ -137,13 +137,20 @@ export default function Endpoints() {
           location: item.location || 'Unknown',
           issues: item.issues || [],
           device: item.device,
-          cpu: item.device?.cputype || item.device?.cpu || 'Unknown',
-          ram: item.device?.ramcapacity || item.device?.ram || 'Unknown',
-          graphics: item.device?.graphicscard || item.device?.graphicstype || 'Unknown',
-          storage: item.device?.diskcapacity || item.device?.storage || 'Unknown'
+          cpu: item.device?.cputype || item.device?.cpu || item.device?.cpucapacity || item.cputype || 'Unknown',
+          ram: item.device?.ramcapacity || item.device?.ram || item.ramcapacity || 'Unknown',
+          graphics: item.device?.graphicscard || item.device?.graphicstype || item.device?.graphicscapacity || 'Unknown', 
+          storage: item.device?.diskcapacity || item.device?.storage || item.diskcapacity || 'Unknown'
         }))
 
         console.log('Transformed devices:', transformedDevices)
+        console.log('Sample hardware values:', transformedDevices.slice(0, 10).map(d => ({ 
+          name: d.name, 
+          cpu: d.cpu, 
+          ram: d.ram, 
+          graphics: d.graphics, 
+          storage: d.storage 
+        })))
         setDevices(transformedDevices)
         setFilteredDevices(transformedDevices)
       } else {
