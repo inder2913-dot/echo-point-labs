@@ -11,6 +11,7 @@ import { AppSidebar } from "@/components/layout/AppSidebar";
 import { TopBar } from "@/components/layout/TopBar";
 import Dashboard from "./pages/Dashboard";
 import Project from "./pages/Project";
+import ProjectDetails from "./pages/ProjectDetails";
 import Auth from "./pages/Auth";
 import NotFound from "./pages/NotFound";
 
@@ -75,6 +76,7 @@ const App = () => (
                       <Routes>
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/project" element={<Project />} />
+                        <Route path="/project/:id" element={<ProjectDetails />} />
                         <Route path="*" element={<NotFound />} />
                       </Routes>
                     </main>

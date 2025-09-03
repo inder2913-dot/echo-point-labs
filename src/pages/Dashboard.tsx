@@ -188,9 +188,11 @@ export default function Dashboard() {
                       </div>
                     </TableCell>
                     <TableCell>
-                      <Button variant="ghost" size="sm">
-                        <Eye className="w-4 h-4 mr-1" />
-                        View
+                      <Button variant="ghost" size="sm" asChild>
+                        <Link to={`/project/${project.id}`}>
+                          <Eye className="w-4 h-4 mr-1" />
+                          View
+                        </Link>
                       </Button>
                     </TableCell>
                   </TableRow>
