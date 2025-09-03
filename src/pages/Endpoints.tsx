@@ -182,29 +182,39 @@ export default function Endpoints() {
           // We need to identify which ones are real employee assignments vs fake ones
           console.log('Sample device objects from data:', data.slice(0, 3))
           
-          // Look for patterns that indicate real vs fake employee assignments
-          // Real employees should have more consistent/realistic data patterns
-          const realEmployeeNames = [
-            'Wei Liu', 'Sarah Johnson', 'Abdul Ali', 'Thomas Brown', 'Linda Lee',
-            'Samuel Ghosh', 'Olga Petrova', 'Mark Taylor', 'Ananya Dey', 'Carla Bianchi',
-            'Pablo Garcia', 'Harpreet Singh', 'Maria Rossi'
-          ];
+          // Get the actual employee count from this project's employee data
+          const { data: employeeData, error: empError } = await supabase
+            .from('project_data')
+            .select('*')
+            .eq('step_name', 'employeeData')
+            .eq('project_id', selectedProject)
+            .order('created_at', { ascending: false })
+            .limit(1)
+
+          let actualEmployeeCount = 0
+          if (!empError && employeeData && employeeData.length > 0) {
+            const empData = employeeData[0].data
+            actualEmployeeCount = Array.isArray(empData) ? empData.length : 0
+          }
           
-          deviceComparison = data.filter((item: any) => {
-            // Check if this is a real employee from the original 13
-            const isRealEmployee = realEmployeeNames.includes(item.name)
-            
-            if (data.indexOf(item) < 5) {
-              console.log(`Device ${data.indexOf(item)}:`, {
-                name: item.name,
-                department: item.department,
-                isRealEmployee,
-                status: item.status
-              })
-            }
-            
-            return isRealEmployee
-          })
+          console.log('Actual employee count for this project:', actualEmployeeCount)
+          console.log('Device comparison data length:', data.length)
+          
+          // If the device comparison length matches employee count, use all devices
+          // Otherwise, try to identify real vs fake employees
+          if (actualEmployeeCount > 0 && data.length <= actualEmployeeCount * 2) {
+            // Likely all real employees, use all data
+            deviceComparison = data
+          } else {
+            // Fallback: try to filter based on data quality/patterns
+            deviceComparison = data.filter((item: any) => {
+              // Real employees should have device assignments or meaningful status
+              const hasDeviceAssignment = item.device && (item.device.deviceType || item.device.computername)
+              const hasRealStatus = item.status && item.status !== 'unknown'
+              
+              return hasDeviceAssignment || hasRealStatus
+            })
+          }
         }
         
         console.log('Device comparison array after filtering:', deviceComparison)
