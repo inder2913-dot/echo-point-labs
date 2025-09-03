@@ -194,35 +194,29 @@ export default function Endpoints() {
         if (data.deviceComparison && Array.isArray(data.deviceComparison)) {
           deviceComparison = data.deviceComparison // This is the correct structure
         } else if (Array.isArray(data)) {
-          // Use the employee count we fetched earlier to determine filtering
+          // Filter to only include users who have actual profiles assigned
           console.log('Sample device objects from data:', data.slice(0, 3))
           console.log('Device comparison data length:', data.length)
-          console.log('Actual employee count:', actualEmployeeCount)
           
-          // If we have a reasonable employee count and data length is much larger, filter
-          if (actualEmployeeCount > 0 && data.length > actualEmployeeCount * 1.5) {
-            // Filter to only include devices with actual assignments
-            deviceComparison = data.filter((item: any) => {
-              const hasDeviceAssignment = Boolean(item.device && (item.device.deviceType || item.device.computername))
-              const hasRealStatus = Boolean(item.status && item.status !== 'unknown' && item.status !== 'no-device')
-              
-              if (data.indexOf(item) < 5) {
-                console.log(`Device ${data.indexOf(item)}:`, {
-                  name: item.name,
-                  hasDevice: !!item.device,
-                  status: item.status,
-                  hasDeviceAssignment,
-                  hasRealStatus,
-                  willInclude: hasDeviceAssignment || hasRealStatus
-                })
-              }
-              
-              return hasDeviceAssignment || hasRealStatus
-            })
-          } else {
-            // Use all data - likely all employees have assignments
-            deviceComparison = data
-          }
+          deviceComparison = data.filter((item: any) => {
+            // Only count users who have an actual profile assigned (not "no profile")
+            const hasValidProfile = Boolean(item.profile && item.profile.id && item.profile.name && item.profile.name !== 'no profile')
+            const hasValidProfileId = Boolean(item.profileId && item.profileId !== 'no-profile')
+            const isProfileAssigned = hasValidProfile || hasValidProfileId
+            
+            if (data.indexOf(item) < 10) {
+              console.log(`User ${data.indexOf(item)} - ${item.name}:`, {
+                profile: item.profile,
+                profileId: item.profileId,
+                hasValidProfile,
+                hasValidProfileId,
+                isProfileAssigned,
+                willInclude: isProfileAssigned
+              })
+            }
+            
+            return isProfileAssigned
+          })
         }
         
         console.log('Device comparison array after filtering:', deviceComparison)
