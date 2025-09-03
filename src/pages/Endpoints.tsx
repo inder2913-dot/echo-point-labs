@@ -138,9 +138,9 @@ export default function Endpoints() {
           issues: item.issues || [],
           device: item.device,
           cpu: item.device?.cputype || item.device?.cpu || 'Unknown',
-          ram: (item.device?.ramcapacity || item.device?.ram || 'Unknown').toString().replace('GB', ''),
+          ram: item.device?.ramcapacity || item.device?.ram || 'Unknown',
           graphics: item.device?.graphicscard || item.device?.graphicstype || 'Unknown',
-          storage: (item.device?.diskcapacity || item.device?.storage || 'Unknown').toString().replace('GB', '')
+          storage: item.device?.diskcapacity || item.device?.storage || 'Unknown'
         }))
 
         console.log('Transformed devices:', transformedDevices)
