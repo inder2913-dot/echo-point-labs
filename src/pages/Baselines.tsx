@@ -85,10 +85,10 @@ export default function Baselines() {
   const [loading, setLoading] = useState(true)
   
   // Filter states
-  const [departmentFilter, setDepartmentFilter] = useState<string>("")
-  const [levelFilter, setLevelFilter] = useState<string>("")
-  const [industryFilter, setIndustryFilter] = useState<string>("")
-  const [graphicsFilter, setGraphicsFilter] = useState<string>("")
+  const [departmentFilter, setDepartmentFilter] = useState<string>("all")
+  const [levelFilter, setLevelFilter] = useState<string>("all")
+  const [industryFilter, setIndustryFilter] = useState<string>("all")
+  const [graphicsFilter, setGraphicsFilter] = useState<string>("all")
 
   useEffect(() => {
     loadUserProfiles()
@@ -139,16 +139,16 @@ export default function Baselines() {
   useEffect(() => {
     let filtered = userProfiles
 
-    if (departmentFilter) {
+    if (departmentFilter && departmentFilter !== "all") {
       filtered = filtered.filter(profile => profile.department === departmentFilter)
     }
-    if (levelFilter) {
+    if (levelFilter && levelFilter !== "all") {
       filtered = filtered.filter(profile => profile.level === levelFilter)
     }
-    if (industryFilter) {
+    if (industryFilter && industryFilter !== "all") {
       filtered = filtered.filter(profile => profile.industry === industryFilter)
     }
-    if (graphicsFilter) {
+    if (graphicsFilter && graphicsFilter !== "all") {
       filtered = filtered.filter(profile => profile.baseline.graphics === graphicsFilter)
     }
 
@@ -162,10 +162,10 @@ export default function Baselines() {
   const graphicsOptions = [...new Set(userProfiles.map(p => p.baseline.graphics).filter(Boolean))]
 
   const clearFilters = () => {
-    setDepartmentFilter("")
-    setLevelFilter("")
-    setIndustryFilter("")
-    setGraphicsFilter("")
+    setDepartmentFilter("all")
+    setLevelFilter("all")
+    setIndustryFilter("all")
+    setGraphicsFilter("all")
   }
 
   const updateProfile = async (updatedProfile: any) => {
@@ -246,7 +246,7 @@ export default function Baselines() {
                 <SelectValue placeholder="All Departments" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="">All Departments</SelectItem>
+                <SelectItem value="all">All Departments</SelectItem>
                 {departments.map(dept => (
                   <SelectItem key={dept} value={dept}>{dept}</SelectItem>
                 ))}
@@ -261,7 +261,7 @@ export default function Baselines() {
                 <SelectValue placeholder="All Levels" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="">All Levels</SelectItem>
+                <SelectItem value="all">All Levels</SelectItem>
                 {levels.map(level => (
                   <SelectItem key={level} value={level}>{level}</SelectItem>
                 ))}
@@ -276,7 +276,7 @@ export default function Baselines() {
                 <SelectValue placeholder="All Industries" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="">All Industries</SelectItem>
+                <SelectItem value="all">All Industries</SelectItem>
                 {industries.map(industry => (
                   <SelectItem key={industry} value={industry}>{industry}</SelectItem>
                 ))}
@@ -291,7 +291,7 @@ export default function Baselines() {
                 <SelectValue placeholder="All Graphics" />
               </SelectTrigger>
               <SelectContent className="bg-background border shadow-lg z-50">
-                <SelectItem value="">All Graphics</SelectItem>
+                <SelectItem value="all">All Graphics</SelectItem>
                 {graphicsOptions.map(graphics => (
                   <SelectItem key={graphics} value={graphics}>{graphics}</SelectItem>
                 ))}
