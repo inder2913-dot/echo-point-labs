@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Building2, Users, Target } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -12,6 +12,8 @@ import {
   SelectValue,
 } from "@/components/ui/select"
 import { Textarea } from "@/components/ui/textarea"
+import { Badge } from "@/components/ui/badge"
+import { supabase } from "@/integrations/supabase/client"
 
 interface OrganizationSetupProps {
   onComplete: (data: any) => void
@@ -25,6 +27,9 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
     companySize: initialData.companySize || "",
     description: initialData.description || ""
   })
+  
+  const [customIndustries, setCustomIndustries] = useState<any[]>([])
+  const [loadingCustomIndustries, setLoadingCustomIndustries] = useState(true)
 
   const organizationTypes = [
     "Healthcare",
@@ -46,6 +51,34 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
     "1001-5000 employees",
     "5000+ employees"
   ]
+
+  // Fetch custom industries
+  useEffect(() => {
+    const fetchCustomIndustries = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) {
+          setLoadingCustomIndustries(false);
+          return;
+        }
+
+        const { data, error } = await supabase
+          .from('custom_industries')
+          .select('id, name, description')
+          .eq('user_id', user.id)
+          .order('name', { ascending: true });
+
+        if (error) throw error;
+        setCustomIndustries(data || []);
+      } catch (error) {
+        console.error('Error fetching custom industries:', error);
+      } finally {
+        setLoadingCustomIndustries(false);
+      }
+    };
+
+    fetchCustomIndustries();
+  }, []);
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -102,11 +135,45 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
                   <SelectValue placeholder="Select organization type" />
                 </SelectTrigger>
                 <SelectContent>
+                  {/* Standard Organization Types */}
                   {organizationTypes.map((type) => (
-                    <SelectItem key={type} value={type}>
-                      {type}
+                    <SelectItem key={`standard-${type}`} value={type}>
+                      <div className="flex items-center justify-between w-full">
+                        <span>{type}</span>
+                        <Badge variant="secondary" className="ml-2 text-xs">Standard</Badge>
+                      </div>
                     </SelectItem>
                   ))}
+                  
+                  {/* Custom Industries */}
+                  {!loadingCustomIndustries && customIndustries.length > 0 && (
+                    <>
+                      {/* Separator */}
+                      <div className="px-2 py-1.5 text-xs font-semibold text-muted-foreground border-t">
+                        Your Custom Industries
+                      </div>
+                      {customIndustries.map((industry) => (
+                        <SelectItem key={`custom-${industry.id}`} value={industry.name}>
+                          <div className="flex items-center justify-between w-full">
+                            <div className="flex flex-col">
+                              <span>{industry.name}</span>
+                              {industry.description && (
+                                <span className="text-xs text-muted-foreground">{industry.description}</span>
+                              )}
+                            </div>
+                            <Badge variant="outline" className="ml-2 text-xs">Custom</Badge>
+                          </div>
+                        </SelectItem>
+                      ))}
+                    </>
+                  )}
+                  
+                  {/* Loading state for custom industries */}
+                  {loadingCustomIndustries && (
+                    <div className="px-2 py-1.5 text-xs text-muted-foreground">
+                      Loading your custom industries...
+                    </div>
+                  )}
                 </SelectContent>
               </Select>
             </div>
