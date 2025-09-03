@@ -278,7 +278,9 @@ function CreateBaselineForm({ onSave, onCancel }: any) {
 
 export default function Baselines() {
   const [userProfiles, setUserProfiles] = useState<any[]>([])
+  const [customBaselines, setCustomBaselines] = useState<any[]>([])
   const [filteredProfiles, setFilteredProfiles] = useState<any[]>([])
+  const [filteredCustomBaselines, setFilteredCustomBaselines] = useState<any[]>([])
   const [editingProfile, setEditingProfile] = useState<any>(null)
   const [isDialogOpen, setIsDialogOpen] = useState(false)
   const [isCreateDialogOpen, setIsCreateDialogOpen] = useState(false)
@@ -299,16 +301,30 @@ export default function Baselines() {
 
   const loadUserProfiles = async () => {
     try {
-      const { data: allProfiles, error } = await supabase
+      const { data: { user } } = await supabase.auth.getUser()
+      
+      // Load built-in baselines (is_custom = false)
+      const { data: builtInProfiles, error: builtInError } = await supabase
         .from('user_profiles')
         .select('*')
-        .or('is_custom.eq.false,and(is_custom.eq.true,user_id.eq.' + (await supabase.auth.getUser()).data.user?.id + ')')
+        .eq('is_custom', false)
         .order('role', { ascending: true })
 
-      if (error) throw error
+      if (builtInError) throw builtInError
 
-      // Transform all profiles from database
-      const profiles = (allProfiles || []).map(profile => ({
+      // Load custom baselines (is_custom = true, baseline_id = null, user_id = current user)
+      const { data: customBaselines, error: customError } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('is_custom', true)
+        .is('baseline_id', null)
+        .eq('user_id', user?.id || '')
+        .order('role', { ascending: true })
+
+      if (customError) throw customError
+
+      // Transform built-in profiles
+      const builtInTransformed = (builtInProfiles || []).map(profile => ({
         id: profile.id,
         name: profile.role,
         description: profile.description || `${profile.level} ${profile.role} in ${profile.department}`,
@@ -320,20 +336,43 @@ export default function Baselines() {
           graphics: profile.hardware_graphics,
           graphicsCapacity: profile.hardware_graphics_capacity
         },
-        color: profile.is_custom ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800",
-        isCustom: profile.is_custom,
+        color: "bg-blue-100 text-blue-800",
+        isCustom: false,
         level: profile.level,
         department: profile.department
       }))
 
-      setUserProfiles(profiles)
-      setFilteredProfiles(profiles)
+      // Transform custom baselines
+      const customTransformed = (customBaselines || []).map(profile => ({
+        id: profile.id,
+        name: profile.role,
+        description: profile.description || `${profile.level} ${profile.role} in ${profile.department}`,
+        baseline: {
+          deviceType: "Laptop", // Default
+          ram: profile.hardware_ram,
+          cpu: profile.hardware_cpu,
+          storage: profile.hardware_storage,
+          graphics: profile.hardware_graphics,
+          graphicsCapacity: profile.hardware_graphics_capacity
+        },
+        color: "bg-purple-100 text-purple-800",
+        isCustom: true,
+        level: profile.level,
+        department: profile.department
+      }))
+
+      setCustomBaselines(customTransformed)
+      setUserProfiles(builtInTransformed)
+      setFilteredCustomBaselines(customTransformed)
+      setFilteredProfiles(builtInTransformed)
     } catch (error) {
       console.error('Error loading profiles:', error)
       toast.error('Failed to load user profiles')
       // Fall back to default profiles
       setUserProfiles(DEFAULT_PROFILES)
       setFilteredProfiles(DEFAULT_PROFILES)
+      setCustomBaselines([])
+      setFilteredCustomBaselines([])
     } finally {
       setLoading(false)
     }
@@ -341,41 +380,69 @@ export default function Baselines() {
 
   // Filter profiles based on selected filters
   useEffect(() => {
-    let filtered = userProfiles
+    // Filter built-in profiles
+    let filteredBuiltIn = userProfiles
 
     if (departmentFilter && departmentFilter !== "all") {
-      filtered = filtered.filter(profile => profile.department === departmentFilter)
+      filteredBuiltIn = filteredBuiltIn.filter(profile => profile.department === departmentFilter)
     }
     if (levelFilter && levelFilter !== "all") {
-      filtered = filtered.filter(profile => profile.level === levelFilter)
+      filteredBuiltIn = filteredBuiltIn.filter(profile => profile.level === levelFilter)
     }
     if (industryFilter && industryFilter !== "all") {
-      filtered = filtered.filter(profile => profile.industry === industryFilter)
+      filteredBuiltIn = filteredBuiltIn.filter(profile => profile.industry === industryFilter)
     }
     if (graphicsFilter && graphicsFilter !== "all") {
-      filtered = filtered.filter(profile => profile.baseline.graphics === graphicsFilter)
+      filteredBuiltIn = filteredBuiltIn.filter(profile => profile.baseline.graphics === graphicsFilter)
     }
     if (cpuFilter && cpuFilter !== "all") {
-      filtered = filtered.filter(profile => profile.baseline.cpu === cpuFilter)
+      filteredBuiltIn = filteredBuiltIn.filter(profile => profile.baseline.cpu === cpuFilter)
     }
     if (ramFilter && ramFilter !== "all") {
-      filtered = filtered.filter(profile => profile.baseline.ram === ramFilter)
+      filteredBuiltIn = filteredBuiltIn.filter(profile => profile.baseline.ram === ramFilter)
     }
     if (storageFilter && storageFilter !== "all") {
-      filtered = filtered.filter(profile => profile.baseline.storage === storageFilter)
+      filteredBuiltIn = filteredBuiltIn.filter(profile => profile.baseline.storage === storageFilter)
     }
 
-    setFilteredProfiles(filtered)
-  }, [userProfiles, departmentFilter, levelFilter, industryFilter, graphicsFilter, cpuFilter, ramFilter, storageFilter])
+    // Filter custom baselines
+    let filteredCustom = customBaselines
 
-  // Get unique values for filter options
-  const departments = [...new Set(userProfiles.map(p => p.department).filter(Boolean))]
-  const levels = [...new Set(userProfiles.map(p => p.level).filter(Boolean))]
-  const industries = [...new Set(userProfiles.map(p => p.industry).filter(Boolean))]
-  const graphicsOptions = [...new Set(userProfiles.map(p => p.baseline.graphics).filter(Boolean))]
-  const cpuOptions = [...new Set(userProfiles.map(p => p.baseline.cpu).filter(Boolean))]
-  const ramOptions = [...new Set(userProfiles.map(p => p.baseline.ram).filter(Boolean))]
-  const storageOptions = [...new Set(userProfiles.map(p => p.baseline.storage).filter(Boolean))]
+    if (departmentFilter && departmentFilter !== "all") {
+      filteredCustom = filteredCustom.filter(profile => profile.department === departmentFilter)
+    }
+    if (levelFilter && levelFilter !== "all") {
+      filteredCustom = filteredCustom.filter(profile => profile.level === levelFilter)
+    }
+    if (industryFilter && industryFilter !== "all") {
+      filteredCustom = filteredCustom.filter(profile => profile.industry === industryFilter)
+    }
+    if (graphicsFilter && graphicsFilter !== "all") {
+      filteredCustom = filteredCustom.filter(profile => profile.baseline.graphics === graphicsFilter)
+    }
+    if (cpuFilter && cpuFilter !== "all") {
+      filteredCustom = filteredCustom.filter(profile => profile.baseline.cpu === cpuFilter)
+    }
+    if (ramFilter && ramFilter !== "all") {
+      filteredCustom = filteredCustom.filter(profile => profile.baseline.ram === ramFilter)
+    }
+    if (storageFilter && storageFilter !== "all") {
+      filteredCustom = filteredCustom.filter(profile => profile.baseline.storage === storageFilter)
+    }
+
+    setFilteredProfiles(filteredBuiltIn)
+    setFilteredCustomBaselines(filteredCustom)
+  }, [userProfiles, customBaselines, departmentFilter, levelFilter, industryFilter, graphicsFilter, cpuFilter, ramFilter, storageFilter])
+
+  // Get unique values for filter options (combining both arrays)
+  const allProfiles = [...customBaselines, ...userProfiles]
+  const departments = [...new Set(allProfiles.map(p => p.department).filter(Boolean))]
+  const levels = [...new Set(allProfiles.map(p => p.level).filter(Boolean))]
+  const industries = [...new Set(allProfiles.map(p => p.industry).filter(Boolean))]
+  const graphicsOptions = [...new Set(allProfiles.map(p => p.baseline.graphics).filter(Boolean))]
+  const cpuOptions = [...new Set(allProfiles.map(p => p.baseline.cpu).filter(Boolean))]
+  const ramOptions = [...new Set(allProfiles.map(p => p.baseline.ram).filter(Boolean))]
+  const storageOptions = [...new Set(allProfiles.map(p => p.baseline.storage).filter(Boolean))]
 
   const clearFilters = () => {
     setDepartmentFilter("all")
@@ -403,18 +470,29 @@ export default function Baselines() {
           .eq('id', updatedProfile.id)
 
         if (error) throw error
-        toast.success('Custom profile updated successfully')
+        toast.success('Custom baseline updated successfully')
+
+        // Update in custom baselines array
+        setCustomBaselines(prev => 
+          prev.map(profile => 
+            profile.id === updatedProfile.id 
+              ? updatedProfile 
+              : profile
+          )
+        )
       } else {
         toast.success('Default profile baseline updated')
+        
+        // Update in built-in profiles array
+        setUserProfiles(prev => 
+          prev.map(profile => 
+            profile.id === updatedProfile.id || profile.name === updatedProfile.name 
+              ? updatedProfile 
+              : profile
+          )
+        )
       }
 
-      setUserProfiles(prev => 
-        prev.map(profile => 
-          profile.id === updatedProfile.id || profile.name === updatedProfile.name 
-            ? updatedProfile 
-            : profile
-        )
-      )
       setEditingProfile(null)
       setIsDialogOpen(false)
     } catch (error) {
@@ -444,7 +522,8 @@ export default function Baselines() {
           hardware_storage: newProfile.baseline.storage,
           hardware_graphics: newProfile.baseline.graphics,
           hardware_graphics_capacity: newProfile.baseline.graphicsCapacity,
-          is_custom: true
+          is_custom: true,
+          baseline_id: null // This makes it a custom baseline, not a custom profile
         })
         .select()
         .single()
@@ -470,7 +549,7 @@ export default function Baselines() {
         department: createdProfile.department
       }
 
-      setUserProfiles(prev => [...prev, profileToAdd])
+      setCustomBaselines(prev => [...prev, profileToAdd])
       setIsCreateDialogOpen(false)
       toast.success('Custom baseline created successfully')
     } catch (error) {
@@ -499,7 +578,7 @@ export default function Baselines() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold">Device Baselines</h1>
-          <p className="text-muted-foreground">Manage hardware baselines for all user profiles ({filteredProfiles.length} of {userProfiles.length})</p>
+          <p className="text-muted-foreground">Manage hardware baselines for all user profiles ({filteredCustomBaselines.length + filteredProfiles.length} of {customBaselines.length + userProfiles.length})</p>
         </div>
         <Dialog open={isCreateDialogOpen} onOpenChange={setIsCreateDialogOpen}>
           <DialogTrigger asChild>
@@ -638,6 +717,91 @@ export default function Baselines() {
         </div>
       </Card>
 
+      {/* Custom Baselines Section */}
+      {filteredCustomBaselines.length > 0 && (
+        <>
+          <div className="mb-4">
+            <h2 className="text-xl font-semibold text-primary mb-2">Your Custom Baselines</h2>
+            <p className="text-sm text-muted-foreground">Baselines you've created for your organization</p>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mb-8">
+            {filteredCustomBaselines.map((profile, index) => (
+              <Card key={profile.id || index} className="relative">
+                <CardHeader>
+                  <div className="flex items-start justify-between">
+                    <div className="space-y-2">
+                      <Badge className={profile.color}>
+                        {profile.name}
+                      </Badge>
+                      <Badge variant="secondary">Custom</Badge>
+                    </div>
+                    <Dialog open={isDialogOpen && editingProfile?.name === profile.name} onOpenChange={setIsDialogOpen}>
+                      <DialogTrigger asChild>
+                        <Button 
+                          variant="ghost" 
+                          size="sm"
+                          onClick={() => setEditingProfile(profile)}
+                        >
+                          <Edit className="w-4 h-4" />
+                        </Button>
+                      </DialogTrigger>
+                      <DialogContent className="max-w-md">
+                        <DialogHeader>
+                          <DialogTitle>Edit Baseline: {profile.name}</DialogTitle>
+                        </DialogHeader>
+                        <BaselineEditor 
+                          profile={profile} 
+                          onSave={updateProfile}
+                          onCancel={() => {
+                            setEditingProfile(null)
+                            setIsDialogOpen(false)
+                          }}
+                        />
+                      </DialogContent>
+                    </Dialog>
+                  </div>
+                  <CardTitle className="text-lg">{profile.name}</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-4">
+                  <p className="text-sm text-muted-foreground">{profile.description}</p>
+                  
+                  <div className="space-y-3">
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Device Type</span>
+                      <span className="text-sm text-muted-foreground">{profile.baseline.deviceType}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">RAM</span>
+                      <span className="text-sm text-muted-foreground">{profile.baseline.ram}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">CPU</span>
+                      <span className="text-sm text-muted-foreground">{profile.baseline.cpu}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Storage</span>
+                      <span className="text-sm text-muted-foreground">{profile.baseline.storage}</span>
+                    </div>
+                    <div className="flex justify-between items-center">
+                      <span className="text-sm font-medium">Graphics</span>
+                      <span className="text-sm text-muted-foreground">
+                        {profile.baseline.graphics}
+                        {profile.baseline.graphicsCapacity && ` (${profile.baseline.graphicsCapacity})`}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </>
+      )}
+
+      {/* Built-in Baselines Section */}
+      <div className="mb-4">
+        <h2 className="text-xl font-semibold text-primary mb-2">Built-in Baselines</h2>
+        <p className="text-sm text-muted-foreground">Standard job role baselines</p>
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {filteredProfiles.map((profile, index) => (
           <Card key={profile.id || index} className="relative">
@@ -647,9 +811,6 @@ export default function Baselines() {
                   <Badge className={profile.color}>
                     {profile.name}
                   </Badge>
-                  {profile.isCustom && (
-                    <Badge variant="secondary">Custom</Badge>
-                  )}
                 </div>
                 <Dialog open={isDialogOpen && editingProfile?.name === profile.name} onOpenChange={setIsDialogOpen}>
                   <DialogTrigger asChild>
