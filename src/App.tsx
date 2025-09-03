@@ -12,6 +12,7 @@ import { TopBar } from "@/components/layout/TopBar";
 import Dashboard from "./pages/Dashboard";
 import UserProfiles from "./pages/UserProfiles";
 import Baselines from "./pages/Baselines";
+import Industries from "./pages/Industries";
 import Endpoints from "./pages/Endpoints";
 import Organizations from "./pages/Organizations";
 import Recommendations from "./pages/Recommendations";
@@ -82,6 +83,7 @@ const App = () => (
                         <Route path="/" element={<Dashboard />} />
                         <Route path="/profiles" element={<UserProfiles />} />
                         <Route path="/baselines" element={<Baselines />} />
+                        <Route path="/industries" element={<Industries />} />
                         <Route path="/endpoints" element={<Endpoints />} />
                         <Route path="/projects" element={<Organizations />} />
                         <Route path="/recommendations" element={<Recommendations />} />
