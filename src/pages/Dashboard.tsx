@@ -69,9 +69,9 @@ export default function Dashboard() {
       trend: { value: projects.filter(p => p.status === 'completed').length, label: "completed", positive: true }
     },
     {
-      title: "Organizations",
+      title: "Industries",
       value: new Set(projects.map(p => p.organization_type)).size.toString(),
-      description: "Organization types analyzed",
+      description: "Industry types analyzed",
       icon: <Building2 className="h-4 w-4" />,
       trend: { value: 0, label: "unique types", positive: true }
     },
@@ -163,7 +163,7 @@ export default function Dashboard() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Project Name</TableHead>
-                  <TableHead>Organization</TableHead>
+                  <TableHead>Industry</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
