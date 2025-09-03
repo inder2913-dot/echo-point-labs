@@ -198,59 +198,6 @@ export default function Dashboard() {
         </CardContent>
       </Card>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card className="glass-card hover:shadow-glow transition-all duration-500">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-primary/20 to-primary-glow/20 rounded-xl backdrop-blur-sm">
-                <Plus className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Start New Project</h3>
-                <p className="text-sm text-muted-foreground">Begin a new workplace analytics project</p>
-              </div>
-            </div>
-            <Button asChild variant="hero" className="w-full mt-4">
-              <Link to="/project">Get Started</Link>
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card hover:neon-glow transition-all duration-500">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-primary/20 to-primary-glow/20 rounded-xl backdrop-blur-sm">
-                <TrendingUp className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">View Analytics</h3>
-                <p className="text-sm text-muted-foreground">Explore detailed project insights</p>
-              </div>
-            </div>
-            <Button variant="glass" className="w-full mt-4" disabled={projects.length === 0}>
-              View Reports
-            </Button>
-          </CardContent>
-        </Card>
-
-        <Card className="glass-card hover:shadow-elegant transition-all duration-500">
-          <CardContent className="p-6">
-            <div className="flex items-center gap-4">
-              <div className="p-3 bg-gradient-to-br from-success/20 to-accent-bright/20 rounded-xl backdrop-blur-sm">
-                <Shield className="h-6 w-6 text-success" />
-              </div>
-              <div>
-                <h3 className="font-semibold text-foreground">Security Overview</h3>
-                <p className="text-sm text-muted-foreground">Review security recommendations</p>
-              </div>
-            </div>
-            <Button variant="glass" className="w-full mt-4" disabled={projects.length === 0}>
-              View Security
-            </Button>
-          </CardContent>
-        </Card>
-      </div>
     </div>
   )
 }
