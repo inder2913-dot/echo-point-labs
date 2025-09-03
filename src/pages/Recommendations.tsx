@@ -892,47 +892,53 @@ export default function Recommendations() {
         </div>
       </div>
 
-      {/* Overview Statistics */}
+      {/* Priority Statistics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Compliance Rate</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Critical Priority</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{deviceAnalysis.complianceRate}%</div>
-            <Progress value={deviceAnalysis.complianceRate} className="mt-2" />
+            <div className="flex items-center gap-2">
+              <AlertTriangle className="w-4 h-4 text-red-500" />
+              <span className="text-2xl font-bold text-red-600">{recommendations.filter(r => r.priority === 'critical').length}</span>
+            </div>
           </CardContent>
         </Card>
         
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Critical Issues</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">High Priority</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex items-center gap-2">
-              <AlertTriangle className="w-4 h-4 text-red-500" />
-              <span className="text-2xl font-bold text-red-600">{deviceAnalysis.criticalIssues}</span>
+              <Zap className="w-4 h-4 text-orange-500" />
+              <span className="text-2xl font-bold text-orange-600">{recommendations.filter(r => r.priority === 'high').length}</span>
             </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Upgrade Required</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Medium Priority</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-orange-600">{deviceAnalysis.upgradeNeeded}</div>
-            <p className="text-xs text-muted-foreground">devices need upgrades</p>
+            <div className="flex items-center gap-2">
+              <Target className="w-4 h-4 text-yellow-500" />
+              <span className="text-2xl font-bold text-yellow-600">{recommendations.filter(r => r.priority === 'medium').length}</span>
+            </div>
           </CardContent>
         </Card>
 
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Avg Score</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Low Priority</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold text-blue-600">{deviceAnalysis.avgScore}%</div>
-            <p className="text-xs text-muted-foreground">overall performance</p>
+            <div className="flex items-center gap-2">
+              <CheckCircle className="w-4 h-4 text-blue-500" />
+              <span className="text-2xl font-bold text-blue-600">{recommendations.filter(r => r.priority === 'low').length}</span>
+            </div>
           </CardContent>
         </Card>
       </div>
