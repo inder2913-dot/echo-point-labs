@@ -389,9 +389,8 @@ export default function Recommendations() {
             { type: 'Desktops', count: Math.floor(analysis.upgradeNeeded * 0.4), issues: ['Outdated CPU', 'Low RAM'] }
           ],
           costBreakdown: [
-            { item: 'RAM Upgrades (16GB→32GB)', cost: 200, quantity: Math.floor(analysis.upgradeNeeded * 0.7) },
-            { item: 'SSD Upgrades (256GB→1TB)', cost: 150, quantity: Math.floor(analysis.upgradeNeeded * 0.5) },
-            { item: 'Installation Labor', cost: 50, quantity: analysis.upgradeNeeded }
+            { item: 'Full Device Replacements', cost: 1500, quantity: Math.floor(analysis.upgradeNeeded * 0.3) },
+            { item: 'Minor Fixes & Upgrades', cost: 250, quantity: Math.floor(analysis.upgradeNeeded * 0.7) }
           ],
           riskAssessment: [
             'Performance bottlenecks affecting productivity',
