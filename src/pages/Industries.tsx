@@ -915,8 +915,8 @@ function ProfileSelector({
   const filteredProfiles = availableProfiles.filter(profile => {
     const matchesSearch = profile.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
                          profile.department.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesLevel = !selectedLevel || profile.level === selectedLevel;
-    const matchesIndustry = !selectedIndustry || profile.industry === selectedIndustry;
+    const matchesLevel = !selectedLevel || selectedLevel === 'all-levels' || profile.level === selectedLevel;
+    const matchesIndustry = !selectedIndustry || selectedIndustry === 'all-industries' || profile.industry === selectedIndustry;
     const notAlreadyAdded = !existingProfileIds.includes(profile.id);
     
     return matchesSearch && matchesLevel && matchesIndustry && notAlreadyAdded;
@@ -996,7 +996,7 @@ function ProfileSelector({
               <SelectValue placeholder="Level" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Levels</SelectItem>
+              <SelectItem value="all-levels">All Levels</SelectItem>
               {levels.map(level => (
                 <SelectItem key={level} value={level}>{level}</SelectItem>
               ))}
@@ -1007,7 +1007,7 @@ function ProfileSelector({
               <SelectValue placeholder="Industry" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">All Industries</SelectItem>
+              <SelectItem value="all-industries">All Industries</SelectItem>
               {industries.map(industry => (
                 <SelectItem key={industry} value={industry}>{industry}</SelectItem>
               ))}
