@@ -22,7 +22,6 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
   const [formData, setFormData] = useState({
     projectName: initialData.projectName || "",
     organizationType: initialData.organizationType || "",
-    industry: initialData.industry || "",
     companySize: initialData.companySize || "",
     description: initialData.description || ""
   })
@@ -40,23 +39,6 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
     "Other"
   ]
 
-  const industries = [
-    "Healthcare & Medical",
-    "Banking & Finance",
-    "Software & Technology", 
-    "Manufacturing & Industrial",
-    "Education & Research",
-    "Government & Public Sector",
-    "Retail & E-commerce",
-    "Consulting & Professional Services",
-    "Media & Entertainment",
-    "Transportation & Logistics",
-    "Energy & Utilities",
-    "Real Estate",
-    "Legal Services",
-    "Non-Profit & NGO",
-    "Other"
-  ]
 
   const companySizes = [
     "1-50 employees",
@@ -68,14 +50,13 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
-    if (!formData.projectName || !formData.organizationType || !formData.industry) {
+    if (!formData.projectName || !formData.organizationType) {
       return
     }
     
     onComplete({
       projectName: formData.projectName,
       organizationType: formData.organizationType,
-      industry: formData.industry,
       companySize: formData.companySize,
       description: formData.description
     })
@@ -85,7 +66,7 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
     setFormData(prev => ({ ...prev, [field]: value }))
   }
 
-  const isFormValid = formData.projectName && formData.organizationType && formData.industry
+  const isFormValid = formData.projectName && formData.organizationType
 
   return (
     <div className="space-y-6">
@@ -110,48 +91,25 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
               />
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {/* Organization Type */}
-              <div className="space-y-2">
-                <Label htmlFor="organizationType">Organization Type *</Label>
-                <Select 
-                  value={formData.organizationType} 
-                  onValueChange={(value) => updateFormData("organizationType", value)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select organization type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {organizationTypes.map((type) => (
-                      <SelectItem key={type} value={type}>
-                        {type}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              {/* Industry */}
-              <div className="space-y-2">
-                <Label htmlFor="industry">Industry *</Label>
-                <Select 
-                  value={formData.industry} 
-                  onValueChange={(value) => updateFormData("industry", value)}
-                  required
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select industry" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {industries.map((industry) => (
-                      <SelectItem key={industry} value={industry}>
-                        {industry}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            {/* Organization Type */}
+            <div className="space-y-2">
+              <Label htmlFor="organizationType">Organization Type *</Label>
+              <Select 
+                value={formData.organizationType} 
+                onValueChange={(value) => updateFormData("organizationType", value)}
+                required
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select organization type" />
+                </SelectTrigger>
+                <SelectContent>
+                  {organizationTypes.map((type) => (
+                    <SelectItem key={type} value={type}>
+                      {type}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
 
             {/* Company Size */}

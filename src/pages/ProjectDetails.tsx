@@ -203,7 +203,7 @@ export default function ProjectDetails() {
       </div>
 
       {/* Project Overview */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-4">
             <div className="flex items-center gap-2">
@@ -211,18 +211,6 @@ export default function ProjectDetails() {
               <div>
                 <p className="text-sm font-medium">Organization</p>
                 <p className="text-lg font-bold">{project.organization_type}</p>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-4">
-            <div className="flex items-center gap-2">
-              <Target className="h-5 w-5 text-muted-foreground" />
-              <div>
-                <p className="text-sm font-medium">Industry</p>
-                <p className="text-lg font-bold">{project.industry}</p>
               </div>
             </div>
           </CardContent>

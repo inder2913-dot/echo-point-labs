@@ -29,7 +29,7 @@ import { DeviceComparison } from "@/components/project/DeviceComparison"
 import { RecommendationEngine } from "@/components/project/RecommendationEngine"
 
 const WORKFLOW_STEPS = [
-  { id: 1, title: "Organization Setup", icon: Building2, description: "Select organization and industry type" },
+  { id: 1, title: "Organization Setup", icon: Building2, description: "Select organization type" },
   { id: 2, title: "Employee Data", icon: Users, description: "Upload employee information" },
   { id: 3, title: "Device Inventory", icon: Monitor, description: "Upload current device data" },
   { id: 4, title: "User Profiling", icon: BarChart3, description: "Create profiles and set baselines" },
@@ -42,7 +42,6 @@ export default function Project() {
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [projectData, setProjectData] = useState({
     organization: null,
-    industry: null,
     employeeData: [],
     deviceData: [],
     userProfiles: [],

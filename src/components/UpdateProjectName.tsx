@@ -17,8 +17,7 @@ export function UpdateProjectName() {
         .from('projects')
         .update({ 
           name: 'Contoso Project - 03/09/2025',
-          organization_type: 'Technology',
-          industry: 'Software & Technology'
+          organization_type: 'Technology'
         })
         .eq('user_id', user.id)
         .eq('name', 'Unknown Project - 03/09/2025')

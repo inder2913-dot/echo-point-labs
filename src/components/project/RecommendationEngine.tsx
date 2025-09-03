@@ -173,9 +173,8 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
       const orgData = initialData || {};
       const projectName = orgData.projectName || `Workplace Analytics Project - ${new Date().toLocaleDateString()}`;
       const orgType = orgData.organizationType || orgData.orgType || orgData.type || 'Unknown';
-      const industry = orgData.industry || orgData.industryType || 'Unknown';
 
-      console.log('Organization data being saved:', { projectName, orgType, industry, orgData }); // Debug log
+      console.log('Organization data being saved:', { projectName, orgType, orgData }); // Debug log
       
       // Create project
       const { data: project, error: projectError } = await supabase
@@ -184,7 +183,6 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
           user_id: userData.user.id,
           name: projectName,
           organization_type: orgType,
-          industry: industry,
           status: 'completed',
           completed_at: new Date().toISOString()
         })

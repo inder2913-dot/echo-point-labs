@@ -76,13 +76,6 @@ export default function Dashboard() {
       trend: { value: 0, label: "unique types", positive: true }
     },
     {
-      title: "Industries",
-      value: new Set(projects.map(p => p.industry)).size.toString(),
-      description: "Industry coverage",
-      icon: <Users className="h-4 w-4" />,
-      trend: { value: 0, label: "different sectors", positive: true }
-    },
-    {
       title: "Recent Activity",
       value: projects.filter(p => new Date(p.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length.toString(),
       description: "Projects this week",
@@ -171,7 +164,6 @@ export default function Dashboard() {
                 <TableRow>
                   <TableHead>Project Name</TableHead>
                   <TableHead>Organization</TableHead>
-                  <TableHead>Industry</TableHead>
                   <TableHead>Status</TableHead>
                   <TableHead>Created</TableHead>
                   <TableHead>Actions</TableHead>
@@ -182,7 +174,6 @@ export default function Dashboard() {
                   <TableRow key={project.id}>
                     <TableCell className="font-medium">{project.name}</TableCell>
                     <TableCell>{project.organization_type}</TableCell>
-                    <TableCell>{project.industry}</TableCell>
                     <TableCell>
                       <Badge className={getStatusColor(project.status)}>
                         {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
