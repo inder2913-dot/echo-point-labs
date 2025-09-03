@@ -111,16 +111,28 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
           const value = values[index] || ''
           const headerLower = header.toLowerCase()
           
-          // Map common header variations to standard keys
-          if (headerLower.includes('device') && headerLower.includes('id')) {
+          // More flexible mapping for device data
+          if (headerLower.includes('device') && (headerLower.includes('id') || headerLower.includes('name'))) {
+            device.deviceId = value
+          } else if (headerLower === 'id' && !headerLower.includes('user')) {
+            device.deviceId = value
+          } else if (headerLower.includes('asset') && headerLower.includes('tag')) {
+            device.deviceId = value
+          } else if (headerLower.includes('serial') && headerLower.includes('number')) {
             device.deviceId = value
           } else if (headerLower.includes('user') && headerLower.includes('id')) {
             device.userId = value
+          } else if (headerLower.includes('employee') && headerLower.includes('id')) {
+            device.userId = value
           } else if (headerLower.includes('user') && headerLower.includes('name')) {
             device.userName = value
-          } else if (headerLower.includes('type')) {
+          } else if (headerLower.includes('employee') && headerLower.includes('name')) {
+            device.userName = value
+          } else if (headerLower === 'name' && !headerLower.includes('device')) {
+            device.userName = value
+          } else if (headerLower.includes('type') || headerLower.includes('category')) {
             device.deviceType = value
-          } else if (headerLower.includes('model')) {
+          } else if (headerLower.includes('model') || headerLower.includes('brand')) {
             device.model = value
           } else if (headerLower.includes('cpu') || headerLower.includes('processor')) {
             device.cpu = value
@@ -130,16 +142,32 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
             device.storage = value
           } else if (headerLower.includes('os') || headerLower.includes('operating')) {
             device.os = value
-          } else if (headerLower.includes('age')) {
+          } else if (headerLower.includes('age') || headerLower.includes('year')) {
             device.age = value
           } else {
-            // Use the header name as-is for unmapped fields
+            // Store all other fields with their original header names
             device[header.toLowerCase().replace(/\s+/g, '_')] = value
           }
         })
         
+        // Generate device ID if missing but we have some device info
+        if (!device.deviceId && (device.model || device.userName)) {
+          device.deviceId = `DEV${Math.random().toString(36).substr(2, 3).toUpperCase()}`
+        }
+        
+        // Default device type if missing
+        if (!device.deviceType && device.model) {
+          if (device.model.toLowerCase().includes('laptop') || device.model.toLowerCase().includes('macbook')) {
+            device.deviceType = 'Laptop'
+          } else if (device.model.toLowerCase().includes('desktop') || device.model.toLowerCase().includes('tower')) {
+            device.deviceType = 'Desktop'
+          } else {
+            device.deviceType = 'Computer'
+          }
+        }
+        
         return device
-      }).filter(dev => dev.deviceId) // Only include rows with a device ID
+      }).filter(dev => dev.deviceId || dev.model || dev.userName) // Include rows with any meaningful device data
 
       setUploadedDevices(data)
       setUploadStatus("success")
