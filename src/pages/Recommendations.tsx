@@ -96,6 +96,8 @@ export default function Recommendations() {
   const [filteredDevices, setFilteredDevices] = useState<DeviceItem[]>([])
   const [isDeviceListOpen, setIsDeviceListOpen] = useState(false)
   const [deviceListTitle, setDeviceListTitle] = useState("")
+  const [projects, setProjects] = useState<any[]>([])
+  const [selectedProject, setSelectedProject] = useState<string>("")
   const [deviceAnalysis, setDeviceAnalysis] = useState<DeviceAnalysis>({
     totalDevices: 0,
     complianceRate: 0,
@@ -112,8 +114,34 @@ export default function Recommendations() {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
-    loadRecommendations()
+    loadProjects()
   }, [])
+
+  useEffect(() => {
+    if (selectedProject) {
+      loadRecommendations()
+    }
+  }, [selectedProject])
+
+  const loadProjects = async () => {
+    try {
+      const { data: projectsData, error } = await supabase
+        .from('projects')
+        .select('id, name, created_at')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      if (projectsData && projectsData.length > 0) {
+        setProjects(projectsData)
+        // Auto-select the most recent project
+        setSelectedProject(projectsData[0].id)
+      }
+    } catch (error) {
+      console.error('Error loading projects:', error)
+      toast.error('Failed to load projects')
+    }
+  }
 
   const handleViewDetails = (recommendation: RecommendationItem) => {
     setSelectedRecommendation(recommendation)

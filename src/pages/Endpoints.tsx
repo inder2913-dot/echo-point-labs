@@ -86,6 +86,8 @@ export default function Endpoints() {
   const [devices, setDevices] = useState<Device[]>([])
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([])
   const [loading, setLoading] = useState(true)
+  const [projects, setProjects] = useState<any[]>([])
+  const [selectedProject, setSelectedProject] = useState<string>("")
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all")
   const [selectedLocation, setSelectedLocation] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
@@ -97,16 +99,45 @@ export default function Endpoints() {
   const [selectedOS, setSelectedOS] = useState<string>("all")
 
   useEffect(() => {
-    loadEndpointsData()
+    loadProjects()
   }, [])
 
-  const loadEndpointsData = async () => {
+  useEffect(() => {
+    if (selectedProject) {
+      loadEndpointsData()
+    }
+  }, [selectedProject])
+
+  const loadProjects = async () => {
     try {
-      // Get the most recent device comparison data
+      const { data: projectsData, error } = await supabase
+        .from('projects')
+        .select('id, name, created_at')
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+
+      if (projectsData && projectsData.length > 0) {
+        setProjects(projectsData)
+        // Auto-select the most recent project
+        setSelectedProject(projectsData[0].id)
+      }
+    } catch (error) {
+      console.error('Error loading projects:', error)
+      toast.error('Failed to load projects')
+    }
+  }
+
+  const loadEndpointsData = async () => {
+    if (!selectedProject) return
+    
+    try {
+      // Get the most recent device comparison data for the selected project
       const { data: projectData, error } = await supabase
         .from('project_data')
         .select('*')
-        .eq('step_name', 'deviceComparison')  // Fixed: removed hyphen
+        .eq('step_name', 'deviceComparison')
+        .eq('project_id', selectedProject)
         .order('created_at', { ascending: false })
         .limit(1)
 
@@ -277,11 +308,29 @@ export default function Endpoints() {
 
   return (
     <div className="container mx-auto p-6 space-y-6">
-      <div className="flex items-center gap-2">
-        <Activity className="w-8 h-8 text-primary" />
-        <div>
-          <h1 className="text-3xl font-bold">Device Endpoints</h1>
-          <p className="text-muted-foreground">Monitor and manage all organizational devices ({filteredDevices.length} of {devices.length})</p>
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2">
+          <Activity className="w-8 h-8 text-primary" />
+          <div>
+            <h1 className="text-3xl font-bold">Device Endpoints</h1>
+            <p className="text-muted-foreground">Monitor and manage all organizational devices ({filteredDevices.length} of {devices.length})</p>
+          </div>
+        </div>
+        
+        {/* Project Selector */}
+        <div className="w-64">
+          <Select value={selectedProject} onValueChange={setSelectedProject}>
+            <SelectTrigger className="bg-background">
+              <SelectValue placeholder="Select Project" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border shadow-lg z-50">
+              {projects.map(project => (
+                <SelectItem key={project.id} value={project.id}>
+                  {project.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
         </div>
       </div>
 
