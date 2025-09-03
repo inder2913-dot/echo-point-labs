@@ -89,34 +89,33 @@ export default function Baselines() {
 
   const loadUserProfiles = async () => {
     try {
-      const { data: customProfiles, error } = await supabase
+      const { data: allProfiles, error } = await supabase
         .from('user_profiles')
         .select('*')
-        .eq('is_custom', true)
+        .order('role', { ascending: true })
 
       if (error) throw error
 
-      // Combine default profiles with custom ones
-      const allProfiles = [
-        ...DEFAULT_PROFILES,
-        ...(customProfiles || []).map(profile => ({
-          id: profile.id,
-          name: profile.role,
-          description: profile.description || `${profile.level} ${profile.role} in ${profile.department}`,
-          baseline: {
-            deviceType: "Laptop", // Default
-            ram: profile.hardware_ram,
-            cpu: profile.hardware_cpu,
-            storage: profile.hardware_storage,
-            graphics: profile.hardware_graphics,
-            graphicsCapacity: profile.hardware_graphics_capacity
-          },
-          color: "bg-purple-100 text-purple-800", // Custom profile color
-          isCustom: true
-        }))
-      ]
+      // Transform all profiles from database
+      const profiles = (allProfiles || []).map(profile => ({
+        id: profile.id,
+        name: profile.role,
+        description: profile.description || `${profile.level} ${profile.role} in ${profile.department}`,
+        baseline: {
+          deviceType: "Laptop", // Default
+          ram: profile.hardware_ram,
+          cpu: profile.hardware_cpu,
+          storage: profile.hardware_storage,
+          graphics: profile.hardware_graphics,
+          graphicsCapacity: profile.hardware_graphics_capacity
+        },
+        color: profile.is_custom ? "bg-purple-100 text-purple-800" : "bg-blue-100 text-blue-800",
+        isCustom: profile.is_custom,
+        level: profile.level,
+        department: profile.department
+      }))
 
-      setUserProfiles(allProfiles)
+      setUserProfiles(profiles)
     } catch (error) {
       console.error('Error loading profiles:', error)
       toast.error('Failed to load user profiles')
