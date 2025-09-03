@@ -538,7 +538,13 @@ export default function Recommendations() {
         impact: 'medium',
         priority: 'low',
         category: 'planning',
-        estimatedCost: `$${((Math.floor(analysis.warrantyExpiring * 0.7) * 1200) + (Math.floor(analysis.warrantyExpiring * 0.3) * 200)).toLocaleString()}`,
+        estimatedCost: `$${(() => {
+          if (analysis.warrantyExpiring <= 3) {
+            return (analysis.warrantyExpiring * 1500);
+          } else {
+            return (Math.ceil(analysis.warrantyExpiring * 0.7) * 1500) + (Math.floor(analysis.warrantyExpiring * 0.3) * 200);
+          }
+        })().toLocaleString()}`,
         timeframe: '6-12 months',
         affectedDevices: analysis.warrantyExpiring,
         implementationSteps: [
@@ -568,10 +574,20 @@ export default function Recommendations() {
               ];
             }
           })(),
-          costBreakdown: [
-            { item: 'Device Replacement (Average)', cost: 1200, quantity: Math.floor(analysis.warrantyExpiring * 0.7) },
-            { item: 'Extended Warranty', cost: 200, quantity: Math.floor(analysis.warrantyExpiring * 0.3) }
-          ],
+          costBreakdown: (() => {
+            if (analysis.warrantyExpiring <= 3) {
+              // For small numbers, show realistic breakdown
+              return [
+                { item: 'Device Replacement (Average)', cost: 1500, quantity: analysis.warrantyExpiring },
+                { item: 'Extended Warranty', cost: 200, quantity: 0 }
+              ];
+            } else {
+              return [
+                { item: 'Device Replacement (Average)', cost: 1500, quantity: Math.ceil(analysis.warrantyExpiring * 0.7) },
+                { item: 'Extended Warranty', cost: 200, quantity: Math.floor(analysis.warrantyExpiring * 0.3) }
+              ];
+            }
+          })(),
           riskAssessment: [
             'Increased repair and support costs',
             'Potential security vulnerabilities from unsupported devices',
