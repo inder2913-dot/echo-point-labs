@@ -65,22 +65,19 @@ export default function Dashboard() {
       title: "Total Projects",
       value: projects.length.toString(),
       description: "Completed analyses",
-      icon: <Target className="h-4 w-4" />,
-      trend: { value: projects.filter(p => p.status === 'completed').length, label: "completed", positive: true }
+      icon: <Target className="h-4 w-4" />
     },
     {
       title: "Industries",
       value: new Set(projects.map(p => p.organization_type)).size.toString(),
       description: "Industry types analyzed",
-      icon: <Building2 className="h-4 w-4" />,
-      trend: { value: 0, label: "unique types", positive: true }
+      icon: <Building2 className="h-4 w-4" />
     },
     {
       title: "Recent Activity",
       value: projects.filter(p => new Date(p.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length.toString(),
       description: "Projects this week",
-      icon: <Activity className="h-4 w-4" />,
-      trend: { value: 0, label: "this week", positive: true }
+      icon: <Activity className="h-4 w-4" />
     }
   ]
 
