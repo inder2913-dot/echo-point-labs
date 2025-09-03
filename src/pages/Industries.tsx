@@ -782,139 +782,30 @@ function EditIndustryWithProfilesForm({
         </TabsContent>
 
         <TabsContent value="profiles" className="space-y-4">
-          {/* Add New Profile Form */}
+          {/* Select Existing Profiles */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Add New Profile</CardTitle>
+              <CardTitle className="text-lg">Add Existing Profiles</CardTitle>
+              <CardDescription>
+                Choose from 100+ default and custom profiles to add to this industry
+              </CardDescription>
             </CardHeader>
             <CardContent>
-              <form onSubmit={addProfile} className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                  <div className="space-y-2">
-                    <Label>Job Role</Label>
-                    <Input
-                      value={newProfile.role}
-                      onChange={(e) => setNewProfile(prev => ({ ...prev, role: e.target.value }))}
-                      placeholder="e.g., Software Engineer"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Department</Label>
-                    <Input
-                      value={newProfile.department}
-                      onChange={(e) => setNewProfile(prev => ({ ...prev, department: e.target.value }))}
-                      placeholder="e.g., Engineering"
-                      required
-                    />
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Level</Label>
-                    <Select value={newProfile.level} onValueChange={(value) => setNewProfile(prev => ({ ...prev, level: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Executive">Executive</SelectItem>
-                        <SelectItem value="Management">Management</SelectItem>
-                        <SelectItem value="Professional">Professional</SelectItem>
-                        <SelectItem value="Technical">Technical</SelectItem>
-                        <SelectItem value="Support">Support</SelectItem>
-                        <SelectItem value="Staff">Staff</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>CPU</Label>
-                    <Select value={newProfile.hardware_cpu} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_cpu: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Core i3">Core i3</SelectItem>
-                        <SelectItem value="Core i5">Core i5</SelectItem>
-                        <SelectItem value="Core i7">Core i7</SelectItem>
-                        <SelectItem value="Core i9">Core i9</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>RAM</Label>
-                    <Select value={newProfile.hardware_ram} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_ram: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="8GB">8GB</SelectItem>
-                        <SelectItem value="16GB">16GB</SelectItem>
-                        <SelectItem value="32GB">32GB</SelectItem>
-                        <SelectItem value="64GB">64GB</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Storage</Label>
-                    <Select value={newProfile.hardware_storage} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_storage: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="256GB SSD">256GB SSD</SelectItem>
-                        <SelectItem value="512GB SSD">512GB SSD</SelectItem>
-                        <SelectItem value="1TB SSD">1TB SSD</SelectItem>
-                        <SelectItem value="2TB SSD">2TB SSD</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  <div className="space-y-2">
-                    <Label>Graphics</Label>
-                    <Select value={newProfile.hardware_graphics} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_graphics: value }))}>
-                      <SelectTrigger>
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="Onboard">Onboard</SelectItem>
-                        <SelectItem value="Dedicated">Dedicated</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {newProfile.hardware_graphics === 'Dedicated' && (
-                    <div className="space-y-2">
-                      <Label>Graphics Memory</Label>
-                      <Select value={newProfile.hardware_graphics_capacity} onValueChange={(value) => setNewProfile(prev => ({ ...prev, hardware_graphics_capacity: value }))}>
-                        <SelectTrigger>
-                          <SelectValue placeholder="Select capacity" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="4GB">4GB</SelectItem>
-                          <SelectItem value="8GB">8GB</SelectItem>
-                          <SelectItem value="16GB">16GB</SelectItem>
-                          <SelectItem value="24GB">24GB</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </div>
-                  )}
-                </div>
-
-                <Button type="submit" className="w-full">
-                  <Plus className="mr-2 h-4 w-4" />
-                  Add Profile
-                </Button>
-              </form>
+              <ProfileSelector 
+                customIndustryId={industry.id}
+                onProfileAdded={() => {
+                  fetchProfiles();
+                  onIndustryUpdated();
+                }}
+                existingProfileIds={profiles.map(p => p.source_profile_id).filter(Boolean)}
+              />
             </CardContent>
           </Card>
 
           {/* Existing Profiles */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-lg">Current Profiles</CardTitle>
+              <CardTitle className="text-lg">Current Profiles ({profiles.length})</CardTitle>
             </CardHeader>
             <CardContent>
               {profilesLoading ? (
@@ -925,7 +816,7 @@ function EditIndustryWithProfilesForm({
                 </div>
               ) : profiles.length === 0 ? (
                 <p className="text-center text-muted-foreground py-8">
-                  No profiles added yet. Add your first profile above.
+                  No profiles added yet. Select profiles from the list above.
                 </p>
               ) : (
                 <div className="space-y-2">
