@@ -349,26 +349,80 @@ export function UserProfilingBaselines({ onComplete, initialData }: UserProfilin
       
       // Industry-specific assignment logic
       if (selectedIndustry === 'retail') {
-        if (
-          role.includes("manager") || role.includes("supervisor") || role.includes("lead") ||
-          dept.includes("management") || role.includes("director")
+        // District/Regional Manager
+        if (role.includes("district") || role.includes("regional") || role.includes("area director")) {
+          assignedProfile = "district-manager"
+        }
+        // Store Manager (includes assistant managers)
+        else if (
+          (role.includes("store") && role.includes("manager")) ||
+          role.includes("assistant store manager") ||
+          (dept.includes("store") && dept.includes("management"))
         ) {
           assignedProfile = "store-manager"
-        } else if (
-          role.includes("sales") || role.includes("cashier") || role.includes("associate") ||
+        }
+        // Department Manager
+        else if (
+          (role.includes("department") && role.includes("manager")) ||
+          (role.includes("section") && role.includes("manager")) ||
+          role.includes("area manager") ||
+          (role.includes("manager") && (dept.includes("sales") || dept.includes("inventory") || dept.includes("customer")))
+        ) {
+          assignedProfile = "department-manager"
+        }
+        // Visual Merchandiser
+        else if (
+          role.includes("visual merchandiser") || role.includes("merchandiser") ||
+          role.includes("display") || role.includes("product manager") ||
+          dept.includes("merchandising") || dept.includes("visual")
+        ) {
+          assignedProfile = "visual-merchandiser"
+        }
+        // Loss Prevention
+        else if (
+          role.includes("loss prevention") || role.includes("security") ||
+          role.includes("asset protection") || dept.includes("loss prevention")
+        ) {
+          assignedProfile = "loss-prevention"
+        }
+        // Buyer/Merchandiser
+        else if (
+          role.includes("buyer") || role.includes("procurement") ||
+          (role.includes("specialist") && dept.includes("marketing"))
+        ) {
+          assignedProfile = "buyer-merchandiser"
+        }
+        // Cashier
+        else if (
+          role.includes("cashier") || role.includes("checkout") || 
+          role.includes("pos operator")
+        ) {
+          assignedProfile = "cashier"
+        }
+        // Sales Associate
+        else if (
+          role.includes("sales") || role.includes("associate") ||
           dept.includes("sales") || role.includes("representative")
         ) {
           assignedProfile = "sales-associate"
-        } else if (
+        }
+        // Inventory Specialist
+        else if (
           role.includes("inventory") || role.includes("warehouse") || role.includes("stock") ||
           dept.includes("inventory") || dept.includes("warehouse")
         ) {
           assignedProfile = "inventory-specialist"
-        } else if (
+        }
+        // Customer Service
+        else if (
           role.includes("customer") || role.includes("support") || role.includes("service") ||
           dept.includes("customer") || dept.includes("support")
         ) {
           assignedProfile = "customer-service"
+        }
+        // Default for any manager not caught above
+        else if (role.includes("manager") || role.includes("supervisor") || role.includes("lead")) {
+          assignedProfile = "store-manager"
         }
       } else if (selectedIndustry === 'manufacturing') {
         if (
