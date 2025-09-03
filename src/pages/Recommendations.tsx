@@ -410,10 +410,14 @@ export default function Recommendations() {
           'Schedule upgrades during maintenance windows'
         ],
         detailedAnalysis: {
-          deviceBreakdown: [
-            { type: 'Laptops', count: Math.floor(analysis.upgradeNeeded * 0.6), issues: ['Insufficient RAM', 'Slow Storage'] },
-            { type: 'Desktops', count: Math.floor(analysis.upgradeNeeded * 0.4), issues: ['Outdated CPU', 'Low RAM'] }
-          ],
+          deviceBreakdown: (() => {
+            const laptopsNeedingUpgrade = devices.filter(d => d.devicetype === 'Laptop' && d.status === 'needs-upgrade').length;
+            const desktopsNeedingUpgrade = devices.filter(d => d.devicetype === 'Desktop' && d.status === 'needs-upgrade').length;
+            return [
+              { type: 'Laptops', count: laptopsNeedingUpgrade, issues: ['Insufficient RAM', 'Slow Storage'] },
+              { type: 'Desktops', count: desktopsNeedingUpgrade, issues: ['Outdated CPU', 'Low RAM'] }
+            ];
+          })(),
           costBreakdown: [
             { item: 'Full Device Replacements', cost: 1500, quantity: Math.floor(analysis.upgradeNeeded * 0.3) },
             { item: 'Minor Fixes & Upgrades', cost: 250, quantity: Math.floor(analysis.upgradeNeeded * 0.7) }
