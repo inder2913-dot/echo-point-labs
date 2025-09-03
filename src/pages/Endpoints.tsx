@@ -154,9 +154,25 @@ export default function Endpoints() {
         
         // Filter to only show devices that were successfully mapped to users
         const mappedDevices = deviceComparison.filter((item: any) => {
-          // Device is mapped if it has user information (name, firstName/lastName, or department)
-          const hasUserInfo = item.name || (item.firstName && item.lastName) || item.department
-          return hasUserInfo && item.device // Also ensure there's actual device data
+          // Device is mapped if it has user assignment information
+          const hasUserAssignment = (item.firstName && item.lastName) || 
+                                   (item.name && item.name !== 'Unknown') || 
+                                   (item.department && item.department !== 'Unknown')
+          
+          // Must also have device data to be meaningful
+          const hasDeviceData = item.device && (item.device.deviceType || item.devicetype)
+          
+          console.log('Checking device mapping:', {
+            firstName: item.firstName,
+            lastName: item.lastName, 
+            name: item.name,
+            department: item.department,
+            hasUserAssignment,
+            hasDeviceData,
+            willInclude: hasUserAssignment && hasDeviceData
+          })
+          
+          return hasUserAssignment && hasDeviceData
         })
 
         const transformedDevices: Device[] = mappedDevices.map((item: any, index: number) => ({
