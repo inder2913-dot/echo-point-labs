@@ -598,6 +598,8 @@ function EditIndustryWithProfilesForm({
   const [profiles, setProfiles] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [profilesLoading, setProfilesLoading] = useState(true);
+  const [profilesToRemove, setProfilesToRemove] = useState<string[]>([]);
+  const [removing, setRemoving] = useState(false);
   const { toast } = useToast();
 
   // Fetch existing profiles
@@ -681,6 +683,54 @@ function EditIndustryWithProfilesForm({
     }
   };
 
+  const removeSelectedProfiles = async () => {
+    if (profilesToRemove.length === 0) return;
+    
+    setRemoving(true);
+    try {
+      const { error } = await supabase
+        .from('custom_industry_profiles')
+        .delete()
+        .in('id', profilesToRemove);
+
+      if (error) throw error;
+      
+      toast({
+        title: "Profiles Removed",
+        description: `${profilesToRemove.length} profile(s) have been removed from this industry.`
+      });
+
+      setProfilesToRemove([]);
+      fetchProfiles();
+      onIndustryUpdated();
+    } catch (error) {
+      console.error('Error removing profiles:', error);
+      toast({
+        title: "Error",
+        description: "Failed to remove profiles. Please try again.",
+        variant: "destructive"
+      });
+    } finally {
+      setRemoving(false);
+    }
+  };
+
+  const toggleProfileRemoval = (profileId: string) => {
+    setProfilesToRemove(prev => 
+      prev.includes(profileId) 
+        ? prev.filter(id => id !== profileId)
+        : [...prev, profileId]
+    );
+  };
+
+  const selectAllForRemoval = () => {
+    setProfilesToRemove(profiles.map(p => p.id));
+  };
+
+  const clearRemovalSelection = () => {
+    setProfilesToRemove([]);
+  };
+
   return (
     <div className="space-y-4">
       <Tabs value={activeTab} onValueChange={setActiveTab} className="w-full">
@@ -760,26 +810,53 @@ function EditIndustryWithProfilesForm({
                   No profiles added yet. Select profiles from the list above.
                 </p>
               ) : (
-                <div className="space-y-2">
-                  {profiles.map((profile) => (
-                    <div key={profile.id} className="flex items-center justify-between p-3 border rounded-lg">
-                      <div>
-                        <div className="font-medium">{profile.role}</div>
-                        <div className="text-sm text-muted-foreground">
-                          {profile.department} • {profile.level} • {profile.hardware_cpu}, {profile.hardware_ram}, {profile.hardware_storage}
+                <>
+                  {/* Batch Removal Actions */}
+                  {profilesToRemove.length > 0 && (
+                    <div className="flex items-center justify-between p-3 bg-destructive/10 rounded-lg mb-4">
+                      <div className="flex items-center gap-4">
+                        <span className="text-sm font-medium">
+                          {profilesToRemove.length} profile(s) selected for removal
+                        </span>
+                        <div className="flex gap-2">
+                          <Button variant="outline" size="sm" onClick={clearRemovalSelection}>
+                            Clear Selection
+                          </Button>
+                          <Button variant="outline" size="sm" onClick={selectAllForRemoval}>
+                            Select All ({profiles.length})
+                          </Button>
                         </div>
                       </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => deleteProfile(profile.id)}
-                        className="text-destructive hover:text-destructive"
+                      <Button 
+                        variant="destructive" 
+                        onClick={removeSelectedProfiles} 
+                        disabled={removing}
+                        className="min-w-24"
                       >
-                        <Trash2 className="h-4 w-4" />
+                        {removing ? 'Removing...' : `Remove ${profilesToRemove.length}`}
                       </Button>
                     </div>
-                  ))}
-                </div>
+                  )}
+
+                  <div className="space-y-2">
+                    {profiles.map((profile) => (
+                      <div key={profile.id} className="flex items-center gap-3 p-3 border rounded-lg">
+                        <input
+                          type="checkbox"
+                          checked={profilesToRemove.includes(profile.id)}
+                          onChange={() => toggleProfileRemoval(profile.id)}
+                          className="rounded"
+                        />
+                        <div className="flex-1">
+                          <div className="font-medium">{profile.role}</div>
+                          <div className="text-sm text-muted-foreground">
+                            {profile.department} • {profile.level} • {profile.hardware_cpu}, {profile.hardware_ram}, {profile.hardware_storage}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </>
               )}
             </CardContent>
           </Card>
@@ -888,6 +965,10 @@ function ProfileSelector({
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedLevel, setSelectedLevel] = useState('');
   const [selectedIndustry, setSelectedIndustry] = useState('');
+  const [selectedProfiles, setSelectedProfiles] = useState<string[]>([]);
+  const [saving, setSaving] = useState(false);
+  const [profilesToRemove, setProfilesToRemove] = useState<string[]>([]);
+  const [removing, setRemoving] = useState(false);
   const { toast } = useToast();
 
   // Fetch all available profiles
@@ -922,39 +1003,64 @@ function ProfileSelector({
     return matchesSearch && matchesLevel && matchesIndustry && notAlreadyAdded;
   });
 
-  const addProfileToIndustry = async (profile: any) => {
+  const addSelectedProfiles = async () => {
+    if (selectedProfiles.length === 0) return;
+    
+    setSaving(true);
     try {
+      const profilesToAdd = availableProfiles.filter(p => selectedProfiles.includes(p.id));
+      const profileInserts = profilesToAdd.map(profile => ({
+        custom_industry_id: customIndustryId,
+        source_profile_id: profile.id,
+        role: profile.role,
+        department: profile.department,
+        level: profile.level,
+        hardware_cpu: profile.hardware_cpu,
+        hardware_ram: profile.hardware_ram,
+        hardware_storage: profile.hardware_storage,
+        hardware_graphics: profile.hardware_graphics,
+        hardware_graphics_capacity: profile.hardware_graphics_capacity
+      }));
+
       const { error } = await supabase
         .from('custom_industry_profiles')
-        .insert({
-          custom_industry_id: customIndustryId,
-          source_profile_id: profile.id,
-          role: profile.role,
-          department: profile.department,
-          level: profile.level,
-          hardware_cpu: profile.hardware_cpu,
-          hardware_ram: profile.hardware_ram,
-          hardware_storage: profile.hardware_storage,
-          hardware_graphics: profile.hardware_graphics,
-          hardware_graphics_capacity: profile.hardware_graphics_capacity
-        });
+        .insert(profileInserts);
 
       if (error) throw error;
       
       toast({
-        title: "Profile Added",
-        description: `${profile.role} has been added to this industry.`
+        title: "Profiles Added",
+        description: `${selectedProfiles.length} profile(s) have been added to this industry.`
       });
 
+      setSelectedProfiles([]);
       onProfileAdded();
     } catch (error) {
-      console.error('Error adding profile:', error);
+      console.error('Error adding profiles:', error);
       toast({
         title: "Error",
-        description: "Failed to add profile. Please try again.",
+        description: "Failed to add profiles. Please try again.",
         variant: "destructive"
       });
+    } finally {
+      setSaving(false);
     }
+  };
+
+  const toggleProfileSelection = (profileId: string) => {
+    setSelectedProfiles(prev => 
+      prev.includes(profileId) 
+        ? prev.filter(id => id !== profileId)
+        : [...prev, profileId]
+    );
+  };
+
+  const selectAll = () => {
+    setSelectedProfiles(filteredProfiles.map(p => p.id));
+  };
+
+  const clearSelection = () => {
+    setSelectedProfiles([]);
   };
 
   const levels = [...new Set(availableProfiles.map(p => p.level))];
@@ -1016,6 +1122,30 @@ function ProfileSelector({
         </div>
       </div>
 
+      {/* Batch Actions */}
+      {selectedProfiles.length > 0 && (
+        <div className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
+          <div className="flex items-center gap-4">
+            <span className="text-sm font-medium">
+              {selectedProfiles.length} profile(s) selected
+            </span>
+            <div className="flex gap-2">
+              <Button variant="outline" size="sm" onClick={clearSelection}>
+                Clear Selection
+              </Button>
+              {filteredProfiles.length > 0 && (
+                <Button variant="outline" size="sm" onClick={selectAll}>
+                  Select All ({filteredProfiles.length})
+                </Button>
+              )}
+            </div>
+          </div>
+          <Button onClick={addSelectedProfiles} disabled={saving} className="min-w-24">
+            {saving ? 'Adding...' : `Add ${selectedProfiles.length}`}
+          </Button>
+        </div>
+      )}
+
       {/* Available Profiles */}
       <div className="max-h-96 overflow-y-auto space-y-2">
         {filteredProfiles.length === 0 ? (
@@ -1027,7 +1157,13 @@ function ProfileSelector({
           </p>
         ) : (
           filteredProfiles.map((profile) => (
-            <div key={profile.id} className="flex items-center justify-between p-3 border rounded-lg hover:bg-muted/50">
+            <div key={profile.id} className="flex items-center gap-3 p-3 border rounded-lg hover:bg-muted/50">
+              <input
+                type="checkbox"
+                checked={selectedProfiles.includes(profile.id)}
+                onChange={() => toggleProfileSelection(profile.id)}
+                className="rounded"
+              />
               <div className="flex-1">
                 <div className="font-medium">{profile.role}</div>
                 <div className="text-sm text-muted-foreground">
@@ -1042,14 +1178,6 @@ function ProfileSelector({
                   }
                 </div>
               </div>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => addProfileToIndustry(profile)}
-              >
-                <Plus className="mr-2 h-4 w-4" />
-                Add
-              </Button>
             </div>
           ))
         )}
