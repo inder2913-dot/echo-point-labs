@@ -225,6 +225,16 @@ export default function Recommendations() {
         filtered = devices
     }
     
+    console.log('=== FINAL FILTER RESULT ===')
+    console.log('Filter applied:', filterType)
+    console.log('Devices found:', filtered.length)
+    console.log('Filtered devices sample:', filtered.slice(0, 5).map(d => ({
+      name: d.employee, 
+      deviceType: d.deviceType, 
+      status: d.status,
+      issues: d.issues
+    })))
+    
     setFilteredDevices(filtered)
     setDeviceListTitle(title)
     setIsDeviceListOpen(true)
