@@ -188,6 +188,16 @@ export default function Recommendations() {
           )
         )
         break
+      case 'laptops':
+        filtered = devices.filter(d => 
+          d.deviceType === 'Laptop' && d.status === 'needs-upgrade'
+        )
+        break
+      case 'desktops':
+        filtered = devices.filter(d => 
+          d.deviceType === 'Desktop' && d.status === 'needs-upgrade'
+        )
+        break
       case 'upgrade':
         filtered = devices.filter(d => d.status === 'needs-upgrade')
         break
