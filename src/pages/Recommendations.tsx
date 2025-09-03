@@ -206,16 +206,30 @@ export default function Recommendations() {
         console.log('Filtered desktops needing upgrade:', filtered.length)
         break
       case 'critical':
-        // Critical devices: needs-upgrade status AND score below 30%
-        filtered = devices.filter(d => 
-          d.status === 'needs-upgrade' && d.score < 30
-        )
+        // Critical devices: Take the lowest scoring devices up to the calculated count
+        const criticalCount = Math.floor(deviceAnalysis.upgradeNeeded * 0.3);
+        const upgradeDevices = devices.filter(d => d.status === 'needs-upgrade')
+          .sort((a, b) => a.score - b.score); // Sort by lowest score first
+        filtered = upgradeDevices.slice(0, criticalCount);
+        console.log('Critical devices calculation:', { 
+          totalUpgrade: deviceAnalysis.upgradeNeeded, 
+          criticalCount, 
+          upgradeDevices: upgradeDevices.length,
+          filtered: filtered.length 
+        });
         break
       case 'upgrade':
-        // Minor upgrades: needs-upgrade status AND score 30% or higher
-        filtered = devices.filter(d => 
-          d.status === 'needs-upgrade' && d.score >= 30
-        )
+        // Minor upgrades: Remaining needs-upgrade devices after critical ones
+        const criticalCountForMinor = Math.floor(deviceAnalysis.upgradeNeeded * 0.3);
+        const upgradeDevicesForMinor = devices.filter(d => d.status === 'needs-upgrade')
+          .sort((a, b) => a.score - b.score); // Sort by lowest score first
+        filtered = upgradeDevicesForMinor.slice(criticalCountForMinor);
+        console.log('Minor upgrades calculation:', { 
+          totalUpgrade: deviceAnalysis.upgradeNeeded, 
+          criticalCount: criticalCountForMinor,
+          upgradeDevices: upgradeDevicesForMinor.length,
+          filtered: filtered.length 
+        });
         break
       case 'battery':
         filtered = devices.filter(d => 
