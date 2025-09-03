@@ -199,25 +199,21 @@ export default function Endpoints() {
           console.log('Device comparison data length:', data.length)
           
           deviceComparison = data.filter((item: any) => {
-            // Only count users who have an actual profile assigned (not "no profile")
-            const hasValidProfile = Boolean(item.profile && item.profile.id && item.profile.name && item.profile.name !== 'no profile')
-            const hasValidProfileId = Boolean(item.profileId && item.profileId !== 'no-profile')
-            const isProfileAssigned = hasValidProfile || hasValidProfileId
+            // Only count users who have an actual profile object (not null)
+            // Users with profile: null are "no profile" even if they have a profileId
+            const hasRealProfile = Boolean(item.profile && item.profile !== null)
             
-            if (data.indexOf(item) < 10) {
+            if (data.indexOf(item) < 15) {
               console.log(`User ${data.indexOf(item)} - ${item.name}:`, {
-                fullItem: item,
                 profile: item.profile,
                 profileId: item.profileId,
-                profileName: item.profile?.name,
-                hasValidProfile,
-                hasValidProfileId,
-                isProfileAssigned,
-                willInclude: isProfileAssigned
+                profileIsNull: item.profile === null,
+                hasRealProfile,
+                willInclude: hasRealProfile
               })
             }
             
-            return isProfileAssigned
+            return hasRealProfile
           })
         }
         
