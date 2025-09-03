@@ -1,4 +1,4 @@
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Users, Target, Settings, Plus, Edit, Check } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
@@ -27,6 +27,7 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog"
+import { supabase } from "@/integrations/supabase/client"
 
 const INDUSTRY_PROFILES = {
   retail: [
@@ -466,24 +467,109 @@ interface UserProfilingBaselinesProps {
 }
 
 export function UserProfilingBaselines({ onComplete, initialData }: UserProfilingBaselinesProps) {
-  // Get industry-specific profiles based on organization setup
-  // The data structure should be: initialData.organizationType (from step 1)
   const selectedIndustry = (initialData?.organizationType || 'default').toLowerCase()
-  const industryProfiles = INDUSTRY_PROFILES[selectedIndustry as keyof typeof INDUSTRY_PROFILES] || INDUSTRY_PROFILES.default
-  
-  const [userProfiles, setUserProfiles] = useState(industryProfiles)
+  const [userProfiles, setUserProfiles] = useState<any[]>([])
   const [editingProfile, setEditingProfile] = useState<any>(null)
   const [userAssignments, setUserAssignments] = useState<any[]>([])
   const [isDialogOpen, setIsDialogOpen] = useState(false)
+  const [isCustomIndustry, setIsCustomIndustry] = useState(false)
+  const [loading, setLoading] = useState(true)
 
   console.log('Full InitialData:', JSON.stringify(initialData, null, 2))
   console.log('Organization Type:', initialData?.organizationType)
   console.log('Selected industry:', selectedIndustry)
-  console.log('Available profiles:', Object.keys(INDUSTRY_PROFILES))
-  console.log('Using profiles:', industryProfiles.map(p => p.name))
 
-  console.log('Selected industry:', selectedIndustry)
-  console.log('Using profiles:', industryProfiles)
+  // Load profiles based on industry type (standard or custom)
+  useEffect(() => {
+    const loadProfiles = async () => {
+      try {
+        setLoading(true)
+        
+        // First check if this is a custom industry
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+          const { data: customIndustryData, error: customIndustryError } = await supabase
+            .from('custom_industries')
+            .select('id, name')
+            .eq('user_id', user.id)
+            .eq('name', initialData?.organizationType || '')
+            .single();
+
+          if (customIndustryData && !customIndustryError) {
+            console.log('Found custom industry:', customIndustryData)
+            setIsCustomIndustry(true)
+            
+            // Fetch custom industry profiles
+            const { data: customProfiles, error: profilesError } = await supabase
+              .from('custom_industry_profiles')
+              .select('*')
+              .eq('custom_industry_id', customIndustryData.id)
+              .order('role', { ascending: true });
+
+            if (profilesError) throw profilesError;
+
+            // Transform custom profiles to match the expected format
+            const transformedProfiles = (customProfiles || []).map((profile, index) => ({
+              id: profile.id,
+              name: profile.role,
+              description: `${profile.department} • ${profile.level}`,
+              criteria: [profile.role], // Use role as criteria
+              baseline: {
+                deviceType: `${profile.hardware_graphics === 'Dedicated' ? 'Laptop' : 'Desktop'}`,
+                minRam: profile.hardware_ram,
+                minCpu: profile.hardware_cpu,
+                minStorage: profile.hardware_storage,
+                mobility: profile.level === 'Executive' || profile.level === 'Management' ? 'High' : 'Medium',
+                specialRequirements: profile.hardware_graphics === 'Dedicated' 
+                  ? `Dedicated GPU ${profile.hardware_graphics_capacity ? `(${profile.hardware_graphics_capacity})` : ''}`
+                  : 'Standard peripherals'
+              },
+              color: getProfileColor(index) // Assign colors cyclically
+            }));
+
+            console.log('Transformed custom profiles:', transformedProfiles)
+            setUserProfiles(transformedProfiles)
+          } else {
+            console.log('No custom industry found, using standard profiles')
+            // Use standard industry profiles
+            setIsCustomIndustry(false)
+            const industryProfiles = INDUSTRY_PROFILES[selectedIndustry as keyof typeof INDUSTRY_PROFILES] || INDUSTRY_PROFILES.default
+            setUserProfiles(industryProfiles)
+          }
+        } else {
+          // User not authenticated, use standard profiles
+          const industryProfiles = INDUSTRY_PROFILES[selectedIndustry as keyof typeof INDUSTRY_PROFILES] || INDUSTRY_PROFILES.default
+          setUserProfiles(industryProfiles)
+        }
+      } catch (error) {
+        console.error('Error loading profiles:', error)
+        // Fallback to standard profiles
+        const industryProfiles = INDUSTRY_PROFILES[selectedIndustry as keyof typeof INDUSTRY_PROFILES] || INDUSTRY_PROFILES.default
+        setUserProfiles(industryProfiles)
+      } finally {
+        setLoading(false)
+      }
+    };
+
+    loadProfiles();
+  }, [initialData?.organizationType, selectedIndustry])
+
+  // Helper function to assign colors to profiles
+  const getProfileColor = (index: number) => {
+    const colors = [
+      "bg-blue-100 text-blue-800",
+      "bg-green-100 text-green-800", 
+      "bg-purple-100 text-purple-800",
+      "bg-orange-100 text-orange-800",
+      "bg-red-100 text-red-800",
+      "bg-yellow-100 text-yellow-800",
+      "bg-pink-100 text-pink-800",
+      "bg-indigo-100 text-indigo-800",
+      "bg-teal-100 text-teal-800",
+      "bg-cyan-100 text-cyan-800"
+    ];
+    return colors[index % colors.length];
+  };
 
   // Auto-assign users to profiles based on their department/role and industry
   const autoAssignUsers = () => {
@@ -756,139 +842,173 @@ export function UserProfilingBaselines({ onComplete, initialData }: UserProfilin
 
   return (
     <div className="space-y-6">
-      {/* Profile Overview */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <CardTitle className="flex items-center gap-2">
-              <Users className="w-5 h-5 text-primary" />
-              User Profiles & Baselines
-            </CardTitle>
-            <Button onClick={autoAssignUsers} variant="outline">
-              <Target className="w-4 h-4 mr-2" />
-              Auto-Assign Users
-            </Button>
-          </div>
-        </CardHeader>
-        <CardContent>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-            {userProfiles.map((profile) => (
-              <Card key={profile.id} className="relative">
-                <CardContent className="p-4">
-                  <div className="flex items-start justify-between mb-3">
-                    <Badge className={profile.color}>
-                      {profile.name}
-                    </Badge>
-                    <Dialog open={isDialogOpen && editingProfile?.id === profile.id} onOpenChange={setIsDialogOpen}>
-                      <DialogTrigger asChild>
-                        <Button 
-                          variant="ghost" 
-                          size="sm"
-                          onClick={() => setEditingProfile(profile)}
-                        >
-                          <Edit className="w-4 h-4" />
-                        </Button>
-                      </DialogTrigger>
-                      <DialogContent className="max-w-md">
-                        <DialogHeader>
-                          <DialogTitle>Edit Profile: {profile.name}</DialogTitle>
-                        </DialogHeader>
-                        <ProfileEditor 
-                          profile={profile} 
-                          onSave={updateProfile}
-                          onCancel={() => {
-                            setEditingProfile(null)
-                            setIsDialogOpen(false)
-                          }}
-                        />
-                      </DialogContent>
-                    </Dialog>
-                  </div>
-                  
-                  <p className="text-sm text-muted-foreground mb-3">{profile.description}</p>
-                  
-                  <div className="space-y-2">
-                    <div className="flex justify-between text-xs">
-                      <span className="text-muted-foreground">Assigned Users</span>
-                      <span className="font-medium">{getProfileStats(profile.id)}</span>
-                    </div>
-                    <div className="text-xs">
-                      <p><strong>Device:</strong> {profile.baseline.deviceType}</p>
-                      <p><strong>RAM:</strong> {profile.baseline.minRam}</p>
-                      <p><strong>CPU:</strong> {profile.baseline.minCpu}</p>
-                    </div>
-                  </div>
-                </CardContent>
-              </Card>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
-
-      {/* User Assignments Preview */}
-      {userAssignments.length > 0 && (
+      {/* Loading State */}
+      {loading ? (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Target className="w-5 h-5 text-primary" />
-              User Profile Assignments
+              <Users className="w-5 h-5 text-primary" />
+              Loading User Profiles...
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Role</TableHead>
-                  <TableHead>Assigned Profile</TableHead>
-                  <TableHead>Device Baseline</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {userAssignments.slice(0, 5).map((user, index) => {
-                  const profile = userProfiles.find(p => p.id === user.profileId)
-                  return (
-                    <TableRow key={index}>
-                      <TableCell>
-                        <div>
-                          <p className="font-medium">{user.name}</p>
-                          <p className="text-xs text-muted-foreground">{user.id}</p>
-                        </div>
-                      </TableCell>
-                      <TableCell>{user.department}</TableCell>
-                      <TableCell>{user.role}</TableCell>
-                      <TableCell>
-                        <Badge className={profile?.color}>
-                          {user.profileName}
-                        </Badge>
-                      </TableCell>
-                      <TableCell className="text-xs">
-                        <p>{profile?.baseline.deviceType}</p>
-                        <p>{profile?.baseline.minRam} RAM</p>
-                      </TableCell>
-                    </TableRow>
-                  )
-                })}
-              </TableBody>
-            </Table>
-            
-            {userAssignments.length > 5 && (
-              <p className="text-sm text-muted-foreground text-center mt-4">
-                ... and {userAssignments.length - 5} more user assignments
-              </p>
-            )}
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+              {[1, 2, 3, 4].map((i) => (
+                <Card key={i} className="animate-pulse">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="h-4 bg-muted rounded w-3/4"></div>
+                      <div className="h-3 bg-muted rounded w-full"></div>
+                      <div className="h-3 bg-muted rounded w-2/3"></div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
           </CardContent>
         </Card>
-      )}
+      ) : (
+        <>
+          {/* Profile Overview */}
+          <Card>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="w-5 h-5 text-primary" />
+                  User Profiles & Baselines
+                  {isCustomIndustry && (
+                    <Badge variant="secondary" className="ml-2">
+                      Custom Industry: {initialData?.organizationType}
+                    </Badge>
+                  )}
+                </CardTitle>
+                <Button onClick={autoAssignUsers} variant="outline">
+                  <Target className="w-4 h-4 mr-2" />
+                  Auto-Assign Users
+                </Button>
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+                {userProfiles.map((profile) => (
+                  <Card key={profile.id} className="relative">
+                    <CardContent className="p-4">
+                      <div className="flex items-start justify-between mb-3">
+                        <Badge className={profile.color}>
+                          {profile.name}
+                        </Badge>
+                        <Dialog open={isDialogOpen && editingProfile?.id === profile.id} onOpenChange={setIsDialogOpen}>
+                          <DialogTrigger asChild>
+                            <Button 
+                              variant="ghost" 
+                              size="sm"
+                              onClick={() => setEditingProfile(profile)}
+                            >
+                              <Edit className="w-4 h-4" />
+                            </Button>
+                          </DialogTrigger>
+                          <DialogContent className="max-w-md">
+                            <DialogHeader>
+                              <DialogTitle>Edit Profile: {profile.name}</DialogTitle>
+                            </DialogHeader>
+                            <ProfileEditor 
+                              profile={profile} 
+                              onSave={updateProfile}
+                              onCancel={() => {
+                                setEditingProfile(null)
+                                setIsDialogOpen(false)
+                              }}
+                            />
+                          </DialogContent>
+                        </Dialog>
+                      </div>
+                      
+                      <p className="text-sm text-muted-foreground mb-3">{profile.description}</p>
+                      
+                      <div className="space-y-2">
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">Assigned Users</span>
+                          <span className="font-medium">{getProfileStats(profile.id)}</span>
+                        </div>
+                        <div className="text-xs">
+                          <p><strong>Device:</strong> {profile.baseline.deviceType}</p>
+                          <p><strong>RAM:</strong> {profile.baseline.minRam}</p>
+                          <p><strong>CPU:</strong> {profile.baseline.minCpu}</p>
+                        </div>
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
 
-      {/* Continue Button */}
-      {userAssignments.length > 0 && (
-        <div className="flex justify-end">
-          <Button onClick={handleContinue}>
-            Continue to Device Analysis
-          </Button>
-        </div>
+          {/* User Assignments Preview */}
+          {userAssignments.length > 0 && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Target className="w-5 h-5 text-primary" />
+                  User Profile Assignments
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <Table>
+                  <TableHeader>
+                    <TableRow>
+                      <TableHead>Employee</TableHead>
+                      <TableHead>Department</TableHead>
+                      <TableHead>Role</TableHead>
+                      <TableHead>Assigned Profile</TableHead>
+                      <TableHead>Device Baseline</TableHead>
+                    </TableRow>
+                  </TableHeader>
+                  <TableBody>
+                    {userAssignments.slice(0, 5).map((user, index) => {
+                      const profile = userProfiles.find(p => p.id === user.profileId)
+                      return (
+                        <TableRow key={index}>
+                          <TableCell>
+                            <div>
+                              <p className="font-medium">{user.name}</p>
+                              <p className="text-xs text-muted-foreground">{user.id}</p>
+                            </div>
+                          </TableCell>
+                          <TableCell>{user.department}</TableCell>
+                          <TableCell>{user.role}</TableCell>
+                          <TableCell>
+                            <Badge className={profile?.color}>
+                              {user.profileName}
+                            </Badge>
+                          </TableCell>
+                          <TableCell className="text-xs">
+                            <p>{profile?.baseline.deviceType}</p>
+                            <p>{profile?.baseline.minRam} RAM</p>
+                          </TableCell>
+                        </TableRow>
+                      )
+                    })}
+                  </TableBody>
+                </Table>
+                
+                {userAssignments.length > 5 && (
+                  <p className="text-sm text-muted-foreground text-center mt-4">
+                    ... and {userAssignments.length - 5} more user assignments
+                  </p>
+                )}
+              </CardContent>
+            </Card>
+          )}
+
+          {/* Continue Button */}
+          {userAssignments.length > 0 && (
+            <div className="flex justify-end">
+              <Button onClick={handleContinue}>
+                Continue to Device Analysis
+              </Button>
+            </div>
+          )}
+        </>
       )}
     </div>
   )
