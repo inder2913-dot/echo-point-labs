@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
+import { Badge } from '@/components/ui/badge';
 import { Loader2, Cpu, Monitor, HardDrive, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
@@ -17,36 +18,68 @@ interface CreateCustomProfileProps {
 }
 
 const LEVELS = ['Staff', 'Support', 'Technical', 'Professional', 'Management', 'Executive'];
-const INDUSTRIES = ['Healthcare', 'Manufacturing', 'Technology', 'Financial Services', 'Education', 'Government', 'Retail', 'Professional Services', 'Other'];
-const CPU_OPTIONS = ['Core i3', 'Core i5', 'Core i7', 'Core i9', 'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'AMD Ryzen 9'];
-const RAM_OPTIONS = ['4GB', '8GB', '16GB', '32GB', '64GB'];
-const STORAGE_OPTIONS = ['128GB SSD', '256GB SSD', '512GB SSD', '1TB SSD', '2TB SSD', '1TB HDD', '2TB HDD'];
-const GRAPHICS_OPTIONS = ['Onboard', 'Dedicated'];
-const GRAPHICS_CAPACITY_OPTIONS = ['2GB', '4GB', '6GB', '8GB'];
+
+interface Baseline {
+  id: string;
+  role: string;
+  hardware_cpu: string;
+  hardware_ram: string;
+  hardware_storage: string;
+  hardware_graphics: string;
+  hardware_graphics_capacity?: string;
+  department: string;
+  level: string;
+}
 
 export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: CreateCustomProfileProps) {
   const [isLoading, setIsLoading] = useState(false);
+  const [baselines, setBaselines] = useState<Baseline[]>([]);
+  const [selectedBaseline, setSelectedBaseline] = useState<Baseline | null>(null);
   const [formData, setFormData] = useState({
     role: '',
     department: '',
     level: '',
     industry: '',
     description: '',
-    hardware_cpu: 'Core i5',
-    hardware_ram: '8GB',
-    hardware_storage: '256GB SSD',
-    hardware_graphics: 'Onboard',
-    hardware_graphics_capacity: '2GB'
+    baseline_id: ''
   });
   const { toast } = useToast();
+
+  // Fetch available baselines
+  const fetchBaselines = async () => {
+    try {
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('id, role, hardware_cpu, hardware_ram, hardware_storage, hardware_graphics, hardware_graphics_capacity, department, level')
+        .eq('is_custom', false)  // Only baseline profiles
+        .order('role', { ascending: true });
+
+      if (error) throw error;
+      setBaselines(data || []);
+    } catch (error) {
+      console.error('Error fetching baselines:', error);
+    }
+  };
+
+  useEffect(() => {
+    if (open) {
+      fetchBaselines();
+    }
+  }, [open]);
+
+  const handleBaselineSelect = (baselineId: string) => {
+    const baseline = baselines.find(b => b.id === baselineId);
+    setSelectedBaseline(baseline || null);
+    setFormData({ ...formData, baseline_id: baselineId });
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     
-    if (!formData.role || !formData.department || !formData.level || !formData.industry) {
+    if (!formData.role || !formData.department || !formData.level || !formData.baseline_id) {
       toast({
         title: "Missing Information",
-        description: "Please fill in all required fields including custom industry.",
+        description: "Please fill in all required fields including selecting a baseline.",
         variant: "destructive"
       });
       return;
@@ -70,11 +103,8 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
           level: formData.level,
           industry: formData.industry || null,
           description: formData.description || null,
-          hardware_cpu: formData.hardware_cpu,
-          hardware_ram: formData.hardware_ram,
-          hardware_storage: formData.hardware_storage,
-          hardware_graphics: formData.hardware_graphics,
-          hardware_graphics_capacity: formData.hardware_graphics === 'Dedicated' ? formData.hardware_graphics_capacity : null
+          baseline_id: formData.baseline_id,
+          is_custom: true
         });
 
       if (error) throw error;
@@ -91,12 +121,9 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
         level: '',
         industry: '',
         description: '',
-        hardware_cpu: 'Core i5',
-        hardware_ram: '8GB',
-        hardware_storage: '256GB SSD',
-        hardware_graphics: 'Onboard',
-        hardware_graphics_capacity: '2GB'
+        baseline_id: ''
       });
+      setSelectedBaseline(null);
 
       onProfileCreated();
       onOpenChange(false);
@@ -119,7 +146,7 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
         <DialogHeader>
           <DialogTitle>Create Custom Profile</DialogTitle>
           <DialogDescription>
-            Define a new user profile with specific hardware requirements for your organization.
+            Define a new user profile and attach a baseline hardware configuration for your organization.
           </DialogDescription>
         </DialogHeader>
 
@@ -162,16 +189,15 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="industry">Custom Industry *</Label>
+              <Label htmlFor="industry">Custom Industry</Label>
               <Input
                 id="industry"
                 value={formData.industry}
                 onChange={(e) => setFormData({ ...formData, industry: e.target.value })}
                 placeholder="e.g., Custom Manufacturing, My Organization"
-                required
               />
               <p className="text-sm text-muted-foreground">
-                Create a custom industry category for your profile. This will be separate from standard industries.
+                Optional custom industry category for your profile.
               </p>
             </div>
           </div>
@@ -187,105 +213,64 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
             />
           </div>
 
-          <Card>
-            <CardContent className="p-4">
-              <h4 className="font-medium mb-4 flex items-center gap-2">
-                <Monitor className="h-4 w-4" />
-                Hardware Requirements
-              </h4>
-              
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Cpu className="h-3 w-3" />
-                    CPU
-                  </Label>
-                  <Select value={formData.hardware_cpu} onValueChange={(value) => setFormData({ ...formData, hardware_cpu: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {CPU_OPTIONS.map(cpu => (
-                        <SelectItem key={cpu} value={cpu}>{cpu}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+          <div className="space-y-4">
+            <div className="space-y-2">
+              <Label>Select Hardware Baseline *</Label>
+              <Select value={formData.baseline_id} onValueChange={handleBaselineSelect}>
+                <SelectTrigger>
+                  <SelectValue placeholder="Choose a hardware baseline" />
+                </SelectTrigger>
+                <SelectContent>
+                  {baselines.map(baseline => (
+                    <SelectItem key={baseline.id} value={baseline.id}>
+                      {baseline.role} ({baseline.level} - {baseline.department})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
 
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Monitor className="h-3 w-3" />
-                    RAM
-                  </Label>
-                  <Select value={formData.hardware_ram} onValueChange={(value) => setFormData({ ...formData, hardware_ram: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {RAM_OPTIONS.map(ram => (
-                        <SelectItem key={ram} value={ram}>{ram}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <HardDrive className="h-3 w-3" />
-                    Storage
-                  </Label>
-                  <Select value={formData.hardware_storage} onValueChange={(value) => setFormData({ ...formData, hardware_storage: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {STORAGE_OPTIONS.map(storage => (
-                        <SelectItem key={storage} value={storage}>{storage}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-
-                <div className="space-y-2">
-                  <Label className="flex items-center gap-2">
-                    <Zap className="h-3 w-3" />
-                    Graphics
-                  </Label>
-                  <Select value={formData.hardware_graphics} onValueChange={(value) => setFormData({ ...formData, hardware_graphics: value })}>
-                    <SelectTrigger>
-                      <SelectValue />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {GRAPHICS_OPTIONS.map(graphics => (
-                        <SelectItem key={graphics} value={graphics}>{graphics}</SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
-              </div>
-
-              {formData.hardware_graphics === 'Dedicated' && (
-                <div className="mt-4">
-                  <div className="space-y-2">
-                    <Label className="flex items-center gap-2">
-                      <Zap className="h-3 w-3" />
-                      Graphics Memory
-                    </Label>
-                    <Select value={formData.hardware_graphics_capacity} onValueChange={(value) => setFormData({ ...formData, hardware_graphics_capacity: value })}>
-                      <SelectTrigger className="w-full md:w-48">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {GRAPHICS_CAPACITY_OPTIONS.map(capacity => (
-                          <SelectItem key={capacity} value={capacity}>{capacity}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+            {selectedBaseline && (
+              <Card>
+                <CardContent className="p-4">
+                  <div className="flex items-center gap-2 mb-3">
+                    <Monitor className="h-4 w-4" />
+                    <h4 className="font-medium">Selected Baseline Hardware</h4>
+                    <Badge variant="outline">{selectedBaseline.role}</Badge>
                   </div>
-                </div>
-              )}
-            </CardContent>
-          </Card>
+                  
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm">
+                    <div className="flex items-center gap-2">
+                      <Cpu className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">CPU:</span>
+                      <span>{selectedBaseline.hardware_cpu}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Monitor className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">RAM:</span>
+                      <span>{selectedBaseline.hardware_ram}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <HardDrive className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">Storage:</span>
+                      <span>{selectedBaseline.hardware_storage}</span>
+                    </div>
+                    
+                    <div className="flex items-center gap-2">
+                      <Zap className="h-3 w-3 text-muted-foreground" />
+                      <span className="text-muted-foreground">Graphics:</span>
+                      <span>
+                        {selectedBaseline.hardware_graphics}
+                        {selectedBaseline.hardware_graphics_capacity && ` (${selectedBaseline.hardware_graphics_capacity})`}
+                      </span>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
 
           <DialogFooter>
             <Button type="button" variant="outline" onClick={() => onOpenChange(false)}>

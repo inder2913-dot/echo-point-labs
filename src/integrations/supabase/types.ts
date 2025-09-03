@@ -87,6 +87,7 @@ export type Database = {
       }
       user_profiles: {
         Row: {
+          baseline_id: string | null
           created_at: string
           department: string
           description: string | null
@@ -104,6 +105,7 @@ export type Database = {
           user_id: string
         }
         Insert: {
+          baseline_id?: string | null
           created_at?: string
           department: string
           description?: string | null
@@ -121,6 +123,7 @@ export type Database = {
           user_id: string
         }
         Update: {
+          baseline_id?: string | null
           created_at?: string
           department?: string
           description?: string | null
@@ -137,7 +140,15 @@ export type Database = {
           updated_at?: string
           user_id?: string
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "user_profiles_baseline_id_fkey"
+            columns: ["baseline_id"]
+            isOneToOne: false
+            referencedRelation: "user_profiles"
+            referencedColumns: ["id"]
+          },
+        ]
       }
     }
     Views: {

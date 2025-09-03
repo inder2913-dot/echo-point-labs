@@ -158,9 +158,19 @@ export default function UserProfiles() {
 
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('*')
+        .select(`
+          *,
+          baseline:baseline_id(
+            role,
+            hardware_cpu,
+            hardware_ram,
+            hardware_storage,
+            hardware_graphics,
+            hardware_graphics_capacity
+          )
+        `)
         .eq('user_id', user.id)
-        .eq('is_custom', true)  // Only fetch custom profiles
+        .eq('is_custom', true)  // Only fetch custom profiles (not baselines)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
@@ -372,25 +382,46 @@ export default function UserProfiles() {
                         <p className="text-xs text-muted-foreground">{profile.description}</p>
                       )}
                       
-                      <div className="space-y-2">
-                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-                          Hardware Requirements
-                        </p>
-                        <div className="grid grid-cols-1 gap-1 text-xs">
-                          <div className="flex items-center gap-2">
-                            <Cpu className="h-3 w-3 text-muted-foreground" />
-                            <span>{profile.hardware_cpu}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <Monitor className="h-3 w-3 text-muted-foreground" />
-                            <span>{profile.hardware_ram}</span>
-                          </div>
-                          <div className="flex items-center gap-2">
-                            <HardDrive className="h-3 w-3 text-muted-foreground" />
-                            <span>{profile.hardware_storage}</span>
-                          </div>
-                        </div>
-                      </div>
+                       <div className="space-y-2">
+                         <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                           Hardware Requirements
+                         </p>
+                         {profile.baseline ? (
+                           <div className="grid grid-cols-1 gap-1 text-xs">
+                             <div className="flex items-center gap-2 justify-between">
+                               <span className="text-muted-foreground">Baseline:</span>
+                               <Badge variant="outline" className="text-xs">{profile.baseline.role}</Badge>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <Cpu className="h-3 w-3 text-muted-foreground" />
+                               <span>{profile.baseline.hardware_cpu}</span>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <Monitor className="h-3 w-3 text-muted-foreground" />
+                               <span>{profile.baseline.hardware_ram}</span>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <HardDrive className="h-3 w-3 text-muted-foreground" />
+                               <span>{profile.baseline.hardware_storage}</span>
+                             </div>
+                           </div>
+                         ) : (
+                           <div className="grid grid-cols-1 gap-1 text-xs">
+                             <div className="flex items-center gap-2">
+                               <Cpu className="h-3 w-3 text-muted-foreground" />
+                               <span>{profile.hardware_cpu}</span>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <Monitor className="h-3 w-3 text-muted-foreground" />
+                               <span>{profile.hardware_ram}</span>
+                             </div>
+                             <div className="flex items-center gap-2">
+                               <HardDrive className="h-3 w-3 text-muted-foreground" />
+                               <span>{profile.hardware_storage}</span>
+                             </div>
+                           </div>
+                         )}
+                       </div>
                     </div>
                   </CardContent>
                 </Card>
