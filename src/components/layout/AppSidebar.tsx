@@ -24,6 +24,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
+import { Badge } from "@/components/ui/badge"
 
 const mainItems = [
   { title: "Overview", url: "/", icon: BarChart3 },
@@ -92,7 +93,10 @@ export function AppSidebar() {
         </SidebarGroup>
 
         <SidebarGroup>
-          <SidebarGroupLabel className="text-muted-foreground">Analytics</SidebarGroupLabel>
+          <SidebarGroupLabel className="text-muted-foreground flex items-center justify-between">
+            Analytics
+            {!collapsed && <Badge variant="secondary" className="text-xs px-2 py-0.5">WIP</Badge>}
+          </SidebarGroupLabel>
           <SidebarGroupContent>
             <SidebarMenu>
               {analyticsItems.map((item) => (
