@@ -14,16 +14,16 @@ import { Avatar, AvatarFallback } from "@/components/ui/avatar"
 
 export function TopBar() {
   return (
-    <header className="h-16 border-b border-border bg-card flex items-center justify-between px-4">
+    <header className="h-16 border-b border-border bg-background flex items-center justify-between px-4">
       <div className="flex items-center gap-4">
-        <SidebarTrigger className="text-muted-foreground hover:text-card-foreground" />
+        <SidebarTrigger className="text-muted-foreground hover:text-foreground" />
         
         <div className="flex items-center gap-2">
           <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
             <span className="text-primary-foreground font-bold text-sm">H</span>
           </div>
           <div>
-            <h1 className="font-bold text-card-foreground">Hexaware EcoPulse</h1>
+            <h1 className="font-bold text-foreground">Hexaware EcoPulse</h1>
           </div>
         </div>
       </div>
@@ -62,7 +62,7 @@ export function TopBar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
-              <span className="text-sm text-card-foreground hidden sm:block">ACME Corp</span>
+              <span className="text-sm text-foreground hidden sm:block">ACME Corp</span>
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground">U</AvatarFallback>
               </Avatar>

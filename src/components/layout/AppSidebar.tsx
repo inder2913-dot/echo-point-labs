@@ -49,14 +49,14 @@ export function AppSidebar() {
 
   const getNavClass = ({ isActive }: { isActive: boolean }) =>
     isActive 
-      ? "bg-primary text-primary-foreground shadow-glow font-medium" 
-      : "text-muted-foreground hover:bg-card-hover hover:text-card-foreground transition-smooth"
+      ? "bg-primary text-primary-foreground font-medium" 
+      : "text-muted-foreground hover:bg-accent hover:text-foreground transition-smooth"
 
   return (
     <Sidebar
-      className={`${collapsed ? "w-14" : "w-64"} border-r border-border bg-card`}
+      className={`${collapsed ? "w-14" : "w-64"} border-r border-border bg-background`}
     >
-      <SidebarContent className="bg-card">
+      <SidebarContent className="bg-background">
         <div className="p-4 border-b border-border">
           <div className="flex items-center gap-3">
             <div className="w-8 h-8 rounded-full bg-gradient-primary flex items-center justify-center">
@@ -64,7 +64,7 @@ export function AppSidebar() {
             </div>
             {!collapsed && (
               <div>
-                <h2 className="font-semibold text-card-foreground">EchoPoint</h2>
+                <h2 className="font-semibold text-foreground">EchoPoint</h2>
                 <p className="text-xs text-muted-foreground">Workplace Analytics</p>
               </div>
             )}

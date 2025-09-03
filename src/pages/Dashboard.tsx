@@ -67,7 +67,7 @@ export default function Dashboard() {
   ]
 
   return (
-    <div className="flex-1 space-y-4 p-8 bg-background">
+    <div className="flex-1 space-y-6 p-8 bg-background font-inter">
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard Overview</h2>
@@ -88,11 +88,11 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
         {/* Recent Activity */}
-        <Card className="col-span-4 bg-card border-border shadow-card">
+        <Card className="col-span-4 bg-background border-border shadow-card">
           <CardHeader>
-            <CardTitle className="text-card-foreground">Recent Activity</CardTitle>
+            <CardTitle className="text-foreground">Recent Activity</CardTitle>
             <CardDescription>
               Latest updates across your workplace analytics platform
             </CardDescription>
@@ -106,7 +106,7 @@ export default function Dashboard() {
                     activity.status === 'warning' ? 'bg-warning' : 'bg-primary'
                   }`} />
                   <div>
-                    <p className="text-sm font-medium text-card-foreground">{activity.action}</p>
+                    <p className="text-sm font-medium text-foreground">{activity.action}</p>
                     <p className="text-xs text-muted-foreground">{activity.time}</p>
                   </div>
                 </div>
@@ -116,9 +116,9 @@ export default function Dashboard() {
         </Card>
 
         {/* Critical Insights */}
-        <Card className="col-span-3 bg-card border-border shadow-card">
+        <Card className="col-span-3 bg-background border-border shadow-card">
           <CardHeader>
-            <CardTitle className="text-card-foreground">Critical Insights</CardTitle>
+            <CardTitle className="text-foreground">Critical Insights</CardTitle>
             <CardDescription>
               Actionable recommendations for immediate attention
             </CardDescription>
@@ -132,7 +132,7 @@ export default function Dashboard() {
                       <Badge variant={insight.priority === 'high' ? 'destructive' : insight.priority === 'medium' ? 'default' : 'secondary'}>
                         {insight.priority}
                       </Badge>
-                      <h4 className="text-sm font-medium text-card-foreground">{insight.title}</h4>
+                      <h4 className="text-sm font-medium text-foreground">{insight.title}</h4>
                     </div>
                     <p className="text-xs text-muted-foreground">{insight.description}</p>
                   </div>
@@ -147,9 +147,9 @@ export default function Dashboard() {
       </div>
 
       {/* Compliance Overview */}
-      <Card className="bg-card border-border shadow-card">
+      <Card className="bg-background border-border shadow-card">
         <CardHeader>
-          <CardTitle className="text-card-foreground">Baseline Compliance Overview</CardTitle>
+          <CardTitle className="text-foreground">Baseline Compliance Overview</CardTitle>
           <CardDescription>
             Department-wise compliance against established workplace baselines
           </CardDescription>
@@ -166,7 +166,7 @@ export default function Dashboard() {
             ].map((dept, index) => (
               <div key={index} className="space-y-2">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-card-foreground">{dept.dept}</span>
+                  <span className="text-sm font-medium text-foreground">{dept.dept}</span>
                   <span className="text-sm text-muted-foreground">{dept.compliance}%</span>
                 </div>
                 <Progress value={dept.compliance} className="h-2" />

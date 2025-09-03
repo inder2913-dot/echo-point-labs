@@ -2,66 +2,66 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Hexaware EchoPoint Design System - Professional Dark Theme */
+/* Hexaware EchoPoint Design System - Clean Professional Theme */
 
 @layer base {
   :root {
-    /* Core brand colors */
-    --background: 210 30% 8%;
-    --foreground: 210 20% 95%;
+    /* Core brand colors - Light theme */
+    --background: 0 0% 100%;
+    --foreground: 222 15% 20%;
 
     /* Card system */
-    --card: 210 25% 12%;
-    --card-foreground: 210 20% 95%;
-    --card-hover: 210 25% 15%;
+    --card: 0 0% 100%;
+    --card-foreground: 222 15% 20%;
+    --card-hover: 210 40% 98%;
 
     /* Popover system */
-    --popover: 210 25% 12%;
-    --popover-foreground: 210 20% 95%;
+    --popover: 0 0% 100%;
+    --popover-foreground: 222 15% 20%;
 
     /* Brand primary - Hexaware blue */
     --primary: 220 90% 56%;
-    --primary-foreground: 210 20% 98%;
+    --primary-foreground: 0 0% 100%;
     --primary-glow: 220 90% 66%;
 
     /* Secondary system */
-    --secondary: 210 25% 18%;
-    --secondary-foreground: 210 20% 95%;
+    --secondary: 210 40% 96%;
+    --secondary-foreground: 222 15% 20%;
 
     /* Muted system */
-    --muted: 210 25% 15%;
-    --muted-foreground: 210 20% 70%;
+    --muted: 210 40% 96%;
+    --muted-foreground: 215 16% 47%;
 
     /* Accent system */
-    --accent: 270 80% 60%;
-    --accent-foreground: 210 20% 98%;
+    --accent: 210 40% 96%;
+    --accent-foreground: 222 15% 20%;
 
     /* Status colors */
-    --destructive: 0 75% 60%;
-    --destructive-foreground: 210 20% 98%;
-    --success: 142 76% 36%;
-    --success-foreground: 210 20% 98%;
+    --destructive: 0 84% 60%;
+    --destructive-foreground: 0 0% 100%;
+    --success: 142 71% 45%;
+    --success-foreground: 0 0% 100%;
     --warning: 38 92% 50%;
-    --warning-foreground: 210 20% 98%;
+    --warning-foreground: 0 0% 100%;
 
     /* Border system */
-    --border: 210 25% 20%;
-    --input: 210 25% 15%;
+    --border: 214 32% 91%;
+    --input: 214 32% 91%;
     --ring: 220 90% 56%;
 
     /* Professional gradients */
     --gradient-primary: linear-gradient(135deg, hsl(220 90% 56%), hsl(220 90% 66%));
-    --gradient-secondary: linear-gradient(135deg, hsl(210 25% 12%), hsl(210 25% 18%));
+    --gradient-secondary: linear-gradient(135deg, hsl(0 0% 100%), hsl(210 40% 98%));
     --gradient-accent: linear-gradient(135deg, hsl(270 80% 60%), hsl(290 80% 60%));
     
     /* Shadows */
-    --shadow-elegant: 0 10px 30px -10px hsl(220 90% 56% / 0.3);
-    --shadow-card: 0 4px 20px -2px hsl(210 25% 8% / 0.4);
-    --shadow-glow: 0 0 40px hsl(220 90% 66% / 0.4);
+    --shadow-elegant: 0 4px 20px -2px hsl(220 90% 56% / 0.15);
+    --shadow-card: 0 1px 3px 0 hsl(0 0% 0% / 0.1), 0 1px 2px -1px hsl(0 0% 0% / 0.1);
+    --shadow-glow: 0 0 0 3px hsl(220 90% 56% / 0.1);
 
     /* Animation system */
-    --transition-smooth: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
-    --transition-bounce: all 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
 
     --radius: 0.5rem;
 
