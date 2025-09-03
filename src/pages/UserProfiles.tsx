@@ -160,6 +160,7 @@ export default function UserProfiles() {
         .from('user_profiles')
         .select('*')
         .eq('user_id', user.id)
+        .eq('is_custom', true)  // Only fetch custom profiles
         .order('created_at', { ascending: false });
 
       if (error) throw error;
