@@ -428,8 +428,7 @@ export default function Recommendations() {
         ],
         detailedAnalysis: {
           deviceBreakdown: [
-            { type: 'Windows 10 Devices', count: analysis.windows10Devices, issues: ['Outdated OS', 'Missing Security Features'] },
-            { type: 'Unpatched Systems', count: analysis.unpatchedDevices, issues: ['Critical Security Patches Missing'] }
+            { type: 'Windows 10 Devices', count: analysis.windows10Devices, issues: ['Outdated OS', 'Missing Security Features'] }
           ],
           riskAssessment: [
             'High vulnerability to ransomware attacks',
