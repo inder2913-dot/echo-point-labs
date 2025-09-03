@@ -170,7 +170,8 @@ export default function UserProfiles() {
           )
         `)
         .eq('user_id', user.id)
-        .eq('is_custom', true)  // Only fetch custom profiles (not baselines)
+        .eq('is_custom', true)
+        .not('baseline_id', 'is', null)  // Only fetch profiles that reference a baseline (exclude custom baselines)
         .order('created_at', { ascending: false });
 
       if (error) throw error;
