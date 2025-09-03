@@ -242,7 +242,7 @@ export default function ProjectDetails() {
       </div>
 
       {/* Employee Data */}
-      {projectData.employeeData && (
+      {projectData.organizationSetup?.employeeData && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -250,7 +250,7 @@ export default function ProjectDetails() {
               Employee Data
             </CardTitle>
             <CardDescription>
-              {projectData.employeeData.length} employees analyzed
+              {projectData.organizationSetup.employeeData.length} employees analyzed
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -265,7 +265,7 @@ export default function ProjectDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projectData.employeeData.slice(0, 5).map((employee: any, index: number) => (
+                {projectData.organizationSetup.employeeData.slice(0, 5).map((employee: any, index: number) => (
                   <TableRow key={index}>
                     <TableCell className="font-medium">{employee.id}</TableCell>
                     <TableCell>{employee.name}</TableCell>
@@ -276,9 +276,9 @@ export default function ProjectDetails() {
                 ))}
               </TableBody>
             </Table>
-            {projectData.employeeData.length > 5 && (
+            {projectData.organizationSetup.employeeData.length > 5 && (
               <p className="text-sm text-muted-foreground mt-2">
-                Showing 5 of {projectData.employeeData.length} employees
+                Showing 5 of {projectData.organizationSetup.employeeData.length} employees
               </p>
             )}
           </CardContent>
@@ -286,7 +286,7 @@ export default function ProjectDetails() {
       )}
 
       {/* Device Inventory */}
-      {projectData.deviceInventory && (
+      {projectData.organizationSetup?.deviceData && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export default function ProjectDetails() {
               Device Inventory
             </CardTitle>
             <CardDescription>
-              {projectData.deviceInventory.length} devices cataloged
+              {projectData.organizationSetup.deviceData.length} devices catalogued
             </CardDescription>
           </CardHeader>
           <CardContent>
@@ -309,24 +309,24 @@ export default function ProjectDetails() {
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {projectData.deviceInventory.slice(0, 5).map((device: any, index: number) => (
+                {projectData.organizationSetup.deviceData.slice(0, 5).map((device: any, index: number) => (
                   <TableRow key={index}>
-                    <TableCell className="font-medium">{device.deviceId}</TableCell>
-                    <TableCell>{device.userName}</TableCell>
+                    <TableCell className="font-medium">{device.deviceserial || device.deviceId}</TableCell>
+                    <TableCell>{device.computername}</TableCell>
                     <TableCell>
-                      <Badge variant="outline">{device.deviceType}</Badge>
+                      <Badge variant="outline">{device.deviceserial?.startsWith('LTP') ? 'Laptop' : device.deviceserial?.startsWith('DESK') ? 'Desktop' : 'Other'}</Badge>
                     </TableCell>
-                    <TableCell>{device.model}</TableCell>
+                    <TableCell>{device.devicemodel || device.model}</TableCell>
                     <TableCell className="text-xs">
-                      {device.ram} RAM, {device.cpu}
+                      {device.ramcapacity || device.ram} RAM, {device.cpucapacity || device.cpu}
                     </TableCell>
                   </TableRow>
                 ))}
               </TableBody>
             </Table>
-            {projectData.deviceInventory.length > 5 && (
+            {projectData.organizationSetup.deviceData.length > 5 && (
               <p className="text-sm text-muted-foreground mt-2">
-                Showing 5 of {projectData.deviceInventory.length} devices
+                Showing 5 of {projectData.organizationSetup.deviceData.length} devices
               </p>
             )}
           </CardContent>
