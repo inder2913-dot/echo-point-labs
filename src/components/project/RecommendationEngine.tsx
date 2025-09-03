@@ -164,62 +164,79 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
 
     setIsSaving(true);
     try {
+      // Get user first
+      const { data: userData, error: userError } = await supabase.auth.getUser();
+      if (userError || !userData.user) {
+        throw new Error('User not authenticated');
+      }
+
+      // Get organization data more flexibly
+      const orgData = initialData.organizationSetup || initialData.organization || {};
+      const orgType = orgData.organizationType || orgData.orgType || orgData.type || 'Unknown';
+      const industry = orgData.industry || orgData.industryType || 'Unknown';
+
+      console.log('Organization data being saved:', { orgType, industry, orgData }); // Debug log
+      
       // Create project
       const { data: project, error: projectError } = await supabase
         .from('projects')
         .insert({
-          user_id: (await supabase.auth.getUser()).data.user?.id,
-          name: `${initialData.organizationSetup.organizationType} Project - ${new Date().toLocaleDateString()}`,
-          organization_type: initialData.organizationSetup.organizationType,
-          industry: initialData.organizationSetup.industry,
+          user_id: userData.user.id,
+          name: `${orgType} Project - ${new Date().toLocaleDateString()}`,
+          organization_type: orgType,
+          industry: industry,
           status: 'completed',
           completed_at: new Date().toISOString()
         })
         .select()
         .single();
 
-      if (projectError) throw projectError;
+      if (projectError) {
+        console.error('Project creation error:', projectError);
+        throw projectError;
+      }
+
+      console.log('Project created:', project); // Debug log
 
       // Save all project data
       const projectDataInserts = [
-        { project_id: project.id, step_name: 'organizationSetup', data: initialData.organizationSetup },
-        { project_id: project.id, step_name: 'employeeData', data: initialData.employeeData },
-        { project_id: project.id, step_name: 'deviceInventory', data: initialData.deviceInventory },
-        { project_id: project.id, step_name: 'userProfiles', data: initialData.userProfiles },
-        { project_id: project.id, step_name: 'deviceComparison', data: initialData.deviceComparison },
+        { project_id: project.id, step_name: 'organizationSetup', data: orgData },
+        { project_id: project.id, step_name: 'employeeData', data: initialData.employeeData || [] },
+        { project_id: project.id, step_name: 'deviceInventory', data: initialData.deviceData || [] },
+        { project_id: project.id, step_name: 'userProfiles', data: initialData.userProfiles || [] },
+        { project_id: project.id, step_name: 'userAssignments', data: initialData.userAssignments || [] },
+        { project_id: project.id, step_name: 'deviceComparison', data: initialData.deviceComparison || [] },
         { project_id: project.id, step_name: 'recommendations', data: { recommendations, costSavings } }
       ];
+
+      console.log('Inserting project data:', projectDataInserts); // Debug log
 
       const { error: dataError } = await supabase
         .from('project_data')
         .insert(projectDataInserts);
 
-      if (dataError) throw dataError;
+      if (dataError) {
+        console.error('Project data insertion error:', dataError);
+        throw dataError;
+      }
 
       toast({
         title: "Project Saved",
-        description: "Your project has been successfully saved to the database.",
+        description: `Project has been saved successfully with ${recommendations.length} recommendations.`,
       });
 
-      // Call onComplete with success data
-      onComplete({
-        projectId: project.id,
-        recommendations,
-        costAnalysis: costSavings,
-        projectComplete: true
-      });
-
+      console.log('Project saved successfully!'); // Debug log
     } catch (error) {
-      console.error('Error saving project:', error);
+      console.error('Save project error:', error);
       toast({
         title: "Error",
-        description: "Failed to save project. Please try again.",
+        description: `Failed to save project: ${error.message || 'Please try again.'}`,
         variant: "destructive"
       });
     } finally {
       setIsSaving(false);
     }
-  };
+  }
 
   const getTypeInfo = (type: string) => {
     switch (type) {
