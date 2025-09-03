@@ -89,6 +89,9 @@ export default function Baselines() {
   const [levelFilter, setLevelFilter] = useState<string>("all")
   const [industryFilter, setIndustryFilter] = useState<string>("all")
   const [graphicsFilter, setGraphicsFilter] = useState<string>("all")
+  const [cpuFilter, setCpuFilter] = useState<string>("all")
+  const [ramFilter, setRamFilter] = useState<string>("all")
+  const [storageFilter, setStorageFilter] = useState<string>("all")
 
   useEffect(() => {
     loadUserProfiles()
@@ -151,21 +154,36 @@ export default function Baselines() {
     if (graphicsFilter && graphicsFilter !== "all") {
       filtered = filtered.filter(profile => profile.baseline.graphics === graphicsFilter)
     }
+    if (cpuFilter && cpuFilter !== "all") {
+      filtered = filtered.filter(profile => profile.baseline.cpu === cpuFilter)
+    }
+    if (ramFilter && ramFilter !== "all") {
+      filtered = filtered.filter(profile => profile.baseline.ram === ramFilter)
+    }
+    if (storageFilter && storageFilter !== "all") {
+      filtered = filtered.filter(profile => profile.baseline.storage === storageFilter)
+    }
 
     setFilteredProfiles(filtered)
-  }, [userProfiles, departmentFilter, levelFilter, industryFilter, graphicsFilter])
+  }, [userProfiles, departmentFilter, levelFilter, industryFilter, graphicsFilter, cpuFilter, ramFilter, storageFilter])
 
   // Get unique values for filter options
   const departments = [...new Set(userProfiles.map(p => p.department).filter(Boolean))]
   const levels = [...new Set(userProfiles.map(p => p.level).filter(Boolean))]
   const industries = [...new Set(userProfiles.map(p => p.industry).filter(Boolean))]
   const graphicsOptions = [...new Set(userProfiles.map(p => p.baseline.graphics).filter(Boolean))]
+  const cpuOptions = [...new Set(userProfiles.map(p => p.baseline.cpu).filter(Boolean))]
+  const ramOptions = [...new Set(userProfiles.map(p => p.baseline.ram).filter(Boolean))]
+  const storageOptions = [...new Set(userProfiles.map(p => p.baseline.storage).filter(Boolean))]
 
   const clearFilters = () => {
     setDepartmentFilter("all")
     setLevelFilter("all")
     setIndustryFilter("all")
     setGraphicsFilter("all")
+    setCpuFilter("all")
+    setRamFilter("all")
+    setStorageFilter("all")
   }
 
   const updateProfile = async (updatedProfile: any) => {
@@ -238,7 +256,7 @@ export default function Baselines() {
           </Button>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-7 gap-4">
           <div className="space-y-2">
             <Label>Department</Label>
             <Select value={departmentFilter} onValueChange={setDepartmentFilter}>
@@ -294,6 +312,51 @@ export default function Baselines() {
                 <SelectItem value="all">All Graphics</SelectItem>
                 {graphicsOptions.map(graphics => (
                   <SelectItem key={graphics} value={graphics}>{graphics}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>CPU</Label>
+            <Select value={cpuFilter} onValueChange={setCpuFilter}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="All CPUs" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="all">All CPUs</SelectItem>
+                {cpuOptions.map(cpu => (
+                  <SelectItem key={cpu} value={cpu}>{cpu}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>RAM</Label>
+            <Select value={ramFilter} onValueChange={setRamFilter}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="All RAM" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="all">All RAM</SelectItem>
+                {ramOptions.map(ram => (
+                  <SelectItem key={ram} value={ram}>{ram}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          <div className="space-y-2">
+            <Label>Storage</Label>
+            <Select value={storageFilter} onValueChange={setStorageFilter}>
+              <SelectTrigger className="bg-background">
+                <SelectValue placeholder="All Storage" />
+              </SelectTrigger>
+              <SelectContent className="bg-background border shadow-lg z-50">
+                <SelectItem value="all">All Storage</SelectItem>
+                {storageOptions.map(storage => (
+                  <SelectItem key={storage} value={storage}>{storage}</SelectItem>
                 ))}
               </SelectContent>
             </Select>
