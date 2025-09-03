@@ -415,11 +415,19 @@ export default function Recommendations() {
         ],
         detailedAnalysis: {
           deviceBreakdown: (() => {
-            const laptopsNeedingUpgrade = devices.filter(d => d.devicetype === 'Laptop' && d.status === 'needs-upgrade').length;
-            const desktopsNeedingUpgrade = devices.filter(d => d.devicetype === 'Desktop' && d.status === 'needs-upgrade').length;
+            const fullReplacements = Math.floor(analysis.upgradeNeeded * 0.3);
+            const minorFixes = Math.floor(analysis.upgradeNeeded * 0.7);
             return [
-              { type: 'Laptops', count: laptopsNeedingUpgrade, issues: ['Insufficient RAM', 'Slow Storage'] },
-              { type: 'Desktops', count: desktopsNeedingUpgrade, issues: ['Outdated CPU', 'Low RAM'] }
+              { 
+                type: 'Critical Issues (Full Replacement)', 
+                count: fullReplacements, 
+                issues: ['Critical RAM shortage', 'Severely outdated hardware', 'Multiple component failures'] 
+              },
+              { 
+                type: 'Minor Issues (Fixes & Upgrades)', 
+                count: minorFixes, 
+                issues: ['RAM below baseline', 'Slow storage', 'Minor hardware upgrades needed'] 
+              }
             ];
           })(),
           costBreakdown: [
