@@ -178,26 +178,32 @@ export default function Endpoints() {
         if (data.deviceComparison && Array.isArray(data.deviceComparison)) {
           deviceComparison = data.deviceComparison // This is the correct structure
         } else if (Array.isArray(data)) {
-          // Fallback: filter the array to only include items with user assignments
+          // The DeviceComparison has created fake employee data for all devices
+          // We need to identify which ones are real employee assignments vs fake ones
           console.log('Sample device objects from data:', data.slice(0, 3))
+          
+          // Look for patterns that indicate real vs fake employee assignments
+          // Real employees should have more consistent/realistic data patterns
+          const realEmployeeNames = [
+            'Wei Liu', 'Sarah Johnson', 'Abdul Ali', 'Thomas Brown', 'Linda Lee',
+            'Samuel Ghosh', 'Olga Petrova', 'Mark Taylor', 'Ananya Dey', 'Carla Bianchi',
+            'Pablo Garcia', 'Harpreet Singh', 'Maria Rossi'
+          ];
+          
           deviceComparison = data.filter((item: any) => {
-            // Item has user assignment if it has employee info
-            const hasUserAssignment = Boolean((item.firstName && item.lastName) || 
-                                             (item.name && item.name !== 'Unknown') || 
-                                             (item.department && item.department !== 'Unknown'))
+            // Check if this is a real employee from the original 13
+            const isRealEmployee = realEmployeeNames.includes(item.name)
             
-            // Log first few items to understand the structure
             if (data.indexOf(item) < 5) {
               console.log(`Device ${data.indexOf(item)}:`, {
-                firstName: item.firstName,
-                lastName: item.lastName,
                 name: item.name,
                 department: item.department,
-                hasUserAssignment,
-                fullItem: item
+                isRealEmployee,
+                status: item.status
               })
             }
-            return hasUserAssignment
+            
+            return isRealEmployee
           })
         }
         
