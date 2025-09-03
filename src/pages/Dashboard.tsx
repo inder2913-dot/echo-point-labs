@@ -1,83 +1,116 @@
-import { Users, Target, Activity, Building2, TrendingUp, Shield, AlertTriangle, CheckCircle } from "lucide-react"
+import { useState, useEffect } from "react"
+import { Link } from "react-router-dom"
+import { supabase } from "@/integrations/supabase/client"
+import { Users, Target, Activity, Building2, TrendingUp, Shield, AlertTriangle, CheckCircle, Plus, Calendar, Eye } from "lucide-react"
 import { DashboardCard } from "@/components/dashboard/DashboardCard"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Progress } from "@/components/ui/progress"
 import { Badge } from "@/components/ui/badge"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { useToast } from "@/hooks/use-toast"
 
 export default function Dashboard() {
+  const [projects, setProjects] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const { toast } = useToast()
+
+  useEffect(() => {
+    fetchProjects()
+  }, [])
+
+  const fetchProjects = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+
+      const { data, error } = await supabase
+        .from('projects')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false })
+
+      if (error) throw error
+      setProjects(data || [])
+    } catch (error) {
+      console.error('Error fetching projects:', error)
+      toast({
+        title: "Error",
+        description: "Failed to load projects",
+        variant: "destructive"
+      })
+    } finally {
+      setLoading(false)
+    }
+  }
+
   const stats = [
     {
-      title: "Total Users Profiled",
-      value: "2,847",
-      description: "Active user profiles",
-      icon: <Users className="h-4 w-4" />,
-      trend: { value: 12, label: "from last month", positive: true }
+      title: "Total Projects",
+      value: projects.length.toString(),
+      description: "Completed analyses",
+      icon: <Target className="h-4 w-4" />,
+      trend: { value: projects.filter(p => p.status === 'completed').length, label: "completed", positive: true }
     },
     {
       title: "Organizations",
-      value: "24",
-      description: "Multi-industry coverage",
+      value: new Set(projects.map(p => p.organization_type)).size.toString(),
+      description: "Organization types analyzed",
       icon: <Building2 className="h-4 w-4" />,
-      trend: { value: 8, label: "new this quarter", positive: true }
+      trend: { value: 0, label: "unique types", positive: true }
     },
     {
-      title: "Baselines Set",
-      value: "156",
-      description: "Industry standards defined",
-      icon: <Target className="h-4 w-4" />,
-      trend: { value: 15, label: "updated recently", positive: true }
+      title: "Industries",
+      value: new Set(projects.map(p => p.industry)).size.toString(),
+      description: "Industry coverage",
+      icon: <Users className="h-4 w-4" />,
+      trend: { value: 0, label: "different sectors", positive: true }
     },
     {
-      title: "Endpoint Compliance",
-      value: "87%",
-      description: "Meeting baseline standards",
+      title: "Recent Activity",
+      value: projects.filter(p => new Date(p.created_at) > new Date(Date.now() - 7 * 24 * 60 * 60 * 1000)).length.toString(),
+      description: "Projects this week",
       icon: <Activity className="h-4 w-4" />,
-      trend: { value: 5, label: "improvement", positive: true }
+      trend: { value: 0, label: "this week", positive: true }
     }
   ]
 
-  const recentActivities = [
-    { action: "Baseline updated for Healthcare industry", time: "2 minutes ago", status: "success" },
-    { action: "New user profile created - Marketing Dept", time: "5 minutes ago", status: "info" },
-    { action: "Security recommendation generated", time: "12 minutes ago", status: "warning" },
-    { action: "Endpoint analysis completed - 95% compliance", time: "18 minutes ago", status: "success" },
-    { action: "Organization onboarded - TechCorp Inc", time: "1 hour ago", status: "info" },
-  ]
+  const formatDate = (dateString: string) => {
+    return new Date(dateString).toLocaleDateString('en-US', {
+      year: 'numeric',
+      month: 'short',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit'
+    })
+  }
 
-  const criticalInsights = [
-    {
-      title: "Security Gap Identified",
-      description: "15 endpoints in Finance dept below security baseline",
-      priority: "high",
-      action: "Review Security Settings"
-    },
-    {
-      title: "Performance Opportunity",
-      description: "Remote workers could benefit from enhanced mobility solutions",
-      priority: "medium", 
-      action: "Generate Recommendations"
-    },
-    {
-      title: "Compliance Achievement",
-      description: "Healthcare division reached 98% baseline compliance",
-      priority: "low",
-      action: "View Report"
+  const getStatusColor = (status: string) => {
+    switch (status) {
+      case 'completed': return 'bg-green-100 text-green-800'
+      case 'in_progress': return 'bg-yellow-100 text-yellow-800'
+      case 'draft': return 'bg-gray-100 text-gray-800'
+      default: return 'bg-gray-100 text-gray-800'
     }
-  ]
+  }
 
   return (
     <div className="flex-1 space-y-6 p-8 bg-background font-inter">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard Overview</h2>
+          <h2 className="text-3xl font-bold tracking-tight text-foreground">Dashboard</h2>
           <p className="text-muted-foreground">
-            Real-time insights into your workplace analytics and endpoint management
+            Overview of your workplace analytics projects and insights
           </p>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline">Export Report</Button>
-          <Button variant="hero">Create Profile</Button>
+          <Button asChild>
+            <Link to="/project">
+              <Plus className="w-4 h-4 mr-2" />
+              New Project
+            </Link>
+          </Button>
         </div>
       </div>
 
@@ -88,94 +121,139 @@ export default function Dashboard() {
         ))}
       </div>
 
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-7">
-        {/* Recent Activity */}
-        <Card className="col-span-4 bg-background border-border shadow-card">
-          <CardHeader>
-            <CardTitle className="text-foreground">Recent Activity</CardTitle>
-            <CardDescription>
-              Latest updates across your workplace analytics platform
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {recentActivities.map((activity, index) => (
-              <div key={index} className="flex items-center justify-between border-b border-border last:border-0 pb-3 last:pb-0">
-                <div className="flex items-center gap-3">
-                  <div className={`w-2 h-2 rounded-full ${
-                    activity.status === 'success' ? 'bg-success' :
-                    activity.status === 'warning' ? 'bg-warning' : 'bg-primary'
-                  }`} />
-                  <div>
-                    <p className="text-sm font-medium text-foreground">{activity.action}</p>
-                    <p className="text-xs text-muted-foreground">{activity.time}</p>
-                  </div>
-                </div>
+      {/* Projects Section */}
+      <Card className="bg-background border-border shadow-card">
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="text-foreground">Your Projects</CardTitle>
+              <CardDescription>
+                Recent workplace analytics projects and their status
+              </CardDescription>
+            </div>
+            <Button asChild variant="outline" size="sm">
+              <Link to="/project">
+                <Plus className="w-4 h-4 mr-2" />
+                Start New Analysis
+              </Link>
+            </Button>
+          </div>
+        </CardHeader>
+        <CardContent>
+          {loading ? (
+            <div className="flex items-center justify-center py-8">
+              <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary"></div>
+            </div>
+          ) : projects.length === 0 ? (
+            <div className="text-center py-8">
+              <Target className="mx-auto h-12 w-12 text-muted-foreground mb-4" />
+              <h3 className="text-lg font-semibold text-foreground mb-2">No projects yet</h3>
+              <p className="text-muted-foreground mb-4">
+                Start your first workplace analytics project to see insights here
+              </p>
+              <Button asChild>
+                <Link to="/project">
+                  <Plus className="w-4 h-4 mr-2" />
+                  Create Your First Project
+                </Link>
+              </Button>
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Project Name</TableHead>
+                  <TableHead>Organization</TableHead>
+                  <TableHead>Industry</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Created</TableHead>
+                  <TableHead>Actions</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {projects.map((project) => (
+                  <TableRow key={project.id}>
+                    <TableCell className="font-medium">{project.name}</TableCell>
+                    <TableCell>{project.organization_type}</TableCell>
+                    <TableCell>{project.industry}</TableCell>
+                    <TableCell>
+                      <Badge className={getStatusColor(project.status)}>
+                        {project.status.charAt(0).toUpperCase() + project.status.slice(1)}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>
+                      <div className="flex items-center gap-1 text-sm text-muted-foreground">
+                        <Calendar className="w-3 h-3" />
+                        {formatDate(project.created_at)}
+                      </div>
+                    </TableCell>
+                    <TableCell>
+                      <Button variant="ghost" size="sm">
+                        <Eye className="w-4 h-4 mr-1" />
+                        View
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Quick Actions */}
+      <div className="grid gap-4 md:grid-cols-3">
+        <Card className="bg-background border-border shadow-card">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-primary/10 rounded-lg">
+                <Plus className="h-6 w-6 text-primary" />
               </div>
-            ))}
+              <div>
+                <h3 className="font-medium text-foreground">Start New Project</h3>
+                <p className="text-sm text-muted-foreground">Begin a new workplace analytics project</p>
+              </div>
+            </div>
+            <Button asChild className="w-full mt-4">
+              <Link to="/project">Get Started</Link>
+            </Button>
           </CardContent>
         </Card>
 
-        {/* Critical Insights */}
-        <Card className="col-span-3 bg-background border-border shadow-card">
-          <CardHeader>
-            <CardTitle className="text-foreground">Critical Insights</CardTitle>
-            <CardDescription>
-              Actionable recommendations for immediate attention
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-4">
-            {criticalInsights.map((insight, index) => (
-              <div key={index} className="space-y-2 border-b border-border last:border-0 pb-3 last:pb-0">
-                <div className="flex items-start justify-between">
-                  <div className="space-y-1">
-                    <div className="flex items-center gap-2">
-                      <Badge variant={insight.priority === 'high' ? 'destructive' : insight.priority === 'medium' ? 'default' : 'secondary'}>
-                        {insight.priority}
-                      </Badge>
-                      <h4 className="text-sm font-medium text-foreground">{insight.title}</h4>
-                    </div>
-                    <p className="text-xs text-muted-foreground">{insight.description}</p>
-                  </div>
-                </div>
-                <Button variant="outline" size="sm" className="w-full">
-                  {insight.action}
-                </Button>
+        <Card className="bg-background border-border shadow-card">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-blue-100 rounded-lg">
+                <TrendingUp className="h-6 w-6 text-blue-600" />
               </div>
-            ))}
+              <div>
+                <h3 className="font-medium text-foreground">View Analytics</h3>
+                <p className="text-sm text-muted-foreground">Explore detailed project insights</p>
+              </div>
+            </div>
+            <Button variant="outline" className="w-full mt-4" disabled={projects.length === 0}>
+              View Reports
+            </Button>
+          </CardContent>
+        </Card>
+
+        <Card className="bg-background border-border shadow-card">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-4">
+              <div className="p-2 bg-green-100 rounded-lg">
+                <Shield className="h-6 w-6 text-green-600" />
+              </div>
+              <div>
+                <h3 className="font-medium text-foreground">Security Overview</h3>
+                <p className="text-sm text-muted-foreground">Review security recommendations</p>
+              </div>
+            </div>
+            <Button variant="outline" className="w-full mt-4" disabled={projects.length === 0}>
+              View Security
+            </Button>
           </CardContent>
         </Card>
       </div>
-
-      {/* Compliance Overview */}
-      <Card className="bg-background border-border shadow-card">
-        <CardHeader>
-          <CardTitle className="text-foreground">Baseline Compliance Overview</CardTitle>
-          <CardDescription>
-            Department-wise compliance against established workplace baselines
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-3">
-            {[
-              { dept: "Finance", compliance: 87, total: 120 },
-              { dept: "Healthcare", compliance: 98, total: 85 },
-              { dept: "Engineering", compliance: 92, total: 200 },
-              { dept: "Marketing", compliance: 78, total: 65 },
-              { dept: "Operations", compliance: 85, total: 150 },
-              { dept: "HR", compliance: 94, total: 45 }
-            ].map((dept, index) => (
-              <div key={index} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium text-foreground">{dept.dept}</span>
-                  <span className="text-sm text-muted-foreground">{dept.compliance}%</span>
-                </div>
-                <Progress value={dept.compliance} className="h-2" />
-                <p className="text-xs text-muted-foreground">{dept.total} endpoints</p>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
     </div>
   )
 }
