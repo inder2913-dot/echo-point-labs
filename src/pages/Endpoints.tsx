@@ -155,12 +155,14 @@ export default function Endpoints() {
         // Filter to only show devices that were successfully mapped to users
         const mappedDevices = deviceComparison.filter((item: any) => {
           // Device is mapped if it has user assignment information
-          const hasUserAssignment = (item.firstName && item.lastName) || 
-                                   (item.name && item.name !== 'Unknown') || 
-                                   (item.department && item.department !== 'Unknown')
+          const hasUserAssignment = Boolean((item.firstName && item.lastName) || 
+                                           (item.name && item.name !== 'Unknown') || 
+                                           (item.department && item.department !== 'Unknown'))
           
           // Must also have device data to be meaningful
-          const hasDeviceData = item.device && (item.device.deviceType || item.devicetype)
+          const hasDeviceData = Boolean(item.device && (item.device.deviceType || item.devicetype))
+          
+          const willInclude = hasUserAssignment && hasDeviceData
           
           console.log('Checking device mapping:', {
             firstName: item.firstName,
@@ -169,10 +171,10 @@ export default function Endpoints() {
             department: item.department,
             hasUserAssignment,
             hasDeviceData,
-            willInclude: hasUserAssignment && hasDeviceData
+            willInclude
           })
           
-          return hasUserAssignment && hasDeviceData
+          return willInclude
         })
 
         const transformedDevices: Device[] = mappedDevices.map((item: any, index: number) => ({
@@ -200,6 +202,10 @@ export default function Endpoints() {
         console.log('Total devices in inventory:', deviceComparison.length)
         console.log('Mapped devices to users:', mappedDevices.length)
         console.log('Transformed devices:', transformedDevices)
+        console.log('=== FILTERING SUMMARY ===')
+        console.log('Inventory devices:', deviceComparison.length) 
+        console.log('User-mapped devices:', mappedDevices.length)
+        console.log('Final device count:', transformedDevices.length)
         setDevices(transformedDevices)
         setFilteredDevices(transformedDevices)
       } else {
