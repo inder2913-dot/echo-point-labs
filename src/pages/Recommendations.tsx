@@ -345,6 +345,13 @@ export default function Recommendations() {
     const compliantDevices = devices.filter(d => d.status === 'compliant').length
     const complianceRate = totalDevices > 0 ? Math.round((compliantDevices / totalDevices) * 100) : 0
     
+    // Debug logging
+    console.log('=== COMPLIANCE CALCULATION DEBUG ===')
+    console.log('Total devices:', totalDevices)
+    console.log('Compliant devices:', compliantDevices)
+    console.log('Calculated compliance rate:', complianceRate)
+    console.log('Device statuses:', devices.map(d => ({ id: d.id, status: d.status })))
+    
     const criticalIssues = devices.filter(d => d.status === 'critical').length
     const upgradeNeeded = devices.filter(d => d.status === 'needs-upgrade').length
     const avgScore = totalDevices > 0 
