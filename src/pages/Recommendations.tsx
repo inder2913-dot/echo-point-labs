@@ -17,6 +17,7 @@ interface DeviceItem {
   deviceType: string
   model: string
   os: string
+  deviceos?: string
   issues: string[]
   status: string
   score: number
@@ -131,8 +132,12 @@ export default function Recommendations() {
         )
         break
       case 'windows10':
-        filtered = devices.filter(d => d.os.includes('Windows 10'))
+        filtered = devices.filter(d => 
+          d.os.includes('Windows 10') || d.deviceos?.includes('Windows 10')
+        )
         console.log('Windows 10 filter applied. Total devices:', devices.length, 'Filtered:', filtered.length)
+        console.log('Windows 10 devices by OS field:', devices.filter(d => d.os.includes('Windows 10')).length)
+        console.log('Windows 10 devices by deviceos field:', devices.filter(d => d.deviceos?.includes('Windows 10')).length)
         break
       case 'unpatched':
         // Devices that need security patches - Windows 10 devices with issues
@@ -201,6 +206,7 @@ export default function Recommendations() {
           deviceType: device.devicetype || 'Unknown',
           model: device.device?.model || device.model || 'Unknown Model',
           os: device.deviceos || device.device?.os || 'Unknown OS',
+          deviceos: device.deviceos,
           issues: device.issues || [],
           status: device.status || 'unknown',
           score: device.score || 0,
