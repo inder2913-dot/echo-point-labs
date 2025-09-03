@@ -91,6 +91,8 @@ export type Database = {
           department: string
           description: string | null
           hardware_cpu: string
+          hardware_graphics: string
+          hardware_graphics_capacity: string | null
           hardware_ram: string
           hardware_storage: string
           id: string
@@ -106,6 +108,8 @@ export type Database = {
           department: string
           description?: string | null
           hardware_cpu?: string
+          hardware_graphics?: string
+          hardware_graphics_capacity?: string | null
           hardware_ram?: string
           hardware_storage?: string
           id?: string
@@ -121,6 +125,8 @@ export type Database = {
           department?: string
           description?: string | null
           hardware_cpu?: string
+          hardware_graphics?: string
+          hardware_graphics_capacity?: string | null
           hardware_ram?: string
           hardware_storage?: string
           id?: string
