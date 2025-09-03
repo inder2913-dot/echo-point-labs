@@ -84,25 +84,50 @@ export function EmployeeDataUpload({ onComplete, initialData }: EmployeeDataUplo
         
         headers.forEach((header, index) => {
           const value = values[index] || ''
-          // Map common header variations to standard keys
-          if (header.toLowerCase().includes('id') || header.toLowerCase().includes('emp')) {
+          const headerLower = header.toLowerCase()
+          
+          // More specific mapping for employee data
+          if (headerLower.includes('emp') && headerLower.includes('id')) {
             employee.id = value
-          } else if (header.toLowerCase().includes('name') && !header.toLowerCase().includes('user')) {
+          } else if (headerLower === 'id' && !headerLower.includes('user')) {
+            employee.id = value
+          } else if (headerLower.includes('employee') && headerLower.includes('number')) {
+            employee.id = value
+          } else if (headerLower.includes('full') && headerLower.includes('name')) {
             employee.name = value
-          } else if (header.toLowerCase().includes('department') || header.toLowerCase().includes('dept')) {
+          } else if (headerLower === 'name' || headerLower.includes('employee') && headerLower.includes('name')) {
+            employee.name = value
+          } else if (headerLower.includes('first') && headerLower.includes('name')) {
+            employee.firstName = value
+          } else if (headerLower.includes('last') && headerLower.includes('name')) {
+            employee.lastName = value
+          } else if (headerLower.includes('department') || headerLower.includes('dept')) {
             employee.department = value
-          } else if (header.toLowerCase().includes('title') || header.toLowerCase().includes('role') || header.toLowerCase().includes('job')) {
+          } else if (headerLower.includes('job') && headerLower.includes('title')) {
             employee.role = value
-          } else if (header.toLowerCase().includes('location') || header.toLowerCase().includes('office')) {
+          } else if (headerLower.includes('title') || headerLower.includes('position')) {
+            employee.role = value
+          } else if (headerLower.includes('location') || headerLower.includes('office') || headerLower.includes('site')) {
             employee.location = value
           } else {
-            // Use the header name as-is for unmapped fields
+            // Store all other fields with their original header names
             employee[header.toLowerCase().replace(/\s+/g, '_')] = value
           }
         })
         
+        // If we have first and last name but no full name, combine them
+        if (employee.firstName && employee.lastName && !employee.name) {
+          employee.name = `${employee.firstName} ${employee.lastName}`
+        }
+        
+        // Generate ID if missing but we have a name
+        if (!employee.id && employee.name) {
+          const nameParts = employee.name.split(' ')
+          employee.id = `EMP${Math.random().toString(36).substr(2, 3).toUpperCase()}`
+        }
+        
         return employee
-      }).filter(emp => emp.id) // Only include rows with an ID
+      }).filter(emp => emp.name || emp.id) // Include rows with either name or ID
 
       setUploadedData(data)
       setUploadStatus("success")
