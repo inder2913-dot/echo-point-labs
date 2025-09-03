@@ -149,45 +149,21 @@ export default function Endpoints() {
         console.log('Raw project data:', projectData[0])
         console.log('Data field:', data)
         
-        // The data field IS the array of devices, not nested under deviceComparison
-        const deviceComparison = Array.isArray(data) ? data : []
+        // The data structure from DeviceComparison should be: { deviceComparison: [...], analysisComplete: true }
+        // Extract the actual comparison results
+        let deviceComparison = []
+        if (data.deviceComparison && Array.isArray(data.deviceComparison)) {
+          deviceComparison = data.deviceComparison // This is the correct structure
+        } else if (Array.isArray(data)) {
+          deviceComparison = data // Fallback for direct array
+        }
+        
         console.log('Device comparison array:', deviceComparison)
         console.log('Raw device comparison length:', deviceComparison.length)
         
-        // Filter to only show devices that were successfully mapped to users
-        const mappedDevices = deviceComparison.filter((item: any) => {
-          // Device is mapped if it has user assignment information
-          const hasUserAssignment = Boolean((item.firstName && item.lastName) || 
-                                           (item.name && item.name !== 'Unknown') || 
-                                           (item.department && item.department !== 'Unknown'))
-          
-          // Must also have device data to be meaningful
-          const hasDeviceData = Boolean(item.device && (item.device.deviceType || item.devicetype))
-          
-          const willInclude = hasUserAssignment && hasDeviceData
-          
-          // Only log first few for debugging
-          if (deviceComparison.indexOf(item) < 5) {
-            console.log(`Device ${deviceComparison.indexOf(item)}:`, {
-              firstName: item.firstName,
-              lastName: item.lastName, 
-              name: item.name,
-              department: item.department,
-              hasUserAssignment,
-              hasDeviceData,
-              willInclude
-            })
-          }
-          
-          return willInclude
-        })
-        
-        console.log('=== DEVICE COUNTS ===')
-        console.log('Total devices in raw data:', deviceComparison.length)
-        console.log('Devices with user assignments:', mappedDevices.length)
-        console.log('Devices without user assignments:', deviceComparison.length - mappedDevices.length)
-
-        const transformedDevices: Device[] = mappedDevices.map((item: any, index: number) => ({
+        // No need to filter here - deviceComparison already contains only user-mapped devices
+        // Each item in deviceComparison represents an employee and their assigned device
+        const transformedDevices: Device[] = deviceComparison.map((item: any, index: number) => ({
           id: item.id?.toString() || index.toString(),
           name: item.name || `${item.firstName} ${item.lastName}`,
           deviceType: item.devicetype || item.device?.deviceType || 'Unknown',
@@ -208,14 +184,12 @@ export default function Endpoints() {
           graphics: item.device?.graphicscard || item.device?.graphicstype || item.device?.graphicscapacity || 'Unknown', 
           storage: item.device?.diskcapacity || item.device?.storage || item.diskcapacity || 'Unknown'
         }))
-
-        console.log('Total devices in inventory:', deviceComparison.length)
-        console.log('Mapped devices to users:', mappedDevices.length)
-        console.log('Transformed devices:', transformedDevices)
-        console.log('=== FILTERING SUMMARY ===')
-        console.log('Inventory devices:', deviceComparison.length) 
-        console.log('User-mapped devices:', mappedDevices.length)
-        console.log('Final device count:', transformedDevices.length)
+        
+        console.log('=== DEVICE COUNTS ===')
+        console.log('User-assigned devices (from comparison):', deviceComparison.length)
+        console.log('Transformed devices:', transformedDevices.length)
+        
+        // Set total device count to match the user-assigned devices since that's what we're showing
         setTotalDeviceCount(deviceComparison.length)
         setDevices(transformedDevices)
         setFilteredDevices(transformedDevices)
