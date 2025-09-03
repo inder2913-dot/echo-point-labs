@@ -138,9 +138,9 @@ export default function Endpoints() {
           issues: item.issues || [],
           device: item.device,
           cpu: item.device?.cputype || item.device?.cpu || 'Unknown',
-          ram: item.device?.ramcapacity || item.device?.ram || 'Unknown',
-          graphics: item.device?.graphicstype || item.device?.graphicscard || 'Unknown',
-          storage: item.device?.diskcapacity || item.device?.storage || 'Unknown'
+          ram: (item.device?.ramcapacity || item.device?.ram || 'Unknown').toString().replace('GB', ''),
+          graphics: item.device?.graphicscard || item.device?.graphicstype || 'Unknown',
+          storage: (item.device?.diskcapacity || item.device?.storage || 'Unknown').toString().replace('GB', '')
         }))
 
         console.log('Transformed devices:', transformedDevices)
@@ -174,19 +174,19 @@ export default function Endpoints() {
       filtered = filtered.filter(device => device.deviceType?.toLowerCase() === selectedDeviceType.toLowerCase())
     }
     if (selectedCpu !== "all") {
-      filtered = filtered.filter(device => device.cpu?.includes(selectedCpu))
+      filtered = filtered.filter(device => device.cpu && device.cpu.toLowerCase().includes(selectedCpu.toLowerCase()))
     }
     if (selectedRam !== "all") {
-      filtered = filtered.filter(device => device.ram?.includes(selectedRam))
+      filtered = filtered.filter(device => device.ram && device.ram.includes(selectedRam))
     }
     if (selectedGraphics !== "all") {
-      filtered = filtered.filter(device => device.graphics?.toLowerCase().includes(selectedGraphics.toLowerCase()))
+      filtered = filtered.filter(device => device.graphics && device.graphics.toLowerCase().includes(selectedGraphics.toLowerCase()))
     }
     if (selectedStorage !== "all") {
-      filtered = filtered.filter(device => device.storage?.includes(selectedStorage))
+      filtered = filtered.filter(device => device.storage && device.storage.includes(selectedStorage))
     }
     if (selectedOS !== "all") {
-      filtered = filtered.filter(device => device.deviceOS?.toLowerCase().includes(selectedOS.toLowerCase()))
+      filtered = filtered.filter(device => device.deviceOS && device.deviceOS.toLowerCase().includes(selectedOS.toLowerCase()))
     }
 
     setFilteredDevices(filtered)
@@ -196,11 +196,19 @@ export default function Endpoints() {
   const departments = [...new Set(devices.map(d => d.department).filter(Boolean))]
   const locations = [...new Set(devices.map(d => d.location).filter(Boolean))]
   const deviceTypes = [...new Set(devices.map(d => d.deviceType).filter(Boolean))]
-  const cpuTypes = [...new Set(devices.map(d => d.cpu).filter(Boolean))]
-  const ramTypes = [...new Set(devices.map(d => d.ram).filter(Boolean))]
-  const graphicsTypes = [...new Set(devices.map(d => d.graphics).filter(Boolean))]
-  const storageTypes = [...new Set(devices.map(d => d.storage).filter(Boolean))]
-  const osTypes = [...new Set(devices.map(d => d.deviceOS).filter(Boolean))]
+  const cpuTypes = [...new Set(devices.map(d => d.cpu).filter(Boolean))].sort()
+  const ramTypes = [...new Set(devices.map(d => d.ram).filter(Boolean))].sort((a, b) => {
+    const numA = parseInt(a.toString())
+    const numB = parseInt(b.toString())
+    return numA - numB
+  })
+  const graphicsTypes = [...new Set(devices.map(d => d.graphics).filter(Boolean))].sort()
+  const storageTypes = [...new Set(devices.map(d => d.storage).filter(Boolean))].sort((a, b) => {
+    const numA = parseInt(a.toString())
+    const numB = parseInt(b.toString())
+    return numA - numB
+  })
+  const osTypes = [...new Set(devices.map(d => d.deviceOS).filter(Boolean))].sort()
 
   // Statistics
   const stats = {
