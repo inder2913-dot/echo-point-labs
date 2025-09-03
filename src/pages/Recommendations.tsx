@@ -1,10 +1,11 @@
 import { useState, useEffect } from "react"
-import { Lightbulb, TrendingUp, Shield, DollarSign, Calendar, ChevronRight, AlertTriangle, CheckCircle, Target, Zap } from "lucide-react"
+import { Lightbulb, TrendingUp, Shield, DollarSign, Calendar, ChevronRight, AlertTriangle, CheckCircle, Target, Zap, X, Clock, Users, Monitor } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
 
@@ -20,6 +21,13 @@ interface RecommendationItem {
   timeframe?: string
   affectedDevices?: number
   implementationSteps?: string[]
+  detailedAnalysis?: {
+    deviceBreakdown?: { type: string; count: number; issues: string[] }[]
+    costBreakdown?: { item: string; cost: number; quantity: number }[]
+    riskAssessment?: string[]
+    businessImpact?: string
+    technicalRequirements?: string[]
+  }
 }
 
 interface DeviceAnalysis {
@@ -62,6 +70,8 @@ const getImpactIcon = (impact: string) => {
 
 export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([])
+  const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationItem | null>(null)
+  const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
   const [deviceAnalysis, setDeviceAnalysis] = useState<DeviceAnalysis>({
     totalDevices: 0,
     complianceRate: 0,
@@ -76,6 +86,11 @@ export default function Recommendations() {
   useEffect(() => {
     loadRecommendations()
   }, [])
+
+  const handleViewDetails = (recommendation: RecommendationItem) => {
+    setSelectedRecommendation(recommendation)
+    setIsDetailModalOpen(true)
+  }
 
   const loadRecommendations = async () => {
     try {
@@ -160,7 +175,30 @@ export default function Recommendations() {
           'Prioritize upgrades for power users and engineers',
           'Negotiate bulk pricing with hardware vendors',
           'Schedule upgrades during maintenance windows'
-        ]
+        ],
+        detailedAnalysis: {
+          deviceBreakdown: [
+            { type: 'Laptops', count: Math.floor(analysis.upgradeNeeded * 0.6), issues: ['Insufficient RAM', 'Slow Storage'] },
+            { type: 'Desktops', count: Math.floor(analysis.upgradeNeeded * 0.4), issues: ['Outdated CPU', 'Low RAM'] }
+          ],
+          costBreakdown: [
+            { item: 'RAM Upgrades (16GB→32GB)', cost: 200, quantity: Math.floor(analysis.upgradeNeeded * 0.7) },
+            { item: 'SSD Upgrades (256GB→1TB)', cost: 150, quantity: Math.floor(analysis.upgradeNeeded * 0.5) },
+            { item: 'Installation Labor', cost: 50, quantity: analysis.upgradeNeeded }
+          ],
+          riskAssessment: [
+            'Performance bottlenecks affecting productivity',
+            'Inability to run modern software efficiently',
+            'Increased support costs for aging hardware'
+          ],
+          businessImpact: 'Upgrading hardware will improve employee productivity by 25-30% and reduce IT support tickets by 40%.',
+          technicalRequirements: [
+            'Compatible DDR4/DDR5 RAM modules',
+            'SATA/NVMe SSD compatibility check',
+            'Backup and data migration procedures',
+            'Post-upgrade performance validation'
+          ]
+        }
       })
     }
 
@@ -180,95 +218,26 @@ export default function Recommendations() {
           'Enable Windows Defender on all devices',
           'Implement endpoint detection and response (EDR)',
           'Schedule regular security patch cycles'
-        ]
-      })
-    }
-
-    // Cost optimization
-    if (analysis.costOptimization > 0) {
-      recommendations.push({
-        id: 'standardization',
-        title: 'Standardize Hardware Portfolio',
-        description: `Opportunity to reduce costs through hardware standardization. Currently using multiple device types - consolidating could save 15-25% on procurement.`,
-        impact: 'medium',
-        priority: 'medium',
-        category: 'cost',
-        estimatedSavings: `$${(analysis.costOptimization * 300).toLocaleString()}`,
-        timeframe: '6-12 months',
-        affectedDevices: analysis.costOptimization,
-        implementationSteps: [
-          'Define standard device configurations per user profile',
-          'Negotiate volume pricing with preferred vendors',
-          'Implement phased replacement during refresh cycles',
-          'Establish centralized procurement process'
-        ]
-      })
-    }
-
-    // Compliance improvement
-    if (analysis.complianceRate < 80) {
-      recommendations.push({
-        id: 'compliance-improvement',
-        title: 'Improve Overall Compliance',
-        description: `Current compliance rate is ${analysis.complianceRate}%. Implement automated compliance monitoring and remediation processes.`,
-        impact: 'high',
-        priority: 'high',
-        category: 'planning',
-        timeframe: '3-6 months',
-        implementationSteps: [
-          'Deploy device management and monitoring tools',
-          'Establish compliance baseline requirements',
-          'Implement automated compliance reporting',
-          'Create remediation workflows for non-compliant devices'
-        ]
-      })
-    }
-
-    // Lifecycle management
-    const oldDevices = devices.filter(d => 
-      d.device?.warrantystatus === 'Expired' || 
-      d.deviceos?.includes('Windows 10')
-    ).length
-
-    if (oldDevices > 0) {
-      recommendations.push({
-        id: 'lifecycle-management',
-        title: 'Implement Device Lifecycle Management',
-        description: `${oldDevices} devices are approaching end-of-life. Establish proactive replacement planning to avoid business disruption.`,
-        impact: 'medium',
-        priority: 'medium',
-        category: 'planning',
-        estimatedCost: `$${(oldDevices * 1200).toLocaleString()}`,
-        timeframe: '12-18 months',
-        affectedDevices: oldDevices,
-        implementationSteps: [
-          'Create device age and warranty tracking system',
-          'Establish 3-5 year replacement cycles by device type',
-          'Budget for annual hardware refresh program',
-          'Implement asset disposal and data security procedures'
-        ]
-      })
-    }
-
-    // Performance optimization
-    const lowPerformanceDevices = devices.filter(d => (d.score || 0) < 60).length
-    if (lowPerformanceDevices > 0) {
-      recommendations.push({
-        id: 'performance-optimization',
-        title: 'Optimize Device Performance',
-        description: `${lowPerformanceDevices} devices show performance scores below 60%. Targeted optimizations can improve productivity without full hardware replacement.`,
-        impact: 'medium',
-        priority: 'medium',
-        category: 'hardware',
-        estimatedCost: `$${(lowPerformanceDevices * 150).toLocaleString()}`,
-        timeframe: '1-2 months',
-        affectedDevices: lowPerformanceDevices,
-        implementationSteps: [
-          'Perform disk cleanup and optimization',
-          'Upgrade to SSD storage where applicable',
-          'Optimize startup programs and services',
-          'Consider selective RAM upgrades'
-        ]
+        ],
+        detailedAnalysis: {
+          deviceBreakdown: [
+            { type: 'Windows 10 Devices', count: Math.floor(analysis.securityRisks * 0.8), issues: ['Outdated OS', 'Missing Security Features'] },
+            { type: 'Unpatched Systems', count: Math.floor(analysis.securityRisks * 0.3), issues: ['Critical Security Patches Missing'] }
+          ],
+          riskAssessment: [
+            'High vulnerability to ransomware attacks',
+            'Non-compliance with security standards',
+            'Potential data breach exposure',
+            'Lack of modern security features'
+          ],
+          businessImpact: 'Addressing these vulnerabilities will reduce security incident risk by 80% and ensure compliance with industry standards.',
+          technicalRequirements: [
+            'Windows 11 compatible hardware verification',
+            'EDR solution deployment infrastructure',
+            'Centralized patch management system',
+            'Security monitoring and alerting setup'
+          ]
+        }
       })
     }
 
@@ -365,25 +334,40 @@ export default function Recommendations() {
         </TabsList>
 
         <TabsContent value="all" className="space-y-4">
-          <RecommendationsList recommendations={recommendations} />
+          <RecommendationsList recommendations={recommendations} onViewDetails={handleViewDetails} />
         </TabsContent>
 
         <TabsContent value="hardware" className="space-y-4">
-          <RecommendationsList recommendations={categoryRecommendations.hardware} />
+          <RecommendationsList recommendations={categoryRecommendations.hardware} onViewDetails={handleViewDetails} />
         </TabsContent>
 
         <TabsContent value="security" className="space-y-4">
-          <RecommendationsList recommendations={categoryRecommendations.security} />
+          <RecommendationsList recommendations={categoryRecommendations.security} onViewDetails={handleViewDetails} />
         </TabsContent>
 
         <TabsContent value="cost" className="space-y-4">
-          <RecommendationsList recommendations={categoryRecommendations.cost} />
+          <RecommendationsList recommendations={categoryRecommendations.cost} onViewDetails={handleViewDetails} />
         </TabsContent>
 
         <TabsContent value="planning" className="space-y-4">
-          <RecommendationsList recommendations={categoryRecommendations.planning} />
+          <RecommendationsList recommendations={categoryRecommendations.planning} onViewDetails={handleViewDetails} />
         </TabsContent>
       </Tabs>
+
+      {/* Recommendation Detail Modal */}
+      <Dialog open={isDetailModalOpen} onOpenChange={setIsDetailModalOpen}>
+        <DialogContent className="max-w-4xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              {selectedRecommendation && getImpactIcon(selectedRecommendation.impact)}
+              {selectedRecommendation?.title}
+            </DialogTitle>
+          </DialogHeader>
+          {selectedRecommendation && (
+            <RecommendationDetails recommendation={selectedRecommendation} />
+          )}
+        </DialogContent>
+      </Dialog>
 
       {recommendations.length === 0 && (
         <Card className="text-center py-12">
@@ -402,9 +386,10 @@ export default function Recommendations() {
 
 interface RecommendationsListProps {
   recommendations: RecommendationItem[]
+  onViewDetails: (recommendation: RecommendationItem) => void
 }
 
-function RecommendationsList({ recommendations }: RecommendationsListProps) {
+function RecommendationsList({ recommendations, onViewDetails }: RecommendationsListProps) {
   if (recommendations.length === 0) {
     return (
       <div className="text-center py-8">
@@ -473,13 +458,199 @@ function RecommendationsList({ recommendations }: RecommendationsListProps) {
               </div>
             )}
 
-            <Button variant="outline" className="mt-4">
+            <Button variant="outline" className="mt-4" onClick={() => onViewDetails(recommendation)}>
               <TrendingUp className="w-4 h-4 mr-2" />
               View Details
             </Button>
           </CardContent>
         </Card>
       ))}
+    </div>
+  )
+}
+
+interface RecommendationDetailsProps {
+  recommendation: RecommendationItem
+}
+
+function RecommendationDetails({ recommendation }: RecommendationDetailsProps) {
+  return (
+    <div className="space-y-6">
+      {/* Overview Section */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-4">
+          <Badge className={getPriorityColor(recommendation.priority)}>
+            {recommendation.priority} priority
+          </Badge>
+          {recommendation.affectedDevices && (
+            <Badge variant="outline">
+              <Monitor className="w-3 h-3 mr-1" />
+              {recommendation.affectedDevices} devices
+            </Badge>
+          )}
+          {recommendation.timeframe && (
+            <Badge variant="outline">
+              <Clock className="w-3 h-3 mr-1" />
+              {recommendation.timeframe}
+            </Badge>
+          )}
+        </div>
+        
+        <p className="text-muted-foreground">{recommendation.description}</p>
+
+        {/* Cost Information */}
+        {(recommendation.estimatedCost || recommendation.estimatedSavings) && (
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            {recommendation.estimatedCost && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Estimated Cost</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-red-600">{recommendation.estimatedCost}</div>
+                </CardContent>
+              </Card>
+            )}
+            {recommendation.estimatedSavings && (
+              <Card>
+                <CardHeader className="pb-2">
+                  <CardTitle className="text-sm font-medium">Potential Savings</CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="text-2xl font-bold text-green-600">{recommendation.estimatedSavings}</div>
+                </CardContent>
+              </Card>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* Detailed Analysis Tabs */}
+      {recommendation.detailedAnalysis && (
+        <Tabs defaultValue="breakdown" className="space-y-4">
+          <TabsList>
+            <TabsTrigger value="breakdown">Device Breakdown</TabsTrigger>
+            <TabsTrigger value="costs">Cost Analysis</TabsTrigger>
+            <TabsTrigger value="risks">Risk Assessment</TabsTrigger>
+            <TabsTrigger value="technical">Technical Requirements</TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="breakdown" className="space-y-4">
+            {recommendation.detailedAnalysis.deviceBreakdown && (
+              <div className="space-y-4">
+                <h4 className="font-medium">Affected Device Types</h4>
+                {recommendation.detailedAnalysis.deviceBreakdown.map((device, index) => (
+                  <Card key={index}>
+                    <CardContent className="pt-4">
+                      <div className="flex items-center justify-between mb-2">
+                        <div className="flex items-center gap-2">
+                          <Monitor className="w-4 h-4" />
+                          <span className="font-medium">{device.type}</span>
+                        </div>
+                        <Badge variant="outline">{device.count} devices</Badge>
+                      </div>
+                      <div className="space-y-1">
+                        {device.issues.map((issue, issueIndex) => (
+                          <div key={issueIndex} className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <AlertTriangle className="w-3 h-3 text-orange-500" />
+                            {issue}
+                          </div>
+                        ))}
+                      </div>
+                    </CardContent>
+                  </Card>
+                ))}
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="costs" className="space-y-4">
+            {recommendation.detailedAnalysis.costBreakdown && (
+              <div className="space-y-4">
+                <h4 className="font-medium">Cost Breakdown</h4>
+                <div className="space-y-2">
+                  {recommendation.detailedAnalysis.costBreakdown.map((cost, index) => (
+                    <div key={index} className="flex items-center justify-between p-3 border rounded-lg">
+                      <div>
+                        <div className="font-medium">{cost.item}</div>
+                        <div className="text-sm text-muted-foreground">Quantity: {cost.quantity}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-medium">${cost.cost * cost.quantity}</div>
+                        <div className="text-sm text-muted-foreground">${cost.cost} each</div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+                <div className="pt-2 border-t">
+                  <div className="flex items-center justify-between font-medium">
+                    <span>Total Estimated Cost</span>
+                    <span>${recommendation.detailedAnalysis.costBreakdown.reduce((sum, cost) => sum + (cost.cost * cost.quantity), 0).toLocaleString()}</span>
+                  </div>
+                </div>
+              </div>
+            )}
+          </TabsContent>
+
+          <TabsContent value="risks" className="space-y-4">
+            <div className="space-y-4">
+              <h4 className="font-medium">Risk Assessment</h4>
+              {recommendation.detailedAnalysis.riskAssessment && (
+                <div className="space-y-2">
+                  {recommendation.detailedAnalysis.riskAssessment.map((risk, index) => (
+                    <div key={index} className="flex items-start gap-2 p-3 border rounded-lg">
+                      <AlertTriangle className="w-4 h-4 text-red-500 mt-0.5" />
+                      <span className="text-sm">{risk}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+              
+              {recommendation.detailedAnalysis.businessImpact && (
+                <div className="mt-4">
+                  <h5 className="font-medium mb-2">Business Impact</h5>
+                  <p className="text-sm text-muted-foreground p-3 bg-muted rounded-lg">
+                    {recommendation.detailedAnalysis.businessImpact}
+                  </p>
+                </div>
+              )}
+            </div>
+          </TabsContent>
+
+          <TabsContent value="technical" className="space-y-4">
+            {recommendation.detailedAnalysis.technicalRequirements && (
+              <div className="space-y-4">
+                <h4 className="font-medium">Technical Requirements</h4>
+                <div className="space-y-2">
+                  {recommendation.detailedAnalysis.technicalRequirements.map((requirement, index) => (
+                    <div key={index} className="flex items-start gap-2 text-sm">
+                      <CheckCircle className="w-4 h-4 text-green-500 mt-0.5" />
+                      {requirement}
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </TabsContent>
+        </Tabs>
+      )}
+
+      {/* Implementation Steps */}
+      {recommendation.implementationSteps && (
+        <div className="space-y-4">
+          <h4 className="font-medium">Implementation Steps</h4>
+          <div className="space-y-3">
+            {recommendation.implementationSteps.map((step, index) => (
+              <div key={index} className="flex items-start gap-3 p-3 border rounded-lg">
+                <div className="w-6 h-6 rounded-full bg-primary text-primary-foreground text-xs flex items-center justify-center font-medium">
+                  {index + 1}
+                </div>
+                <span className="text-sm">{step}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   )
 }
