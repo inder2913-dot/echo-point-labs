@@ -231,10 +231,17 @@ export default function Endpoints() {
     const numB = parseInt(b.toString())
     return numA - numB
   })
-  const osTypes = [...new Set(devices.map(d => d.deviceOS).filter(Boolean))].sort()
+  const osTypes = [...new Set(devices.map(d => d.deviceOS).filter(d => d && d !== 'Unknown'))].sort()
   
+  console.log('Filter options - CPU Types:', cpuTypes)
   console.log('Filter options - RAM Types:', ramTypes)
+  console.log('Filter options - Graphics Types:', graphicsTypes)  
   console.log('Filter options - Storage Types:', storageTypes)
+  console.log('Filter options - OS Types:', osTypes)
+  console.log('Total devices:', devices.length)
+  console.log('Unique CPU count:', cpuTypes.length)
+  console.log('Unique RAM count:', ramTypes.length)
+  console.log('Unique Storage count:', storageTypes.length)
 
   // Statistics
   const stats = {
