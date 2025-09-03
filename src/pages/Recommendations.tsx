@@ -372,7 +372,11 @@ export default function Recommendations() {
   }
 
   const loadRecommendations = async () => {
+    setLoading(true)
     try {
+      console.log('=== LOADING RECOMMENDATIONS ===')
+      console.log('Selected project ID:', selectedProject)
+      
       // Get device comparison data for the selected project
       const { data: projectData, error } = await supabase
         .from('project_data')
@@ -381,6 +385,12 @@ export default function Recommendations() {
         .eq('project_id', selectedProject)
         .order('created_at', { ascending: false })
         .limit(1)
+
+      console.log('Query result:', { 
+        error, 
+        dataCount: projectData?.length || 0,
+        projectId: selectedProject 
+      })
 
       if (error) throw error
 
