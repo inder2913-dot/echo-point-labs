@@ -39,7 +39,6 @@ export function OrganizationSetup({ onComplete, initialData }: OrganizationSetup
     "Other"
   ]
 
-
   const companySizes = [
     "1-50 employees",
     "51-200 employees", 
