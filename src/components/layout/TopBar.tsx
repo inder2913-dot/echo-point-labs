@@ -28,18 +28,6 @@ export function TopBar() {
         </div>
       </div>
 
-      {/* Activity Ticker */}
-      <div className="hidden md:flex items-center gap-4 bg-muted rounded-full px-4 py-2">
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <div className="w-2 h-2 bg-success rounded-full animate-pulse"></div>
-          <span>Real-time Analytics Active</span>
-        </div>
-        <div className="w-px h-4 bg-border"></div>
-        <div className="text-sm text-muted-foreground">
-          Last sync: 2 min ago
-        </div>
-      </div>
-
       <div className="flex items-center gap-4">
         {/* Search */}
         <div className="relative hidden sm:block">
@@ -62,7 +50,6 @@ export function TopBar() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="ghost" className="flex items-center gap-2">
-              <span className="text-sm text-foreground hidden sm:block">ACME Corp</span>
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary text-primary-foreground">U</AvatarFallback>
               </Avatar>
