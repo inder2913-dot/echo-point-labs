@@ -48,10 +48,12 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
   // Fetch available baselines
   const fetchBaselines = async () => {
     try {
+      const { data: { user } } = await supabase.auth.getUser();
+
       const { data, error } = await supabase
         .from('user_profiles')
-        .select('id, role, hardware_cpu, hardware_ram, hardware_storage, hardware_graphics, hardware_graphics_capacity, department, level')
-        .eq('is_custom', false)  // Only baseline profiles
+        .select('id, role, hardware_cpu, hardware_ram, hardware_storage, hardware_graphics, hardware_graphics_capacity, department, level, is_custom')
+        .or(`is_custom.eq.false,and(is_custom.eq.true,baseline_id.is.null,user_id.eq.${user?.id || 'null'})`)
         .order('role', { ascending: true });
 
       if (error) throw error;
