@@ -474,8 +474,8 @@ function CreateCustomIndustryDialog({
 
       if (industryError) throw industryError;
 
-      // If a starter template was selected, copy its profiles
-      if (formData.starterTemplate && INDUSTRY_TEMPLATES[formData.starterTemplate as keyof typeof INDUSTRY_TEMPLATES]) {
+      // If a starter template was selected (and it's not "none"), copy its profiles
+      if (formData.starterTemplate && formData.starterTemplate !== "none" && INDUSTRY_TEMPLATES[formData.starterTemplate as keyof typeof INDUSTRY_TEMPLATES]) {
         const template = INDUSTRY_TEMPLATES[formData.starterTemplate as keyof typeof INDUSTRY_TEMPLATES];
         const profilesToInsert = template.profiles.map(profile => ({
           custom_industry_id: industry.id,
@@ -550,7 +550,7 @@ function CreateCustomIndustryDialog({
                 <SelectValue placeholder="Choose a template to start with" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="">Start from scratch</SelectItem>
+                <SelectItem value="none">Start from scratch</SelectItem>
                 {Object.entries(INDUSTRY_TEMPLATES).map(([name, template]) => (
                   <SelectItem key={name} value={name}>
                     {name} ({template.profiles.length} profiles)
