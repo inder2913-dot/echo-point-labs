@@ -97,7 +97,7 @@ export default function Endpoints() {
       const { data: projectData, error } = await supabase
         .from('project_data')
         .select('*')
-        .eq('step_name', 'device-comparison')
+        .eq('step_name', 'deviceComparison')  // Fixed: removed hyphen
         .order('created_at', { ascending: false })
         .limit(1)
 
