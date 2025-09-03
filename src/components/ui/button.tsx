@@ -5,7 +5,7 @@ import { cva, type VariantProps } from "class-variance-authority"
 import { cn } from "@/lib/utils"
 
 const buttonVariants = cva(
-  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 hover:scale-[1.01] active:scale-[0.99] will-change-transform transform-gpu",
+  "inline-flex items-center justify-center gap-2 whitespace-nowrap rounded-xl text-sm font-medium ring-offset-background transition-all duration-300 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:pointer-events-none disabled:opacity-50 [&_svg]:pointer-events-none [&_svg]:size-4 [&_svg]:shrink-0 will-change-transform transform-gpu",
   {
     variants: {
       variant: {
@@ -18,7 +18,7 @@ const buttonVariants = cva(
           "bg-gradient-to-r from-secondary to-secondary/80 text-secondary-foreground hover:shadow-card",
         ghost: "hover:bg-accent/50 hover:text-accent-foreground backdrop-blur-sm",
         link: "text-primary underline-offset-4 hover:underline hover:text-primary-glow",
-        hero: "bg-gradient-to-r from-primary via-primary-glow to-accent-bright text-primary-foreground hover:shadow-neon hover:scale-105 transition-spring font-semibold text-base",
+        hero: "bg-gradient-to-r from-primary via-primary-glow to-accent-bright text-primary-foreground hover:shadow-neon transition-spring font-semibold text-base",
         glass: "bg-gradient-to-r from-card/70 to-card/40 backdrop-blur-md border border-border/50 text-foreground hover:from-card/90 hover:to-card/60 hover:shadow-glass",
       },
       size: {

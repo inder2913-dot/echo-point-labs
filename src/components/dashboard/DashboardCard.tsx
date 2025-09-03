@@ -31,7 +31,7 @@ export function DashboardCard({
           {title}
         </CardTitle>
         {icon && (
-          <div className="text-muted-foreground group-hover:text-primary transition-colors duration-300 will-change-transform transform-gpu group-hover:scale-105">
+          <div className="text-muted-foreground group-hover:text-primary transition-colors duration-300 will-change-transform transform-gpu">
             {icon}
           </div>
         )}

@@ -195,8 +195,6 @@
     background: var(--gradient-glass);
     backdrop-filter: blur(20px);
     border: 1px solid rgb(var(--border) / 0.2);
-    will-change: transform;
-    transform: translateZ(0);
   }
 
   .neon-glow {
@@ -205,13 +203,5 @@
 
   .hero-gradient {
     background: var(--gradient-hero);
-  }
-  
-  /* Optimize transforms for crisp rendering */
-  * {
-    -webkit-backface-visibility: hidden;
-    backface-visibility: hidden;
-    -webkit-perspective: 1000px;
-    perspective: 1000px;
   }
 }
