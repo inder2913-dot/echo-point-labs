@@ -197,18 +197,37 @@ export default function Endpoints() {
   const locations = [...new Set(devices.map(d => d.location).filter(Boolean))]
   const deviceTypes = [...new Set(devices.map(d => d.deviceType).filter(Boolean))]
   const cpuTypes = [...new Set(devices.map(d => d.cpu).filter(Boolean))].sort()
-  const ramTypes = [...new Set(devices.map(d => d.ram).filter(Boolean))].sort((a, b) => {
+  const ramTypes = [...new Set(devices.map(d => {
+    const ram = d.ram?.toString() || ''
+    if (ram === 'Unknown') return ram
+    // Add GB suffix if not present
+    const formattedRam = ram.includes('GB') ? ram : `${ram}GB`
+    return formattedRam
+  }).filter(Boolean))].sort((a, b) => {
+    if (a === 'Unknown') return 1
+    if (b === 'Unknown') return -1
     const numA = parseInt(a.toString())
     const numB = parseInt(b.toString())
     return numA - numB
   })
   const graphicsTypes = [...new Set(devices.map(d => d.graphics).filter(Boolean))].sort()
-  const storageTypes = [...new Set(devices.map(d => d.storage).filter(Boolean))].sort((a, b) => {
+  const storageTypes = [...new Set(devices.map(d => {
+    const storage = d.storage?.toString() || ''
+    if (storage === 'Unknown') return storage
+    // Add GB suffix if not present
+    const formattedStorage = storage.includes('GB') ? storage : `${storage}GB`
+    return formattedStorage
+  }).filter(Boolean))].sort((a, b) => {
+    if (a === 'Unknown') return 1
+    if (b === 'Unknown') return -1
     const numA = parseInt(a.toString())
     const numB = parseInt(b.toString())
     return numA - numB
   })
   const osTypes = [...new Set(devices.map(d => d.deviceOS).filter(Boolean))].sort()
+  
+  console.log('Filter options - RAM Types:', ramTypes)
+  console.log('Filter options - Storage Types:', storageTypes)
 
   // Statistics
   const stats = {
