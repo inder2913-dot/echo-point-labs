@@ -416,15 +416,25 @@ export default function Recommendations() {
     ).length
     const costOptimization = overProvisionedDevices
 
-    // More accurate battery issues calculation
+    // More accurate battery issues calculation - check both status and percentage
     const batteryIssues = devices.filter(d => {
       const hasBatteryIssue = d.issues?.some((issue: string) => 
         issue.toLowerCase().includes('battery')
       ) || false
       
-      const poorBattery = d.device?.batteryhealth === 'Poor' || d.device?.batteryhealth === 'Fair'
+      const poorBattery = d.device?.batteryhealth === 'Poor' || 
+                         d.device?.batteryhealth === 'Fair' ||
+                         d.batteryHealth === 'Poor' || 
+                         d.batteryHealth === 'Fair'
       
-      return hasBatteryIssue || poorBattery
+      // Check for battery percentage below 80%
+      const batteryHealthStr = d.device?.batteryhealth || d.batteryHealth || ''
+      const batteryPercentage = parseInt(batteryHealthStr.replace('%', '')) || 100
+      const lowBatteryPercentage = batteryPercentage < 80
+      
+      console.log(`Device ${d.id}: battery health = ${d.device?.batteryhealth || d.batteryHealth}, percentage = ${batteryPercentage}, low = ${lowBatteryPercentage}`)
+      
+      return hasBatteryIssue || poorBattery || lowBatteryPercentage
     }).length
 
     // More realistic warranty calculation
@@ -433,10 +443,19 @@ export default function Recommendations() {
         issue.toLowerCase().includes('warranty')
       ) || false
       
-      const expiringWarranty = d.device?.warrantystatus === 'Expiring' || d.device?.warrantystatus === 'Expired'
+      const expiringWarranty = d.device?.warrantystatus === 'Expiring' || 
+                              d.device?.warrantystatus === 'Expired' ||
+                              d.warrantyStatus === 'Expiring' || 
+                              d.warrantyStatus === 'Expired'
+      
+      console.log(`Device ${d.id}: warranty status = ${d.device?.warrantystatus || d.warrantyStatus}, has issue = ${hasWarrantyIssue}, expiring = ${expiringWarranty}`)
       
       return hasWarrantyIssue || expiringWarranty
     }).length
+
+    console.log('=== BATTERY & WARRANTY DEBUG ===')
+    console.log('Battery issues found:', batteryIssues)
+    console.log('Warranty expiring found:', warrantyExpiring)
 
     return {
       totalDevices,
