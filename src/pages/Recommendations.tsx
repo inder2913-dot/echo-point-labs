@@ -6,8 +6,21 @@ import { Badge } from "@/components/ui/badge"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Progress } from "@/components/ui/progress"
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { supabase } from "@/integrations/supabase/client"
 import { toast } from "sonner"
+
+interface DeviceItem {
+  id: string
+  employee: string
+  department: string
+  deviceType: string
+  model: string
+  os: string
+  issues: string[]
+  status: string
+  score: number
+}
 
 interface RecommendationItem {
   id: string
@@ -72,6 +85,10 @@ export default function Recommendations() {
   const [recommendations, setRecommendations] = useState<RecommendationItem[]>([])
   const [selectedRecommendation, setSelectedRecommendation] = useState<RecommendationItem | null>(null)
   const [isDetailModalOpen, setIsDetailModalOpen] = useState(false)
+  const [devices, setDevices] = useState<DeviceItem[]>([])
+  const [filteredDevices, setFilteredDevices] = useState<DeviceItem[]>([])
+  const [isDeviceListOpen, setIsDeviceListOpen] = useState(false)
+  const [deviceListTitle, setDeviceListTitle] = useState("")
   const [deviceAnalysis, setDeviceAnalysis] = useState<DeviceAnalysis>({
     totalDevices: 0,
     complianceRate: 0,
@@ -92,6 +109,37 @@ export default function Recommendations() {
     setIsDetailModalOpen(true)
   }
 
+  const handleDeviceListClick = (filterType: string, title: string) => {
+    let filtered: DeviceItem[] = []
+    
+    switch (filterType) {
+      case 'security':
+        filtered = devices.filter(d => 
+          d.os.includes('Windows 10') || d.issues.some(issue => 
+            issue.includes('Security') || issue.includes('Patch') || issue.includes('Outdated')
+          )
+        )
+        break
+      case 'windows10':
+        filtered = devices.filter(d => d.os.includes('Windows 10'))
+        break
+      case 'unpatched':
+        filtered = devices.filter(d => 
+          d.issues.some(issue => issue.includes('Patch') || issue.includes('Security'))
+        )
+        break
+      case 'upgrade':
+        filtered = devices.filter(d => d.status === 'needs-upgrade')
+        break
+      default:
+        filtered = devices
+    }
+    
+    setFilteredDevices(filtered)
+    setDeviceListTitle(title)
+    setIsDeviceListOpen(true)
+  }
+
   const loadRecommendations = async () => {
     try {
       // Get the most recent device comparison data
@@ -107,6 +155,20 @@ export default function Recommendations() {
       if (projectData && projectData.length > 0) {
         const data = projectData[0].data as any
         const deviceComparison = Array.isArray(data) ? data : []
+        
+        // Convert devices to DeviceItem format
+        const deviceItems = deviceComparison.map((device: any, index: number) => ({
+          id: device.id || `device-${index}`,
+          employee: device.employee || `Employee ${index + 1}`,
+          department: device.department || 'Unknown',
+          deviceType: device.devicetype || 'Unknown',
+          model: device.model || 'Unknown Model',
+          os: device.deviceos || 'Unknown OS',
+          issues: device.issues || [],
+          status: device.status || 'unknown',
+          score: device.score || 0
+        }))
+        setDevices(deviceItems)
         
         // Analyze device data
         const analysis = analyzeDevices(deviceComparison)
@@ -364,8 +426,74 @@ export default function Recommendations() {
             </DialogTitle>
           </DialogHeader>
           {selectedRecommendation && (
-            <RecommendationDetails recommendation={selectedRecommendation} />
+            <RecommendationDetails 
+              recommendation={selectedRecommendation} 
+              onDeviceListClick={handleDeviceListClick}
+            />
           )}
+        </DialogContent>
+      </Dialog>
+
+      {/* Device List Modal */}
+      <Dialog open={isDeviceListOpen} onOpenChange={setIsDeviceListOpen}>
+        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>{deviceListTitle}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredDevices.length} devices
+            </p>
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>Employee</TableHead>
+                  <TableHead>Department</TableHead>
+                  <TableHead>Device Type</TableHead>
+                  <TableHead>Model</TableHead>
+                  <TableHead>OS</TableHead>
+                  <TableHead>Status</TableHead>
+                  <TableHead>Score</TableHead>
+                  <TableHead>Issues</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {filteredDevices.map((device) => (
+                  <TableRow key={device.id}>
+                    <TableCell className="font-medium">{device.employee}</TableCell>
+                    <TableCell>{device.department}</TableCell>
+                    <TableCell>{device.deviceType}</TableCell>
+                    <TableCell>{device.model}</TableCell>
+                    <TableCell>{device.os}</TableCell>
+                    <TableCell>
+                      <Badge variant={device.status === 'compliant' ? 'default' : 'destructive'}>
+                        {device.status}
+                      </Badge>
+                    </TableCell>
+                    <TableCell>{device.score}%</TableCell>
+                    <TableCell>
+                      {device.issues.length > 0 ? (
+                        <div className="space-y-1">
+                          {device.issues.slice(0, 2).map((issue, i) => (
+                            <Badge key={i} variant="outline" className="text-xs mr-1">
+                              {issue}
+                            </Badge>
+                          ))}
+                          {device.issues.length > 2 && (
+                            <Badge variant="outline" className="text-xs">
+                              +{device.issues.length - 2} more
+                            </Badge>
+                          )}
+                        </div>
+                      ) : (
+                        <span className="text-muted-foreground">No issues</span>
+                      )}
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          </div>
         </DialogContent>
       </Dialog>
 
@@ -471,9 +599,10 @@ function RecommendationsList({ recommendations, onViewDetails }: Recommendations
 
 interface RecommendationDetailsProps {
   recommendation: RecommendationItem
+  onDeviceListClick?: (filterType: string, title: string) => void
 }
 
-function RecommendationDetails({ recommendation }: RecommendationDetailsProps) {
+function RecommendationDetails({ recommendation, onDeviceListClick }: RecommendationDetailsProps) {
   return (
     <div className="space-y-6">
       {/* Overview Section */}
@@ -539,16 +668,28 @@ function RecommendationDetails({ recommendation }: RecommendationDetailsProps) {
             {recommendation.detailedAnalysis.deviceBreakdown && (
               <div className="space-y-4">
                 <h4 className="font-medium">Affected Device Types</h4>
-                {recommendation.detailedAnalysis.deviceBreakdown.map((device, index) => (
-                  <Card key={index}>
-                    <CardContent className="pt-4">
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center gap-2">
-                          <Monitor className="w-4 h-4" />
-                          <span className="font-medium">{device.type}</span>
-                        </div>
-                        <Badge variant="outline">{device.count} devices</Badge>
-                      </div>
+                 {recommendation.detailedAnalysis.deviceBreakdown.map((device, index) => (
+                   <Card key={index}>
+                     <CardContent className="pt-4">
+                       <div className="flex items-center justify-between mb-2">
+                         <div className="flex items-center gap-2">
+                           <Monitor className="w-4 h-4" />
+                           <span className="font-medium">{device.type}</span>
+                         </div>
+                         <Button
+                           variant="outline"
+                           size="sm"
+                           onClick={() => {
+                             if (onDeviceListClick) {
+                               const filterType = device.type === 'Windows 10 Devices' ? 'windows10' : 
+                                                device.type === 'Unpatched Systems' ? 'unpatched' : 'security'
+                               onDeviceListClick(filterType, `${device.type} - ${device.count} devices`)
+                             }
+                           }}
+                         >
+                           {device.count} devices
+                         </Button>
+                       </div>
                       <div className="space-y-1">
                         {device.issues.map((issue, issueIndex) => (
                           <div key={issueIndex} className="flex items-center gap-2 text-sm text-muted-foreground">
