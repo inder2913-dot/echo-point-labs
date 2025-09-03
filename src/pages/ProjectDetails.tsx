@@ -375,22 +375,33 @@ export default function ProjectDetails() {
               </div>
             )}
             
-            {projectData.recommendations.recommendations && (
+            {projectData.recommendations?.recommendations && (
               <div className="space-y-3">
                 <h4 className="font-medium">Specific Recommendations</h4>
                 {projectData.recommendations.recommendations.slice(0, 5).map((rec: any, index: number) => (
                   <div key={index} className="border rounded-lg p-4">
                     <div className="flex items-center justify-between mb-2">
-                      <h5 className="font-medium">{rec.title}</h5>
+                      <div>
+                        <h5 className="font-medium">{rec.userName}</h5>
+                        <p className="text-sm text-muted-foreground">{rec.department}</p>
+                      </div>
                       <Badge className={rec.priority === 'high' ? 'bg-red-100 text-red-800' : 
-                                      rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
-                                      'bg-green-100 text-green-800'}>
+                                       rec.priority === 'medium' ? 'bg-yellow-100 text-yellow-800' : 
+                                       'bg-green-100 text-green-800'}>
                         {rec.priority} priority
                       </Badge>
                     </div>
-                    <p className="text-sm text-muted-foreground mb-2">{rec.description}</p>
-                    <p className="text-sm"><strong>Impact:</strong> {rec.impact}</p>
-                    {rec.cost && <p className="text-sm"><strong>Cost:</strong> ${rec.cost.toLocaleString()}</p>}
+                    <p className="text-sm font-medium mb-2">{rec.action}</p>
+                    <p className="text-sm text-muted-foreground mb-2">{rec.reasoning}</p>
+                    <div className="flex items-center justify-between text-sm">
+                      <span><strong>Impact:</strong> {rec.impact}</span>
+                      {rec.estimatedCost !== 0 && (
+                        <span className={`font-medium ${rec.estimatedCost < 0 ? 'text-green-600' : 'text-red-600'}`}>
+                          {rec.estimatedCost < 0 ? 'Saves ' : 'Costs '}${Math.abs(rec.estimatedCost).toLocaleString()}
+                        </span>
+                      )}
+                    </div>
+                    <p className="text-xs text-muted-foreground mt-1">Timeline: {rec.timeline}</p>
                   </div>
                 ))}
               </div>
