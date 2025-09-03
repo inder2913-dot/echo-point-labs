@@ -55,6 +55,8 @@ interface DeviceAnalysis {
   securityRisks: number
   batteryIssues: number
   warrantyExpiring: number
+  windows10Devices: number
+  unpatchedDevices: number
 }
 
 const getPriorityColor = (priority: string) => {
@@ -102,7 +104,9 @@ export default function Recommendations() {
     costOptimization: 0,
     securityRisks: 0,
     batteryIssues: 0,
-    warrantyExpiring: 0
+    warrantyExpiring: 0,
+    windows10Devices: 0,
+    unpatchedDevices: 0
   })
   const [loading, setLoading] = useState(true)
 
@@ -130,12 +134,16 @@ export default function Recommendations() {
         filtered = devices.filter(d => d.os.includes('Windows 10'))
         break
       case 'unpatched':
-        // Devices that need security patches - currently simulated as Windows 10 devices with security issues
+        // Devices that need security patches - Windows 10 devices with issues
         filtered = devices.filter(d => 
           d.os.includes('Windows 10') && (
-            d.issues.some(issue => issue.includes('Security') || issue.includes('Patch')) ||
             d.status === 'needs-upgrade' ||
-            d.status === 'minor-issues'
+            d.status === 'minor-issues' ||
+            d.issues.some(issue => 
+              issue.includes('Security') || 
+              issue.includes('Patch') || 
+              issue.includes('Outdated')
+            )
           )
         )
         break
@@ -224,14 +232,37 @@ export default function Recommendations() {
       ? Math.round(devices.reduce((sum, d) => sum + (d.score || 0), 0) / totalDevices)
       : 0
 
+    // Count actual Windows 10 devices
+    const windows10Devices = devices.filter(d => 
+      d.deviceos?.includes('Windows 10')
+    ).length
+
+    // Count actual devices needing security patches (Windows 10 + devices with security issues)
+    const unpatchedDevices = devices.filter(d => 
+      d.deviceos?.includes('Windows 10') && (
+        d.status === 'needs-upgrade' || 
+        d.status === 'minor-issues' ||
+        d.issues?.some((issue: string) => 
+          issue.includes('Security') || 
+          issue.includes('Patch') || 
+          issue.includes('Outdated')
+        )
+      )
+    ).length
+
+    // Total security risks = all Windows 10 devices + other devices with security issues
+    const securityRisks = devices.filter(d => 
+      d.deviceos?.includes('Windows 10') || 
+      d.issues?.some((issue: string) => 
+        issue.includes('Security') || 
+        issue.includes('Patch') || 
+        issue.includes('Outdated')
+      )
+    ).length
+
     // Estimate cost optimization opportunities
     const deviceTypes = new Set(devices.map(d => d.devicetype))
     const costOptimization = deviceTypes.size > 3 ? Math.floor(totalDevices * 0.3) : 0
-
-    // Estimate security risks (devices with issues)
-    const securityRisks = devices.filter(d => 
-      d.issues && d.issues.length > 0 || d.deviceos?.includes('Windows 10')
-    ).length
 
     // Calculate devices needing battery replacement
     const batteryIssues = devices.filter(d => 
@@ -255,7 +286,9 @@ export default function Recommendations() {
       costOptimization,
       securityRisks,
       batteryIssues,
-      warrantyExpiring
+      warrantyExpiring,
+      windows10Devices,
+      unpatchedDevices
     }
   }
 
@@ -325,8 +358,8 @@ export default function Recommendations() {
         ],
         detailedAnalysis: {
           deviceBreakdown: [
-            { type: 'Windows 10 Devices', count: Math.floor(analysis.securityRisks * 0.8), issues: ['Outdated OS', 'Missing Security Features'] },
-            { type: 'Unpatched Systems', count: Math.floor(analysis.securityRisks * 0.3), issues: ['Critical Security Patches Missing'] }
+            { type: 'Windows 10 Devices', count: analysis.windows10Devices, issues: ['Outdated OS', 'Missing Security Features'] },
+            { type: 'Unpatched Systems', count: analysis.unpatchedDevices, issues: ['Critical Security Patches Missing'] }
           ],
           riskAssessment: [
             'High vulnerability to ransomware attacks',
