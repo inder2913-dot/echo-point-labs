@@ -599,29 +599,37 @@ export default function Recommendations() {
 
       {/* Device List Modal */}
       <Dialog open={isDeviceListOpen} onOpenChange={setIsDeviceListOpen}>
-        <DialogContent className="max-w-6xl max-h-[80vh] overflow-y-auto">
+        <DialogContent className="max-w-7xl max-h-[90vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>{deviceListTitle}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Showing {filteredDevices.length} of {filteredDevices.length} devices
-            </p>
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Employee</TableHead>
-                  <TableHead>Department</TableHead>
-                  <TableHead>Device Type</TableHead>
-                  <TableHead>Model</TableHead>
-                  <TableHead>OS</TableHead>
-                  <TableHead>Status</TableHead>
-                  <TableHead>Score</TableHead>
-                  <TableHead>Issues</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {filteredDevices.map((device) => (
+            <div className="flex justify-between items-center">
+              <p className="text-sm text-muted-foreground">
+                Showing {filteredDevices.length} devices
+              </p>
+              {filteredDevices.length > 50 && (
+                <p className="text-xs text-muted-foreground">
+                  Large dataset - consider scrolling to see all devices
+                </p>
+              )}
+            </div>
+            <div className="max-h-96 overflow-y-auto">
+              <Table>
+                <TableHeader className="sticky top-0 bg-background">
+                  <TableRow>
+                    <TableHead>Employee</TableHead>
+                    <TableHead>Department</TableHead>
+                    <TableHead>Device Type</TableHead>
+                    <TableHead>Model</TableHead>
+                    <TableHead>OS</TableHead>
+                    <TableHead>Status</TableHead>
+                    <TableHead>Score</TableHead>
+                    <TableHead>Issues</TableHead>
+                  </TableRow>
+                </TableHeader>
+                <TableBody>
+                  {filteredDevices.map((device) => (
                   <TableRow key={device.id}>
                     <TableCell className="font-medium">{device.employee}</TableCell>
                     <TableCell>{device.department}</TableCell>
@@ -657,9 +665,10 @@ export default function Recommendations() {
                       )}
                     </TableCell>
                   </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+                  ))}
+                </TableBody>
+              </Table>
+            </div>
           </div>
         </DialogContent>
       </Dialog>
