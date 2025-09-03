@@ -213,25 +213,11 @@ export default function UserProfiles() {
     }
   };
 
-  // Combine default and custom profiles
+  // Combine only default profiles for industry display (custom profiles are shown separately)
   const allProfiles = [
     ...Object.entries(INDUSTRY_PROFILES).flatMap(([industry, profiles]) =>
       profiles.map(profile => ({ ...profile, industry, isCustom: false }))
-    ),
-    ...customProfiles.map(profile => ({
-      role: profile.role,
-      department: profile.department,
-      level: profile.level,
-      industry: profile.industry || 'Custom',
-      hardware: {
-        cpu: profile.hardware_cpu,
-        ram: profile.hardware_ram,
-        storage: profile.hardware_storage
-      },
-      description: profile.description,
-      isCustom: true,
-      id: profile.id
-    }))
+    )
   ];
 
   // Get unique values for filters
