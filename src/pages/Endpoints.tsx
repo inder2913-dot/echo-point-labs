@@ -85,6 +85,7 @@ const getStatusColor = (status: string) => {
 export default function Endpoints() {
   const [devices, setDevices] = useState<Device[]>([])
   const [filteredDevices, setFilteredDevices] = useState<Device[]>([])
+  const [totalDeviceCount, setTotalDeviceCount] = useState<number>(0)
   const [loading, setLoading] = useState(true)
   const [projects, setProjects] = useState<any[]>([])
   const [selectedProject, setSelectedProject] = useState<string>("")
@@ -206,6 +207,7 @@ export default function Endpoints() {
         console.log('Inventory devices:', deviceComparison.length) 
         console.log('User-mapped devices:', mappedDevices.length)
         console.log('Final device count:', transformedDevices.length)
+        setTotalDeviceCount(deviceComparison.length)
         setDevices(transformedDevices)
         setFilteredDevices(transformedDevices)
       } else {
@@ -362,10 +364,10 @@ export default function Endpoints() {
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium text-muted-foreground">Total Devices</CardTitle>
+            <CardTitle className="text-sm font-medium text-muted-foreground">Total Devices Mapped</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{stats.total}</div>
+            <div className="text-2xl font-bold">{devices.length}/{totalDeviceCount}</div>
           </CardContent>
         </Card>
         
