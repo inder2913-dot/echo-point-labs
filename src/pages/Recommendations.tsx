@@ -960,7 +960,6 @@ export default function Recommendations() {
           <TabsTrigger value="all">All Recommendations</TabsTrigger>
           <TabsTrigger value="hardware">Hardware ({categoryRecommendations.hardware.length})</TabsTrigger>
           <TabsTrigger value="security">Security ({categoryRecommendations.security.length})</TabsTrigger>
-          <TabsTrigger value="cost">Cost ({categoryRecommendations.cost.length})</TabsTrigger>
           <TabsTrigger value="planning">Planning ({categoryRecommendations.planning.length})</TabsTrigger>
         </TabsList>
 
@@ -974,10 +973,6 @@ export default function Recommendations() {
 
         <TabsContent value="security" className="space-y-4">
           <RecommendationsList recommendations={categoryRecommendations.security} onViewDetails={handleViewDetails} />
-        </TabsContent>
-
-        <TabsContent value="cost" className="space-y-4">
-          <RecommendationsList recommendations={categoryRecommendations.cost} onViewDetails={handleViewDetails} />
         </TabsContent>
 
         <TabsContent value="planning" className="space-y-4">
