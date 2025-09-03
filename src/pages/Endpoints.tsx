@@ -160,6 +160,11 @@ export default function Endpoints() {
         ? (Array.isArray(deviceInventoryData[0].data) ? deviceInventoryData[0].data.length : 0)
         : 0
       
+      console.log('=== INVENTORY DATA DEBUG ===')
+      console.log('DeviceInventoryData:', deviceInventoryData)
+      console.log('DeviceInventoryData length:', deviceInventoryData?.length)
+      console.log('DeviceInventoryData[0]?.data type:', typeof deviceInventoryData?.[0]?.data)
+      console.log('DeviceInventoryData[0]?.data isArray:', Array.isArray(deviceInventoryData?.[0]?.data))
       console.log('Total devices in original inventory:', totalInventoryDevices)
 
       if (projectData && projectData.length > 0) {
@@ -203,7 +208,14 @@ export default function Endpoints() {
           storage: item.device?.diskcapacity || item.device?.storage || item.diskcapacity || 'Unknown'
         }))
         
-        console.log('=== DEVICE COUNTS ===')
+        console.log('=== DEVICE COUNTS DEBUG ===')
+        console.log('Project data structure:', data)
+        console.log('DeviceComparison type:', typeof data.deviceComparison)
+        console.log('DeviceComparison isArray:', Array.isArray(data.deviceComparison))
+        console.log('DeviceComparison length:', data.deviceComparison?.length)
+        console.log('Fallback data isArray:', Array.isArray(data))
+        console.log('Fallback data length:', data?.length)
+        console.log('Final deviceComparison length:', deviceComparison.length)
         console.log('Total devices in original inventory:', totalInventoryDevices)
         console.log('User-assigned devices (from comparison):', deviceComparison.length)
         console.log('Transformed devices:', transformedDevices.length)
