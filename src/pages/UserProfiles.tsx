@@ -1,10 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
-import { Search, Users, Building2, Plus, Filter, Monitor, Cpu, HardDrive } from 'lucide-react';
+import { Search, Users, Building2, Plus, Filter, Monitor, Cpu, HardDrive, Trash2, Edit } from 'lucide-react';
+import { CreateCustomProfile } from '@/components/profile/CreateCustomProfile';
+import { supabase } from '@/integrations/supabase/client';
+import { useToast } from '@/hooks/use-toast';
 
 const INDUSTRY_PROFILES = {
   'Healthcare': [
@@ -118,11 +121,78 @@ export default function UserProfiles() {
   const [selectedIndustry, setSelectedIndustry] = useState('All');
   const [selectedLevel, setSelectedLevel] = useState('All');
   const [selectedDepartment, setSelectedDepartment] = useState('All');
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [customProfiles, setCustomProfiles] = useState<any[]>([]);
+  const { toast } = useToast();
 
-  // Flatten all profiles for filtering
-  const allProfiles = Object.entries(INDUSTRY_PROFILES).flatMap(([industry, profiles]) =>
-    profiles.map(profile => ({ ...profile, industry }))
-  );
+  // Fetch custom profiles
+  const fetchCustomProfiles = async () => {
+    try {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (!user) return;
+
+      const { data, error } = await supabase
+        .from('user_profiles')
+        .select('*')
+        .eq('user_id', user.id)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+      setCustomProfiles(data || []);
+    } catch (error) {
+      console.error('Error fetching custom profiles:', error);
+    }
+  };
+
+  useEffect(() => {
+    fetchCustomProfiles();
+  }, []);
+
+  const deleteCustomProfile = async (id: string) => {
+    try {
+      const { error } = await supabase
+        .from('user_profiles')
+        .delete()
+        .eq('id', id);
+
+      if (error) throw error;
+
+      toast({
+        title: "Profile Deleted",
+        description: "The custom profile has been deleted successfully."
+      });
+
+      fetchCustomProfiles();
+    } catch (error) {
+      console.error('Error deleting profile:', error);
+      toast({
+        title: "Error",
+        description: "Failed to delete profile. Please try again.",
+        variant: "destructive"
+      });
+    }
+  };
+
+  // Combine default and custom profiles
+  const allProfiles = [
+    ...Object.entries(INDUSTRY_PROFILES).flatMap(([industry, profiles]) =>
+      profiles.map(profile => ({ ...profile, industry, isCustom: false }))
+    ),
+    ...customProfiles.map(profile => ({
+      role: profile.role,
+      department: profile.department,
+      level: profile.level,
+      industry: profile.industry || 'Custom',
+      hardware: {
+        cpu: profile.hardware_cpu,
+        ram: profile.hardware_ram,
+        storage: profile.hardware_storage
+      },
+      description: profile.description,
+      isCustom: true,
+      id: profile.id
+    }))
+  ];
 
   // Get unique values for filters
   const departments = [...new Set(allProfiles.map(p => p.department))];
@@ -158,7 +228,7 @@ export default function UserProfiles() {
             Comprehensive role profiles across different industries with hardware requirements
           </p>
         </div>
-        <Button>
+        <Button onClick={() => setShowCreateDialog(true)}>
           <Plus className="mr-2 h-4 w-4" />
           Create Custom Profile
         </Button>
@@ -228,7 +298,83 @@ export default function UserProfiles() {
         </CardContent>
       </Card>
 
-      {/* Results */}
+      {/* Custom Profiles Section */}
+      {customProfiles.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Users className="h-5 w-5" />
+              Your Custom Profiles
+              <Badge variant="secondary">{customProfiles.length} profiles</Badge>
+            </CardTitle>
+            <CardDescription>
+              Custom profiles you've created for your organization
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+              {customProfiles.map((profile) => (
+                <Card key={profile.id} className="hover:shadow-md transition-shadow">
+                  <CardContent className="p-4">
+                    <div className="space-y-3">
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <h4 className="font-semibold">{profile.role}</h4>
+                          <p className="text-sm text-muted-foreground">{profile.department}</p>
+                        </div>
+                        <div className="flex gap-1">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => deleteCustomProfile(profile.id)}
+                            className="h-8 w-8 p-0 text-destructive hover:text-destructive"
+                          >
+                            <Trash2 className="h-3 w-3" />
+                          </Button>
+                        </div>
+                      </div>
+                      
+                      <Badge className={LEVEL_COLORS[profile.level as keyof typeof LEVEL_COLORS]}>
+                        {profile.level}
+                      </Badge>
+                      
+                      {profile.industry && (
+                        <Badge variant="outline">{profile.industry}</Badge>
+                      )}
+                      
+                      {profile.description && (
+                        <p className="text-xs text-muted-foreground">{profile.description}</p>
+                      )}
+                      
+                      <div className="space-y-2">
+                        <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+                          Hardware Requirements
+                        </p>
+                        <div className="grid grid-cols-1 gap-1 text-xs">
+                          <div className="flex items-center gap-2">
+                            <Cpu className="h-3 w-3 text-muted-foreground" />
+                            <span>{profile.hardware_cpu}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <Monitor className="h-3 w-3 text-muted-foreground" />
+                            <span>{profile.hardware_ram}</span>
+                          </div>
+                          <div className="flex items-center gap-2">
+                            <HardDrive className="h-3 w-3 text-muted-foreground" />
+                            <span>{profile.hardware_storage}</span>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Standard Profiles */}
       <div className="space-y-6">
         {Object.entries(groupedProfiles).map(([industry, profiles]) => (
           <Card key={industry}>
@@ -297,6 +443,12 @@ export default function UserProfiles() {
           </CardContent>
         </Card>
       )}
+
+      <CreateCustomProfile
+        open={showCreateDialog}
+        onOpenChange={setShowCreateDialog}
+        onProfileCreated={fetchCustomProfiles}
+      />
     </div>
   );
 }
