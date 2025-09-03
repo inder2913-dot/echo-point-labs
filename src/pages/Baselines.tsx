@@ -77,6 +77,205 @@ const DEFAULT_PROFILES = [
   }
 ]
 
+function CreateBaselineForm({ onSave, onCancel }: any) {
+  const [newProfile, setNewProfile] = useState({
+    name: '',
+    description: '',
+    department: 'General',
+    level: 'Standard',
+    industry: 'Technology',
+    baseline: {
+      deviceType: "Laptop",
+      ram: "16GB",
+      cpu: "Intel i5 / AMD Ryzen 5",
+      storage: "512GB SSD",
+      graphics: "Onboard",
+      graphicsCapacity: null
+    }
+  })
+
+  const handleSave = () => {
+    if (!newProfile.name.trim()) {
+      toast.error('Profile name is required')
+      return
+    }
+    onSave(newProfile)
+  }
+
+  return (
+    <div className="space-y-4">
+      <div className="space-y-2">
+        <Label>Profile Name</Label>
+        <Input
+          value={newProfile.name}
+          onChange={(e) => setNewProfile(prev => ({
+            ...prev,
+            name: e.target.value
+          }))}
+          placeholder="e.g., CAD Designer, Data Analyst"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Description</Label>
+        <Input
+          value={newProfile.description}
+          onChange={(e) => setNewProfile(prev => ({
+            ...prev,
+            description: e.target.value
+          }))}
+          placeholder="Brief description of this profile"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Department</Label>
+        <Input
+          value={newProfile.department}
+          onChange={(e) => setNewProfile(prev => ({
+            ...prev,
+            department: e.target.value
+          }))}
+          placeholder="e.g., Engineering, Marketing"
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Level</Label>
+        <Select 
+          value={newProfile.level} 
+          onValueChange={(value) => setNewProfile(prev => ({
+            ...prev,
+            level: value
+          }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-background border shadow-lg z-50">
+            <SelectItem value="Entry">Entry</SelectItem>
+            <SelectItem value="Junior">Junior</SelectItem>
+            <SelectItem value="Standard">Standard</SelectItem>
+            <SelectItem value="Senior">Senior</SelectItem>
+            <SelectItem value="Executive">Executive</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>RAM</Label>
+        <Select 
+          value={newProfile.baseline.ram} 
+          onValueChange={(value) => setNewProfile(prev => ({
+            ...prev,
+            baseline: { ...prev.baseline, ram: value }
+          }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-background border shadow-lg z-50">
+            <SelectItem value="8GB">8GB</SelectItem>
+            <SelectItem value="16GB">16GB</SelectItem>
+            <SelectItem value="32GB">32GB</SelectItem>
+            <SelectItem value="64GB">64GB</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>CPU</Label>
+        <Input
+          value={newProfile.baseline.cpu}
+          onChange={(e) => setNewProfile(prev => ({
+            ...prev,
+            baseline: { ...prev.baseline, cpu: e.target.value }
+          }))}
+        />
+      </div>
+
+      <div className="space-y-2">
+        <Label>Storage</Label>
+        <Select 
+          value={newProfile.baseline.storage} 
+          onValueChange={(value) => setNewProfile(prev => ({
+            ...prev,
+            baseline: { ...prev.baseline, storage: value }
+          }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-background border shadow-lg z-50">
+            <SelectItem value="256GB SSD">256GB SSD</SelectItem>
+            <SelectItem value="512GB SSD">512GB SSD</SelectItem>
+            <SelectItem value="1TB SSD">1TB SSD</SelectItem>
+            <SelectItem value="2TB SSD">2TB SSD</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div className="space-y-2">
+        <Label>Graphics</Label>
+        <Select 
+          value={newProfile.baseline.graphics} 
+          onValueChange={(value) => setNewProfile(prev => ({
+            ...prev,
+            baseline: { 
+              ...prev.baseline, 
+              graphics: value,
+              graphicsCapacity: value === "Onboard" ? null : prev.baseline.graphicsCapacity
+            }
+          }))}
+        >
+          <SelectTrigger>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className="bg-background border shadow-lg z-50">
+            <SelectItem value="Onboard">Onboard</SelectItem>
+            <SelectItem value="Dedicated">Dedicated</SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      {newProfile.baseline.graphics === "Dedicated" && (
+        <div className="space-y-2">
+          <Label>Graphics Capacity</Label>
+          <Select 
+            value={newProfile.baseline.graphicsCapacity || ""} 
+            onValueChange={(value) => setNewProfile(prev => ({
+              ...prev,
+              baseline: { ...prev.baseline, graphicsCapacity: value }
+            }))}
+          >
+            <SelectTrigger>
+              <SelectValue placeholder="Select capacity" />
+            </SelectTrigger>
+            <SelectContent className="bg-background border shadow-lg z-50">
+              <SelectItem value="2GB">2GB</SelectItem>
+              <SelectItem value="4GB">4GB</SelectItem>
+              <SelectItem value="6GB">6GB</SelectItem>
+              <SelectItem value="8GB">8GB</SelectItem>
+              <SelectItem value="16GB">16GB</SelectItem>
+              <SelectItem value="24GB">24GB</SelectItem>
+            </SelectContent>
+          </Select>
+        </div>
+      )}
+
+      <div className="flex justify-end space-x-2">
+        <Button variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <Button onClick={handleSave}>
+          <Plus className="w-4 h-4 mr-2" />
+          Create Baseline
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function Baselines() {
   const [userProfiles, setUserProfiles] = useState<any[]>([])
   const [filteredProfiles, setFilteredProfiles] = useState<any[]>([])
@@ -652,205 +851,6 @@ function BaselineEditor({ profile, onSave, onCancel }: any) {
         <Button onClick={handleSave}>
           <Check className="w-4 h-4 mr-2" />
           Save Changes
-        </Button>
-      </div>
-    </div>
-  )
-}
-
-function CreateBaselineForm({ onSave, onCancel }: any) {
-  const [newProfile, setNewProfile] = useState({
-    name: '',
-    description: '',
-    department: 'General',
-    level: 'Standard',
-    industry: 'Technology',
-    baseline: {
-      deviceType: "Laptop",
-      ram: "16GB",
-      cpu: "Intel i5 / AMD Ryzen 5",
-      storage: "512GB SSD",
-      graphics: "Onboard",
-      graphicsCapacity: null
-    }
-  })
-
-  const handleSave = () => {
-    if (!newProfile.name.trim()) {
-      toast.error('Profile name is required')
-      return
-    }
-    onSave(newProfile)
-  }
-
-  return (
-    <div className="space-y-4">
-      <div className="space-y-2">
-        <Label>Profile Name</Label>
-        <Input
-          value={newProfile.name}
-          onChange={(e) => setNewProfile(prev => ({
-            ...prev,
-            name: e.target.value
-          }))}
-          placeholder="e.g., CAD Designer, Data Analyst"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Description</Label>
-        <Input
-          value={newProfile.description}
-          onChange={(e) => setNewProfile(prev => ({
-            ...prev,
-            description: e.target.value
-          }))}
-          placeholder="Brief description of this profile"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Department</Label>
-        <Input
-          value={newProfile.department}
-          onChange={(e) => setNewProfile(prev => ({
-            ...prev,
-            department: e.target.value
-          }))}
-          placeholder="e.g., Engineering, Marketing"
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Level</Label>
-        <Select 
-          value={newProfile.level} 
-          onValueChange={(value) => setNewProfile(prev => ({
-            ...prev,
-            level: value
-          }))}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-background border shadow-lg z-50">
-            <SelectItem value="Entry">Entry</SelectItem>
-            <SelectItem value="Junior">Junior</SelectItem>
-            <SelectItem value="Standard">Standard</SelectItem>
-            <SelectItem value="Senior">Senior</SelectItem>
-            <SelectItem value="Executive">Executive</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>RAM</Label>
-        <Select 
-          value={newProfile.baseline.ram} 
-          onValueChange={(value) => setNewProfile(prev => ({
-            ...prev,
-            baseline: { ...prev.baseline, ram: value }
-          }))}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-background border shadow-lg z-50">
-            <SelectItem value="8GB">8GB</SelectItem>
-            <SelectItem value="16GB">16GB</SelectItem>
-            <SelectItem value="32GB">32GB</SelectItem>
-            <SelectItem value="64GB">64GB</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>CPU</Label>
-        <Input
-          value={newProfile.baseline.cpu}
-          onChange={(e) => setNewProfile(prev => ({
-            ...prev,
-            baseline: { ...prev.baseline, cpu: e.target.value }
-          }))}
-        />
-      </div>
-
-      <div className="space-y-2">
-        <Label>Storage</Label>
-        <Select 
-          value={newProfile.baseline.storage} 
-          onValueChange={(value) => setNewProfile(prev => ({
-            ...prev,
-            baseline: { ...prev.baseline, storage: value }
-          }))}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-background border shadow-lg z-50">
-            <SelectItem value="256GB SSD">256GB SSD</SelectItem>
-            <SelectItem value="512GB SSD">512GB SSD</SelectItem>
-            <SelectItem value="1TB SSD">1TB SSD</SelectItem>
-            <SelectItem value="2TB SSD">2TB SSD</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      <div className="space-y-2">
-        <Label>Graphics</Label>
-        <Select 
-          value={newProfile.baseline.graphics} 
-          onValueChange={(value) => setNewProfile(prev => ({
-            ...prev,
-            baseline: { 
-              ...prev.baseline, 
-              graphics: value,
-              graphicsCapacity: value === "Onboard" ? null : prev.baseline.graphicsCapacity
-            }
-          }))}
-        >
-          <SelectTrigger>
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent className="bg-background border shadow-lg z-50">
-            <SelectItem value="Onboard">Onboard</SelectItem>
-            <SelectItem value="Dedicated">Dedicated</SelectItem>
-          </SelectContent>
-        </Select>
-      </div>
-
-      {newProfile.baseline.graphics === "Dedicated" && (
-        <div className="space-y-2">
-          <Label>Graphics Capacity</Label>
-          <Select 
-            value={newProfile.baseline.graphicsCapacity || ""} 
-            onValueChange={(value) => setNewProfile(prev => ({
-              ...prev,
-              baseline: { ...prev.baseline, graphicsCapacity: value }
-            }))}
-          >
-            <SelectTrigger>
-              <SelectValue placeholder="Select capacity" />
-            </SelectTrigger>
-            <SelectContent className="bg-background border shadow-lg z-50">
-              <SelectItem value="2GB">2GB</SelectItem>
-              <SelectItem value="4GB">4GB</SelectItem>
-              <SelectItem value="6GB">6GB</SelectItem>
-              <SelectItem value="8GB">8GB</SelectItem>
-              <SelectItem value="16GB">16GB</SelectItem>
-              <SelectItem value="24GB">24GB</SelectItem>
-            </SelectContent>
-          </Select>
-        </div>
-      )}
-
-      <div className="flex justify-end space-x-2">
-        <Button variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <Button onClick={handleSave}>
-          <Plus className="w-4 h-4 mr-2" />
-          Create Baseline
         </Button>
       </div>
     </div>
