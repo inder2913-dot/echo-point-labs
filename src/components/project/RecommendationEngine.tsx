@@ -145,9 +145,17 @@ export function RecommendationEngine({ onComplete, initialData }: Recommendation
   }, [])
 
   const saveProject = async () => {
-    if (!initialData.organizationSetup?.organizationType) {
+    console.log('Saving project with data:', initialData); // Debug log
+    
+    // More flexible validation - check for any organization data
+    const hasOrgData = initialData.organizationSetup || 
+                      initialData.organizationType || 
+                      initialData.organization ||
+                      initialData.orgType;
+    
+    if (!hasOrgData) {
       toast({
-        title: "Error",
+        title: "Error", 
         description: "Missing organization data. Please start from the beginning.",
         variant: "destructive"
       });
