@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react"
-import { Activity, Monitor, Smartphone, Tablet, Laptop, Shield, AlertTriangle, CheckCircle } from "lucide-react"
+import { Activity, Monitor, Smartphone, Tablet, Laptop, Shield, AlertTriangle, CheckCircle, Filter } from "lucide-react"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -315,14 +315,41 @@ export default function Endpoints() {
         <TabsContent value="all-devices" className="space-y-4">
           {/* Filters */}
           <Card className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 xl:grid-cols-9 gap-4">
+            <div className="flex items-center justify-between mb-4">
+              <div className="flex items-center gap-2">
+                <Filter className="w-4 h-4" />
+                <h3 className="font-medium">Filters</h3>
+                <Badge variant="secondary" className="ml-2">
+                  {filteredDevices.length} of {devices.length} devices
+                </Badge>
+              </div>
+              <Button 
+                variant="outline" 
+                size="sm"
+                onClick={() => {
+                  setSelectedDepartment("all")
+                  setSelectedLocation("all")
+                  setSelectedDeviceType("all")
+                  setSelectedStatus("all")
+                  setSelectedCpu("all")
+                  setSelectedRam("all")
+                  setSelectedGraphics("all")
+                  setSelectedStorage("all")
+                  setSelectedOS("all")
+                }}
+              >
+                Clear All Filters
+              </Button>
+            </div>
+            
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Department</label>
                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All Departments" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All Departments</SelectItem>
                     {departments.map(dept => (
                       <SelectItem key={dept} value={dept}>{dept}</SelectItem>
@@ -334,10 +361,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Location</label>
                 <Select value={selectedLocation} onValueChange={setSelectedLocation}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All Locations" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All Locations</SelectItem>
                     {locations.map(location => (
                       <SelectItem key={location} value={location}>{location}</SelectItem>
@@ -349,10 +376,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Device Type</label>
                 <Select value={selectedDeviceType} onValueChange={setSelectedDeviceType}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All Types" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All Types</SelectItem>
                     {deviceTypes.map(type => (
                       <SelectItem key={type} value={type}>{type}</SelectItem>
@@ -364,10 +391,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Status</label>
                 <Select value={selectedStatus} onValueChange={setSelectedStatus}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All Statuses" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All Statuses</SelectItem>
                     <SelectItem value="compliant">Compliant</SelectItem>
                     <SelectItem value="needs-upgrade">Needs Upgrade</SelectItem>
@@ -380,10 +407,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">CPU</label>
                 <Select value={selectedCpu} onValueChange={setSelectedCpu}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All CPUs" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All CPUs</SelectItem>
                     {cpuTypes.map(cpu => (
                       <SelectItem key={cpu} value={cpu}>{cpu}</SelectItem>
@@ -395,10 +422,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">RAM</label>
                 <Select value={selectedRam} onValueChange={setSelectedRam}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All RAM" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All RAM</SelectItem>
                     {ramTypes.map(ram => (
                       <SelectItem key={ram} value={ram}>{ram}</SelectItem>
@@ -410,10 +437,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Graphics</label>
                 <Select value={selectedGraphics} onValueChange={setSelectedGraphics}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All Graphics" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All Graphics</SelectItem>
                     {graphicsTypes.map(graphics => (
                       <SelectItem key={graphics} value={graphics}>{graphics}</SelectItem>
@@ -425,10 +452,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Storage</label>
                 <Select value={selectedStorage} onValueChange={setSelectedStorage}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All Storage" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All Storage</SelectItem>
                     {storageTypes.map(storage => (
                       <SelectItem key={storage} value={storage}>{storage}</SelectItem>
@@ -440,10 +467,10 @@ export default function Endpoints() {
               <div className="space-y-2">
                 <label className="text-sm font-medium">Operating System</label>
                 <Select value={selectedOS} onValueChange={setSelectedOS}>
-                  <SelectTrigger>
+                  <SelectTrigger className="bg-background">
                     <SelectValue placeholder="All OS" />
                   </SelectTrigger>
-                  <SelectContent>
+                  <SelectContent className="bg-background border shadow-lg z-50">
                     <SelectItem value="all">All Operating Systems</SelectItem>
                     {osTypes.map(os => (
                       <SelectItem key={os} value={os}>{os}</SelectItem>
@@ -452,24 +479,6 @@ export default function Endpoints() {
                 </Select>
               </div>
             </div>
-
-            <Button 
-              variant="outline" 
-              onClick={() => {
-                setSelectedDepartment("all")
-                setSelectedLocation("all")
-                setSelectedDeviceType("all")
-                setSelectedStatus("all")
-                setSelectedCpu("all")
-                setSelectedRam("all")
-                setSelectedGraphics("all")
-                setSelectedStorage("all")
-                setSelectedOS("all")
-              }}
-              className="mt-4"
-            >
-              Clear All Filters
-            </Button>
           </Card>
 
           {/* Device List */}
