@@ -6,7 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
-import { Loader2, Cpu, Monitor, HardDrive } from 'lucide-react';
+import { Loader2, Cpu, Monitor, HardDrive, Zap } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
@@ -21,6 +21,8 @@ const INDUSTRIES = ['Healthcare', 'Manufacturing', 'Technology', 'Financial Serv
 const CPU_OPTIONS = ['Core i3', 'Core i5', 'Core i7', 'Core i9', 'AMD Ryzen 3', 'AMD Ryzen 5', 'AMD Ryzen 7', 'AMD Ryzen 9'];
 const RAM_OPTIONS = ['4GB', '8GB', '16GB', '32GB', '64GB'];
 const STORAGE_OPTIONS = ['128GB SSD', '256GB SSD', '512GB SSD', '1TB SSD', '2TB SSD', '1TB HDD', '2TB HDD'];
+const GRAPHICS_OPTIONS = ['Onboard', 'Dedicated'];
+const GRAPHICS_CAPACITY_OPTIONS = ['2GB', '4GB', '6GB', '8GB'];
 
 export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: CreateCustomProfileProps) {
   const [isLoading, setIsLoading] = useState(false);
@@ -32,7 +34,9 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
     description: '',
     hardware_cpu: 'Core i5',
     hardware_ram: '8GB',
-    hardware_storage: '256GB SSD'
+    hardware_storage: '256GB SSD',
+    hardware_graphics: 'Onboard',
+    hardware_graphics_capacity: '2GB'
   });
   const { toast } = useToast();
 
@@ -68,7 +72,9 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
           description: formData.description || null,
           hardware_cpu: formData.hardware_cpu,
           hardware_ram: formData.hardware_ram,
-          hardware_storage: formData.hardware_storage
+          hardware_storage: formData.hardware_storage,
+          hardware_graphics: formData.hardware_graphics,
+          hardware_graphics_capacity: formData.hardware_graphics === 'Dedicated' ? formData.hardware_graphics_capacity : null
         });
 
       if (error) throw error;
@@ -87,7 +93,9 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
         description: '',
         hardware_cpu: 'Core i5',
         hardware_ram: '8GB',
-        hardware_storage: '256GB SSD'
+        hardware_storage: '256GB SSD',
+        hardware_graphics: 'Onboard',
+        hardware_graphics_capacity: '2GB'
       });
 
       onProfileCreated();
@@ -186,7 +194,7 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
                 Hardware Requirements
               </h4>
               
-              <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                 <div className="space-y-2">
                   <Label className="flex items-center gap-2">
                     <Cpu className="h-3 w-3" />
@@ -237,7 +245,45 @@ export function CreateCustomProfile({ open, onOpenChange, onProfileCreated }: Cr
                     </SelectContent>
                   </Select>
                 </div>
+
+                <div className="space-y-2">
+                  <Label className="flex items-center gap-2">
+                    <Zap className="h-3 w-3" />
+                    Graphics
+                  </Label>
+                  <Select value={formData.hardware_graphics} onValueChange={(value) => setFormData({ ...formData, hardware_graphics: value })}>
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {GRAPHICS_OPTIONS.map(graphics => (
+                        <SelectItem key={graphics} value={graphics}>{graphics}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
+
+              {formData.hardware_graphics === 'Dedicated' && (
+                <div className="mt-4">
+                  <div className="space-y-2">
+                    <Label className="flex items-center gap-2">
+                      <Zap className="h-3 w-3" />
+                      Graphics Memory
+                    </Label>
+                    <Select value={formData.hardware_graphics_capacity} onValueChange={(value) => setFormData({ ...formData, hardware_graphics_capacity: value })}>
+                      <SelectTrigger className="w-full md:w-48">
+                        <SelectValue />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {GRAPHICS_CAPACITY_OPTIONS.map(capacity => (
+                          <SelectItem key={capacity} value={capacity}>{capacity}</SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                </div>
+              )}
             </CardContent>
           </Card>
 
