@@ -205,8 +205,17 @@ export default function Recommendations() {
         )
         console.log('Filtered desktops needing upgrade:', filtered.length)
         break
+      case 'critical':
+        // Critical devices: needs-upgrade status AND score below 30%
+        filtered = devices.filter(d => 
+          d.status === 'needs-upgrade' && d.score < 30
+        )
+        break
       case 'upgrade':
-        filtered = devices.filter(d => d.status === 'needs-upgrade')
+        // Minor upgrades: needs-upgrade status AND score 30% or higher
+        filtered = devices.filter(d => 
+          d.status === 'needs-upgrade' && d.score >= 30
+        )
         break
       case 'battery':
         filtered = devices.filter(d => 
@@ -1015,10 +1024,10 @@ function RecommendationDetails({ recommendation, onDeviceListClick }: Recommenda
                            size="sm"
                            onClick={() => {
                              if (onDeviceListClick) {
-                              const filterType = device.type === 'Windows 10 Devices' ? 'windows10' : 
-                                             device.type === 'Unpatched Systems' ? 'unpatched' :
-                                             device.type === 'Critical Issues (Full Replacement)' ? 'upgrade' :
-                                             device.type === 'Minor Issues (Fixes & Upgrades)' ? 'upgrade' :
+                               const filterType = device.type === 'Windows 10 Devices' ? 'windows10' : 
+                                              device.type === 'Unpatched Systems' ? 'unpatched' :
+                                              device.type === 'Critical Issues (Full Replacement)' ? 'critical' :
+                                              device.type === 'Minor Issues (Fixes & Upgrades)' ? 'upgrade' :
                                              device.type === 'Laptops' ? 'laptops' :
                                              device.type === 'Desktops' ? 'desktops' :
                                              device.type === 'Poor Battery Health' || device.type === 'Fair Battery Health' || device.type === 'Unknown Battery Status' ? 'battery' :
