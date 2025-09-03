@@ -61,6 +61,7 @@ export function DeviceComparison({ onComplete, initialData }: DeviceComparisonPr
       console.log('Device Analysis - Employees:', employees.length)
       console.log('Device Analysis - Devices loaded:', devices.length)
       console.log('Device Analysis - Profiles:', profiles.length)
+      console.log('Device Analysis - First few employees:', employees.slice(0, 3))
       
       const results = employees.map(employee => {
         // Try multiple ways to match employee with device

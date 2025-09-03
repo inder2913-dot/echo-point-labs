@@ -173,16 +173,23 @@ export default function Endpoints() {
         console.log('Data field:', data)
         
         // The data structure from DeviceComparison should be: { deviceComparison: [...], analysisComplete: true }
-        // Extract the actual comparison results
+        // But it seems to be saving as a direct array, so we need to handle both cases
         let deviceComparison = []
         if (data.deviceComparison && Array.isArray(data.deviceComparison)) {
           deviceComparison = data.deviceComparison // This is the correct structure
         } else if (Array.isArray(data)) {
-          deviceComparison = data // Fallback for direct array
+          // Fallback: filter the array to only include items with user assignments
+          deviceComparison = data.filter((item: any) => {
+            // Item has user assignment if it has employee info
+            const hasUserAssignment = Boolean((item.firstName && item.lastName) || 
+                                             (item.name && item.name !== 'Unknown') || 
+                                             (item.department && item.department !== 'Unknown'))
+            return hasUserAssignment
+          })
         }
         
-        console.log('Device comparison array:', deviceComparison)
-        console.log('Raw device comparison length:', deviceComparison.length)
+        console.log('Device comparison array after filtering:', deviceComparison)
+        console.log('Filtered device comparison length:', deviceComparison.length)
         
         // No need to filter here - deviceComparison already contains only user-mapped devices
         // Each item in deviceComparison represents an employee and their assigned device
