@@ -144,6 +144,24 @@ export default function Endpoints() {
 
       if (error) throw error
 
+      // Also get the original device inventory count
+      const { data: deviceInventoryData, error: inventoryError } = await supabase
+        .from('project_data')
+        .select('*')
+        .eq('step_name', 'deviceInventory')
+        .eq('project_id', selectedProject)
+        .order('created_at', { ascending: false })
+        .limit(1)
+
+      if (inventoryError) throw inventoryError
+
+      // Get total device inventory count
+      const totalInventoryDevices = deviceInventoryData && deviceInventoryData.length > 0 
+        ? (Array.isArray(deviceInventoryData[0].data) ? deviceInventoryData[0].data.length : 0)
+        : 0
+      
+      console.log('Total devices in original inventory:', totalInventoryDevices)
+
       if (projectData && projectData.length > 0) {
         const data = projectData[0].data as any
         console.log('Raw project data:', projectData[0])
@@ -186,11 +204,12 @@ export default function Endpoints() {
         }))
         
         console.log('=== DEVICE COUNTS ===')
+        console.log('Total devices in original inventory:', totalInventoryDevices)
         console.log('User-assigned devices (from comparison):', deviceComparison.length)
         console.log('Transformed devices:', transformedDevices.length)
         
-        // Set total device count to match the user-assigned devices since that's what we're showing
-        setTotalDeviceCount(deviceComparison.length)
+        // Show mapped devices out of total inventory
+        setTotalDeviceCount(totalInventoryDevices)
         setDevices(transformedDevices)
         setFilteredDevices(transformedDevices)
       } else {
