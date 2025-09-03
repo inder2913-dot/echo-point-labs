@@ -61,7 +61,7 @@ export function AppSidebar() {
             </div>
             {!collapsed && (
               <div>
-                <h2 className="font-semibold text-foreground">EcoPoint</h2>
+                <h2 className="font-semibold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">EcoPoint</h2>
               </div>
             )}
           </div>

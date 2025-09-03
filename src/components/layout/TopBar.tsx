@@ -57,7 +57,7 @@ export function TopBar() {
             <span className="text-primary-foreground font-bold text-sm">H</span>
           </div>
           <div>
-            <h1 className="font-bold text-foreground">Hexaware EcoPoint</h1>
+            <h1 className="font-bold bg-gradient-to-r from-blue-500 to-purple-500 bg-clip-text text-transparent">Hexaware EcoPoint</h1>
           </div>
         </div>
       </div>
