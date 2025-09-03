@@ -104,6 +104,7 @@ export default function Recommendations() {
   const [filteredDevices, setFilteredDevices] = useState<DeviceItem[]>([])
   const [isDeviceListOpen, setIsDeviceListOpen] = useState(false)
   const [deviceListTitle, setDeviceListTitle] = useState("")
+  const [currentFilterType, setCurrentFilterType] = useState("")
   const [projects, setProjects] = useState<any[]>([])
   const [selectedProject, setSelectedProject] = useState<string>("")
   const [deviceAnalysis, setDeviceAnalysis] = useState<DeviceAnalysis>({
@@ -151,6 +152,83 @@ export default function Recommendations() {
     }
   }
 
+  // Function to generate context-appropriate issues based on filter type
+  const getContextualIssues = (device: DeviceItem, filterType: string): string[] => {
+    switch (filterType) {
+      case 'battery':
+        const contextualIssues = []
+        
+        // Check battery health percentage
+        const batteryHealthStr = device.batteryHealth || ''
+        const batteryPercentage = parseInt(batteryHealthStr.replace('%', '')) || 100
+        if (batteryPercentage < 80) {
+          contextualIssues.push(`Battery health is ${batteryPercentage}% (below 80% threshold)`)
+        }
+        
+        // Check for battery status
+        if (device.batteryHealth === 'Poor') {
+          contextualIssues.push('Battery health rated as Poor')
+        } else if (device.batteryHealth === 'Fair') {
+          contextualIssues.push('Battery health rated as Fair')
+        }
+        
+        // Check for existing battery issues in the issues array
+        const batteryIssues = device.issues?.filter(issue => 
+          issue.toLowerCase().includes('battery')
+        ) || []
+        contextualIssues.push(...batteryIssues)
+        
+        // If no specific battery issues found, add a generic one
+        if (contextualIssues.length === 0 && (batteryPercentage < 80 || device.batteryHealth === 'Poor' || device.batteryHealth === 'Fair')) {
+          contextualIssues.push('Battery replacement recommended')
+        }
+        
+        return contextualIssues
+        
+      case 'warranty':
+        const warrantyIssues = []
+        
+        // Check warranty status
+        if (device.warrantyStatus === 'Expired') {
+          warrantyIssues.push('Warranty has expired')
+        } else if (device.warrantyStatus === 'Expiring') {
+          warrantyIssues.push('Warranty expires within 6 months')
+        }
+        
+        // Check for warranty-related issues
+        const existingWarrantyIssues = device.issues?.filter(issue => 
+          issue.toLowerCase().includes('warranty')
+        ) || []
+        warrantyIssues.push(...existingWarrantyIssues)
+        
+        return warrantyIssues.length > 0 ? warrantyIssues : ['End-of-life planning required']
+        
+      case 'security':
+      case 'windows10':
+      case 'unpatched':
+        const securityIssues = []
+        
+        // Check for Windows 10
+        if (device.os.includes('Windows 10') || device.deviceos?.includes('Windows 10')) {
+          securityIssues.push('Windows 10 end-of-support (security risk)')
+        }
+        
+        // Check for security-related issues
+        const existingSecurityIssues = device.issues?.filter(issue => 
+          issue.toLowerCase().includes('security') || 
+          issue.toLowerCase().includes('patch') || 
+          issue.toLowerCase().includes('vulnerability')
+        ) || []
+        securityIssues.push(...existingSecurityIssues)
+        
+        return securityIssues.length > 0 ? securityIssues : ['Security updates required']
+        
+      default:
+        // For other cases, return original issues
+        return device.issues || []
+    }
+  }
+
   const handleViewDetails = (recommendation: RecommendationItem) => {
     setSelectedRecommendation(recommendation)
     setIsDetailModalOpen(true)
@@ -158,6 +236,9 @@ export default function Recommendations() {
 
   const handleDeviceListClick = (filterType: string, title: string) => {
     let filtered: DeviceItem[] = []
+    
+    // Store the current filter type for context-appropriate issue display
+    setCurrentFilterType(filterType)
     
     switch (filterType) {
       case 'security':
@@ -944,22 +1025,25 @@ export default function Recommendations() {
                     </TableCell>
                     <TableCell>{device.score}%</TableCell>
                     <TableCell>
-                      {device.issues.length > 0 ? (
-                        <div className="space-y-1">
-                          {device.issues.slice(0, 2).map((issue, i) => (
-                            <Badge key={i} variant="outline" className="text-xs mr-1">
-                              {issue}
-                            </Badge>
-                          ))}
-                          {device.issues.length > 2 && (
-                            <Badge variant="outline" className="text-xs">
-                              +{device.issues.length - 2} more
-                            </Badge>
-                          )}
-                        </div>
-                      ) : (
-                        <span className="text-muted-foreground">No issues</span>
-                      )}
+                      {(() => {
+                        const contextualIssues = getContextualIssues(device, currentFilterType)
+                        return contextualIssues.length > 0 ? (
+                          <div className="space-y-1">
+                            {contextualIssues.slice(0, 2).map((issue, i) => (
+                              <Badge key={i} variant="outline" className="text-xs mr-1">
+                                {issue}
+                              </Badge>
+                            ))}
+                            {contextualIssues.length > 2 && (
+                              <Badge variant="outline" className="text-xs">
+                                +{contextualIssues.length - 2} more
+                              </Badge>
+                            )}
+                          </div>
+                        ) : (
+                          <span className="text-muted-foreground">No issues</span>
+                        )
+                      })()}
                     </TableCell>
                   </TableRow>
                   ))}
