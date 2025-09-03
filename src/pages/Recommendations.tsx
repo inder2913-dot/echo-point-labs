@@ -323,8 +323,8 @@ export default function Recommendations() {
         
         setDevices(deviceItems)
         
-        // Analyze device data
-        const analysis = analyzeDevices(deviceComparison)
+        // Analyze device data using the processed deviceItems, not raw deviceComparison
+        const analysis = analyzeDevices(deviceItems)
         console.log('Analysis results:', analysis)
         setDeviceAnalysis(analysis)
         
