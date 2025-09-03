@@ -97,7 +97,7 @@ export default function Auth() {
         <CardHeader className="text-center">
           <div className="flex items-center justify-center gap-2 mb-4">
             <Building2 className="h-8 w-8 text-primary" />
-            <h1 className="text-2xl font-bold">EchoPoint</h1>
+            <h1 className="text-2xl font-bold">EcoPoint</h1>
           </div>
           <CardTitle>Welcome to Workplace Analytics</CardTitle>
           <CardDescription>
