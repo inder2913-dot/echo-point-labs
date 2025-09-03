@@ -29,9 +29,9 @@ import { Badge } from "@/components/ui/badge"
 
 const mainItems = [
   { title: "Overview", url: "/", icon: BarChart3 },
+  { title: "Industries", url: "/industries", icon: Factory },
   { title: "User Profiles", url: "/profiles", icon: Users },
   { title: "Baselines", url: "/baselines", icon: Target },
-  { title: "Industries", url: "/industries", icon: Factory },
   { title: "Endpoints", url: "/endpoints", icon: Activity },
   { title: "Projects", url: "/projects", icon: Building2 },
   { title: "New Project", url: "/project", icon: FolderOpen },

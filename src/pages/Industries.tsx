@@ -11,7 +11,7 @@ import { Building2, Users, Plus, Edit, Trash2, Copy } from 'lucide-react';
 import { supabase } from '@/integrations/supabase/client';
 import { useToast } from '@/hooks/use-toast';
 
-// Standard industry templates
+// Standard industry templates with actual data from UserProfiles
 const INDUSTRY_TEMPLATES = {
   'Healthcare': {
     description: 'Medical facilities, hospitals, clinics, and healthcare organizations',
@@ -19,52 +19,148 @@ const INDUSTRY_TEMPLATES = {
       { role: 'Registered Nurse', department: 'Clinical Services', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Attending Physician', department: 'Clinical Services', level: 'Professional', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
       { role: 'Healthcare Administrator', department: 'Administration', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Senior Lab Technician', department: 'Laboratory', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Certified Medical Assistant', department: 'Support Services', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Lead Pharmacist', department: 'Pharmacy', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Patient Care Coordinator', department: 'Patient Care', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Medical Billing Specialist', department: 'Finance', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
-    ]
-  },
-  'Technology': {
-    description: 'Software companies, tech startups, and IT organizations',
-    profiles: [
-      { role: 'Senior Software Engineer', department: 'Engineering', level: 'Professional', hardware: { cpu: 'Core i7', ram: '32GB', storage: '1TB SSD', graphics: 'Dedicated' } },
-      { role: 'DevOps Engineer', department: 'DevOps', level: 'Professional', hardware: { cpu: 'Core i7', ram: '32GB', storage: '1TB SSD', graphics: 'Onboard' } },
-      { role: 'UX Designer', department: 'Design', level: 'Professional', hardware: { cpu: 'Core i7', ram: '32GB', storage: '1TB SSD', graphics: 'Dedicated' } },
-      { role: 'Product Manager', department: 'Product', level: 'Management', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'IT Support Specialist', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Human Resources Manager', department: 'HR', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
     ]
   },
   'Manufacturing': {
     description: 'Production facilities, factories, and manufacturing organizations',
     profiles: [
       { role: 'Machine Operator', department: 'Production', level: 'Staff', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Maintenance Technician', department: 'Production', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Quality Control Specialist', department: 'Quality Control', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
-      { role: 'Plant Manager', department: 'Management', level: 'Management', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
-      { role: 'Maintenance Technician', department: 'Maintenance', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Supply Chain Coordinator', department: 'Supply Chain', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Plant Manager', department: 'Plant Management', level: 'Management', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Administrative Assistant', department: 'Administration', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Safety Compliance Officer', department: 'Safety', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Logistics Supervisor', department: 'Logistics', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Network Administrator', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Human Resources Specialist', department: 'HR', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
     ]
   },
   'Financial Services': {
     description: 'Banks, investment firms, and financial institutions',
     profiles: [
       { role: 'Financial Analyst', department: 'Finance', level: 'Professional', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Finance Manager', department: 'Finance', level: 'Management', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
       { role: 'Compliance Officer', department: 'Compliance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Risk Analyst', department: 'Risk Management', level: 'Professional', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Operations Coordinator', department: 'Operations', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Customer Service Rep', department: 'Customer Service', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'IT Support Technician', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Marketing Specialist', department: 'Marketing', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Sales Executive', department: 'Sales', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Talent Acquisition Manager', department: 'HR', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
+    ]
+  },
+  'Technology': {
+    description: 'Software companies, tech startups, and IT organizations',
+    profiles: [
+      { role: 'Senior Software Engineer', department: 'Engineering', level: 'Professional', hardware: { cpu: 'Core i7', ram: '32GB', storage: '1TB SSD', graphics: 'Dedicated' } },
+      { role: 'Product Owner', department: 'Product', level: 'Management', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Network Engineer', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'DevOps Engineer', department: 'DevOps', level: 'Professional', hardware: { cpu: 'Core i7', ram: '32GB', storage: '1TB SSD', graphics: 'Onboard' } },
+      { role: 'QA Analyst', department: 'Quality Assurance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'UX Designer', department: 'UX/UI', level: 'Professional', hardware: { cpu: 'Core i7', ram: '32GB', storage: '1TB SSD', graphics: 'Dedicated' } },
+      { role: 'Account Manager', department: 'Sales', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Digital Marketing Manager', department: 'Marketing', level: 'Management', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Technical Recruiter', department: 'HR', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Office Assistant', department: 'Administration', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
     ]
   },
   'Education': {
     description: 'Schools, universities, and educational institutions',
     profiles: [
       { role: 'Senior Lecturer', department: 'Academic', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Registrar', department: 'Administration', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Academic Counselor', department: 'Student Services', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'IT Support Specialist', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Senior Librarian', department: 'Library Services', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Facilities Manager', department: 'Facilities', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Budget Analyst', department: 'Finance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'HR Manager', department: 'Human Resources', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Research Associate', department: 'Research', level: 'Professional', hardware: { cpu: 'Core i7', ram: '32GB', storage: '1TB SSD', graphics: 'Dedicated' } },
+      { role: 'Admissions Officer', department: 'Admissions', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
+    ]
+  },
+  'Government': {
+    description: 'Government agencies, public administration, and civil services',
+    profiles: [
+      { role: 'Administrative Clerk', department: 'Administration', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Policy Analyst', department: 'Policy & Planning', level: 'Professional', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Police Officer', department: 'Public Safety', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Social Worker', department: 'Social Services', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Systems Administrator', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Financial Analyst', department: 'Finance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'HR Specialist', department: 'HR', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Public Relations Officer', department: 'Communications', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Legal Counsel', department: 'Legal', level: 'Professional', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Call Center Agent', department: 'Customer Service', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
     ]
   },
   'Retail': {
     description: 'Retail stores, e-commerce, and consumer-facing businesses',
     profiles: [
       { role: 'Sales Associate', department: 'Sales', level: 'Staff', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
-      { role: 'Store Manager', department: 'Management', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Store Manager', department: 'Store Management', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Inventory Clerk', department: 'Inventory', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Customer Service Rep', department: 'Customer Service', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
       { role: 'Marketing Coordinator', department: 'Marketing', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Logistics Coordinator', department: 'Logistics', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'IT Technician', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'HR Specialist', department: 'HR', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Payroll Analyst', department: 'Finance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Merchandising Specialist', department: 'Visual Merchandising', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
+    ]
+  },
+  'Professional Services': {
+    description: 'Consulting, legal, accounting, and other professional services',
+    profiles: [
+      { role: 'Management Consultant', department: 'Consulting', level: 'Professional', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Associate Attorney', department: 'Legal', level: 'Professional', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'CPA', department: 'Accounting', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'HR Business Partner', department: 'Human Resources', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'System Engineer', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Marketing Director', department: 'Marketing', level: 'Management', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Project Manager', department: 'Project Management', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Financial Analyst', department: 'Finance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Sales Director', department: 'Sales', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Office Manager', department: 'Administration', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
+    ]
+  },
+  'Non-Profit': {
+    description: 'Non-profit organizations, charities, and community services',
+    profiles: [
+      { role: 'Program Coordinator', department: 'Program Management', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Fundraising Manager', department: 'Fundraising', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Volunteer Coordinator', department: 'Volunteer Services', level: 'Professional', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Grants Analyst', department: 'Finance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Communications Specialist', department: 'Communications', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Community Trainer', department: 'Education', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Administrative Assistant', department: 'Administration', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'HR Manager', department: 'HR', level: 'Management', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'IT Support Specialist', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Outreach Coordinator', department: 'Outreach', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } }
+    ]
+  },
+  'Other': {
+    description: 'General business roles and other industry-specific positions',
+    profiles: [
+      { role: 'Operations Manager', department: 'Operations', level: 'Management', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Administrative Clerk', department: 'Administration', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Customer Service Rep', department: 'Customer Service', level: 'Support', hardware: { cpu: 'Core i3', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Technical Support Specialist', department: 'IT', level: 'Technical', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Marketing Specialist', department: 'Marketing', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Financial Analyst', department: 'Finance', level: 'Professional', hardware: { cpu: 'Core i5', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Sales Executive', department: 'Sales', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'HR Coordinator', department: 'Human Resources', level: 'Professional', hardware: { cpu: 'Core i5', ram: '8GB', storage: '256GB SSD', graphics: 'Onboard' } },
+      { role: 'Legal Advisor', department: 'Legal', level: 'Professional', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } },
+      { role: 'Managing Director', department: 'Management', level: 'Executive', hardware: { cpu: 'Core i7', ram: '16GB', storage: '512GB SSD', graphics: 'Onboard' } }
     ]
   }
 };
