@@ -30,6 +30,10 @@ interface Device {
   location: string
   issues: string[]
   device?: any
+  cpu?: string
+  ram?: string
+  graphics?: string
+  storage?: string
 }
 
 const getStatusIcon = (status: string) => {
@@ -86,6 +90,10 @@ export default function Endpoints() {
   const [selectedLocation, setSelectedLocation] = useState<string>("all")
   const [selectedStatus, setSelectedStatus] = useState<string>("all")
   const [selectedDeviceType, setSelectedDeviceType] = useState<string>("all")
+  const [selectedCpu, setSelectedCpu] = useState<string>("all")
+  const [selectedRam, setSelectedRam] = useState<string>("all")
+  const [selectedGraphics, setSelectedGraphics] = useState<string>("all")
+  const [selectedStorage, setSelectedStorage] = useState<string>("all")
 
   useEffect(() => {
     loadEndpointsData()
@@ -127,7 +135,11 @@ export default function Endpoints() {
           department: item.department || 'Unknown',
           location: item.location || 'Unknown',
           issues: item.issues || [],
-          device: item.device
+          device: item.device,
+          cpu: item.device?.cputype || item.device?.cpu || 'Unknown',
+          ram: item.device?.ramcapacity || item.device?.ram || 'Unknown',
+          graphics: item.device?.graphicstype || item.device?.graphicscard || 'Unknown',
+          storage: item.device?.diskcapacity || item.device?.storage || 'Unknown'
         }))
 
         console.log('Transformed devices:', transformedDevices)
@@ -160,14 +172,30 @@ export default function Endpoints() {
     if (selectedDeviceType !== "all") {
       filtered = filtered.filter(device => device.deviceType?.toLowerCase() === selectedDeviceType.toLowerCase())
     }
+    if (selectedCpu !== "all") {
+      filtered = filtered.filter(device => device.cpu?.includes(selectedCpu))
+    }
+    if (selectedRam !== "all") {
+      filtered = filtered.filter(device => device.ram?.includes(selectedRam))
+    }
+    if (selectedGraphics !== "all") {
+      filtered = filtered.filter(device => device.graphics?.toLowerCase().includes(selectedGraphics.toLowerCase()))
+    }
+    if (selectedStorage !== "all") {
+      filtered = filtered.filter(device => device.storage?.includes(selectedStorage))
+    }
 
     setFilteredDevices(filtered)
-  }, [devices, selectedDepartment, selectedLocation, selectedStatus, selectedDeviceType])
+  }, [devices, selectedDepartment, selectedLocation, selectedStatus, selectedDeviceType, selectedCpu, selectedRam, selectedGraphics, selectedStorage])
 
   // Get unique values for filters
   const departments = [...new Set(devices.map(d => d.department).filter(Boolean))]
   const locations = [...new Set(devices.map(d => d.location).filter(Boolean))]
   const deviceTypes = [...new Set(devices.map(d => d.deviceType).filter(Boolean))]
+  const cpuTypes = [...new Set(devices.map(d => d.cpu).filter(Boolean))]
+  const ramTypes = [...new Set(devices.map(d => d.ram).filter(Boolean))]
+  const graphicsTypes = [...new Set(devices.map(d => d.graphics).filter(Boolean))]
+  const storageTypes = [...new Set(devices.map(d => d.storage).filter(Boolean))]
 
   // Statistics
   const stats = {
@@ -282,7 +310,7 @@ export default function Endpoints() {
         <TabsContent value="all-devices" className="space-y-4">
           {/* Filters */}
           <Card className="p-4">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 xl:grid-cols-8 gap-4">
               <div className="space-y-2">
                 <label className="text-sm font-medium">Department</label>
                 <Select value={selectedDepartment} onValueChange={setSelectedDepartment}>
@@ -343,6 +371,66 @@ export default function Endpoints() {
                   </SelectContent>
                 </Select>
               </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">CPU</label>
+                <Select value={selectedCpu} onValueChange={setSelectedCpu}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All CPUs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All CPUs</SelectItem>
+                    {cpuTypes.map(cpu => (
+                      <SelectItem key={cpu} value={cpu}>{cpu}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">RAM</label>
+                <Select value={selectedRam} onValueChange={setSelectedRam}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All RAM" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All RAM</SelectItem>
+                    {ramTypes.map(ram => (
+                      <SelectItem key={ram} value={ram}>{ram}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Graphics</label>
+                <Select value={selectedGraphics} onValueChange={setSelectedGraphics}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Graphics" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Graphics</SelectItem>
+                    {graphicsTypes.map(graphics => (
+                      <SelectItem key={graphics} value={graphics}>{graphics}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Storage</label>
+                <Select value={selectedStorage} onValueChange={setSelectedStorage}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="All Storage" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Storage</SelectItem>
+                    {storageTypes.map(storage => (
+                      <SelectItem key={storage} value={storage}>{storage}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
 
             <Button 
@@ -352,6 +440,10 @@ export default function Endpoints() {
                 setSelectedLocation("all")
                 setSelectedDeviceType("all")
                 setSelectedStatus("all")
+                setSelectedCpu("all")
+                setSelectedRam("all")
+                setSelectedGraphics("all")
+                setSelectedStorage("all")
               }}
               className="mt-4"
             >
@@ -406,6 +498,25 @@ export default function Endpoints() {
                       <p className="text-muted-foreground">{device.deviceMake} {device.deviceModel}</p>
                     </div>
                   )}
+
+                  <div className="grid grid-cols-2 gap-4 text-sm">
+                    <div>
+                      <span className="font-medium">CPU:</span>
+                      <p className="text-muted-foreground">{device.cpu}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">RAM:</span>
+                      <p className="text-muted-foreground">{device.ram}GB</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Graphics:</span>
+                      <p className="text-muted-foreground">{device.graphics}</p>
+                    </div>
+                    <div>
+                      <span className="font-medium">Storage:</span>
+                      <p className="text-muted-foreground">{device.storage}GB</p>
+                    </div>
+                  </div>
 
                   <div className="text-sm">
                     <span className="font-medium">Compliance Score:</span>
