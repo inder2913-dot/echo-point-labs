@@ -83,6 +83,7 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
   const [uploadedDevices, setUploadedDevices] = useState<any[]>(initialData.deviceData || [])
   const [isUploading, setIsUploading] = useState(false)
   const [uploadStatus, setUploadStatus] = useState<"idle" | "success" | "error">("idle")
+  const [isAdvancing, setIsAdvancing] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   const handleFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -197,10 +198,14 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
   }
 
   const handleContinue = () => {
-    onComplete({
-      deviceData: uploadedDevices,
-      deviceUploadMethod: selectedIntegration
-    })
+    setIsAdvancing(true)
+    // Add a small delay to show the user the success state before advancing
+    setTimeout(() => {
+      onComplete({
+        deviceData: uploadedDevices,
+        deviceUploadMethod: selectedIntegration
+      })
+    }, 1000)
   }
 
   const downloadTemplate = () => {
@@ -438,8 +443,15 @@ export function DeviceInventoryUpload({ onComplete, initialData }: DeviceInvento
       {/* Continue Button */}
       {uploadedDevices.length > 0 && (
         <div className="flex justify-end">
-          <Button onClick={handleContinue}>
-            Continue to User Profiling
+          <Button onClick={handleContinue} disabled={isAdvancing}>
+            {isAdvancing ? (
+              <>
+                <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full mr-2"></div>
+                Advancing to next step...
+              </>
+            ) : (
+              "Continue to User Profiling"
+            )}
           </Button>
         </div>
       )}
