@@ -101,9 +101,11 @@ export default function Auth() {
   }
 
   const handleDevBypass = async () => {
-    // Development bypass - creates a proper Supabase session
+    // Development bypass - creates a proper Supabase session with matching UUID
+    const devUserId = '12345678-1234-5678-9012-123456789012'
+    
     const mockUser = {
-      id: 'dev-user-123',
+      id: devUserId,
       email: 'dev@example.com',
       app_metadata: {},
       user_metadata: {},

@@ -37,7 +37,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       const mockUser = JSON.parse(devUser);
       setUser(mockUser);
       
-      // Create a mock session for the dev bypass
+      // Create a mock session for the dev bypass with proper UUID
       const mockSession = {
         access_token: 'dev-access-token',
         refresh_token: 'dev-refresh-token',
