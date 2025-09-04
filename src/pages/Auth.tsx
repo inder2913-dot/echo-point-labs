@@ -100,6 +100,25 @@ export default function Auth() {
     }
   }
 
+  const handleDevBypass = () => {
+    // Development bypass - creates a temporary session
+    const mockUser = {
+      id: 'dev-user-123',
+      email: 'dev@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: new Date().toISOString()
+    }
+    
+    toast({
+      title: "Development access granted",
+      description: "You're now logged in with a temporary session."
+    })
+    
+    navigate("/")
+  }
+
   return (
     <div className="min-h-screen bg-gradient-to-br from-background to-muted flex items-center justify-center p-4">
       <Card className="w-full max-w-md">
@@ -112,6 +131,21 @@ export default function Auth() {
           <CardDescription>
             Sign in to save your projects and access analytics
           </CardDescription>
+          
+          {/* Development Bypass Button */}
+          <div className="mt-4 p-3 bg-yellow-50 dark:bg-yellow-950 border border-yellow-200 dark:border-yellow-800 rounded-lg">
+            <p className="text-sm text-yellow-800 dark:text-yellow-200 mb-2">
+              Development Mode: Having auth issues?
+            </p>
+            <Button 
+              onClick={handleDevBypass}
+              variant="outline" 
+              size="sm"
+              className="w-full border-yellow-300 dark:border-yellow-700 hover:bg-yellow-100 dark:hover:bg-yellow-900"
+            >
+              🚪 Bypass Auth (Dev Only)
+            </Button>
+          </div>
         </CardHeader>
         <CardContent>
           <Tabs defaultValue="signin" className="w-full">
