@@ -100,10 +100,9 @@ export default function Auth() {
     }
   }
 
-  const handleDevBypass = () => {
-    // Development bypass - stores a flag that the ProtectedRoute can check
-    localStorage.setItem('dev-bypass-auth', 'true')
-    localStorage.setItem('dev-user', JSON.stringify({
+  const handleDevBypass = async () => {
+    // Development bypass - creates a proper Supabase session
+    const mockUser = {
       id: 'dev-user-123',
       email: 'dev@example.com',
       app_metadata: {},
@@ -111,14 +110,30 @@ export default function Auth() {
       aud: 'authenticated',
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString()
-    }))
+    }
+    
+    const mockSession = {
+      access_token: 'dev-access-token-' + Date.now(),
+      refresh_token: 'dev-refresh-token-' + Date.now(), 
+      expires_in: 3600,
+      expires_at: Math.floor(Date.now() / 1000) + 3600,
+      token_type: 'bearer',
+      user: mockUser
+    }
+    
+    // Store the session in a way that Supabase can access it
+    localStorage.setItem('sb-ediqerrocenadkcgcsmr-auth-token', JSON.stringify(mockSession))
+    
+    // Also set the bypass flag
+    localStorage.setItem('dev-bypass-auth', 'true')
+    localStorage.setItem('dev-user', JSON.stringify(mockUser))
     
     toast({
       title: "Development access granted", 
-      description: "You're now logged in with a temporary session that will persist."
+      description: "You're now logged in with a development session that works with the database."
     })
     
-    // Force a page reload to trigger the auth check
+    // Force a page reload to ensure the session is picked up
     window.location.href = "/"
   }
 

@@ -34,12 +34,25 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
     const devUser = localStorage.getItem('dev-user');
     
     if (devBypass === 'true' && devUser) {
-      setUser(JSON.parse(devUser));
+      const mockUser = JSON.parse(devUser);
+      setUser(mockUser);
+      
+      // Create a mock session for the dev bypass
+      const mockSession = {
+        access_token: 'dev-access-token',
+        refresh_token: 'dev-refresh-token',
+        expires_in: 3600,
+        expires_at: Math.floor(Date.now() / 1000) + 3600,
+        token_type: 'bearer',
+        user: mockUser
+      } as Session;
+      
+      setSession(mockSession);
       setLoading(false);
       return;
     }
 
-    // Set up auth state listener FIRST
+    // Set up auth state listener for real Supabase auth
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
         setSession(session);
@@ -48,7 +61,7 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
       }
     );
 
-    // THEN check for existing session
+    // Check for existing session
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
