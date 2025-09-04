@@ -101,33 +101,25 @@ export default function Auth() {
   }
 
   const handleDevBypass = () => {
-    // Development bypass - creates a temporary session that persists
-    const mockSession = {
-      access_token: 'dev-token-' + Date.now(),
-      refresh_token: 'dev-refresh-token',
-      expires_in: 3600,
-      expires_at: Date.now() + 3600000,
-      token_type: 'bearer',
-      user: {
-        id: 'dev-user-123',
-        email: 'dev@example.com',
-        app_metadata: {},
-        user_metadata: {},
-        aud: 'authenticated',
-        created_at: new Date().toISOString(),
-        updated_at: new Date().toISOString()
-      }
-    }
-    
-    // Store in localStorage to persist across page reloads
-    localStorage.setItem('supabase.auth.token', JSON.stringify(mockSession))
+    // Development bypass - stores a flag that the ProtectedRoute can check
+    localStorage.setItem('dev-bypass-auth', 'true')
+    localStorage.setItem('dev-user', JSON.stringify({
+      id: 'dev-user-123',
+      email: 'dev@example.com',
+      app_metadata: {},
+      user_metadata: {},
+      aud: 'authenticated',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString()
+    }))
     
     toast({
-      title: "Development access granted",
+      title: "Development access granted", 
       description: "You're now logged in with a temporary session that will persist."
     })
     
-    navigate("/")
+    // Force a page reload to trigger the auth check
+    window.location.href = "/"
   }
 
   return (

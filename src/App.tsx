@@ -29,6 +29,16 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
+    // Check for dev bypass first
+    const devBypass = localStorage.getItem('dev-bypass-auth');
+    const devUser = localStorage.getItem('dev-user');
+    
+    if (devBypass === 'true' && devUser) {
+      setUser(JSON.parse(devUser));
+      setLoading(false);
+      return;
+    }
+
     // Set up auth state listener FIRST
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       (event, session) => {
