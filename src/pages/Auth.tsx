@@ -83,6 +83,8 @@ export default function Auth() {
         console.error('Sign in error:', error)
         if (error.message.includes("Invalid login credentials")) {
           setError("Invalid email or password. Please check your credentials.")
+        } else if (error.message.includes("Failed to fetch")) {
+          setError("Network connection issue. Please check your internet connection and try again.")
         } else {
           setError(error.message)
         }
@@ -92,7 +94,7 @@ export default function Auth() {
       }
     } catch (err) {
       console.error('Unexpected error during sign in:', err)
-      setError("An unexpected error occurred")
+      setError("Connection error - please try refreshing the page")
     } finally {
       setLoading(false)
     }
