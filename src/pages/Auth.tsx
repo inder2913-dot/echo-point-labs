@@ -70,21 +70,28 @@ export default function Auth() {
     setError("")
 
     try {
-      const { error } = await supabase.auth.signInWithPassword({
+      console.log('Attempting sign in with:', { email })
+      
+      const { data, error } = await supabase.auth.signInWithPassword({
         email,
         password
       })
 
+      console.log('Sign in response:', { data, error })
+
       if (error) {
+        console.error('Sign in error:', error)
         if (error.message.includes("Invalid login credentials")) {
           setError("Invalid email or password. Please check your credentials.")
         } else {
           setError(error.message)
         }
       } else {
+        console.log('Sign in successful, navigating to home')
         navigate("/")
       }
     } catch (err) {
+      console.error('Unexpected error during sign in:', err)
       setError("An unexpected error occurred")
     } finally {
       setLoading(false)
