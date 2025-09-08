@@ -40,12 +40,16 @@ export function TopBar() {
   const handleSignOut = async () => {
     try {
       // Check if we're using development bypass
-      const isDevelopmentBypass = localStorage.getItem('development_bypass') === 'true'
+      const isDevelopmentBypass = localStorage.getItem('dev-bypass-auth') === 'true'
       
       if (isDevelopmentBypass) {
         // Clear development bypass
-        localStorage.removeItem('development_bypass')
-        localStorage.removeItem('supabase.auth.token')
+        localStorage.removeItem('dev-bypass-auth')
+        localStorage.removeItem('dev-user')
+        toast({
+          title: "Success",
+          description: "Signed out from development session"
+        })
         // Redirect to auth page
         window.location.href = '/auth'
         return
