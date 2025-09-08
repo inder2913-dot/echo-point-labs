@@ -38,13 +38,38 @@ export function TopBar() {
   }, [])
 
   const handleSignOut = async () => {
-    const { error } = await supabase.auth.signOut()
-    if (error) {
-      toast({
-        title: "Error",
-        description: "Failed to sign out",
-        variant: "destructive"
-      })
+    try {
+      // Check if we're using development bypass
+      const isDevelopmentBypass = localStorage.getItem('development_bypass') === 'true'
+      
+      if (isDevelopmentBypass) {
+        // Clear development bypass
+        localStorage.removeItem('development_bypass')
+        localStorage.removeItem('supabase.auth.token')
+        // Redirect to auth page
+        window.location.href = '/auth'
+        return
+      }
+
+      const { error } = await supabase.auth.signOut()
+      if (error) {
+        console.error('Sign out error:', error)
+        toast({
+          title: "Error",
+          description: "Failed to sign out",
+          variant: "destructive"
+        })
+      } else {
+        toast({
+          title: "Success",
+          description: "Signed out successfully"
+        })
+      }
+    } catch (err) {
+      console.error('Unexpected sign out error:', err)
+      // Force signout by clearing local storage and redirecting
+      localStorage.clear()
+      window.location.href = '/auth'
     }
   }
 
